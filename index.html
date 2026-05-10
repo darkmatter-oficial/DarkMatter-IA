@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DarkMatter Pro AI</title>
     <style>
         :root {
@@ -23,9 +23,12 @@
             color: var(--text-primary);
             font-family: 'Inter', sans-serif;
             height: 100vh;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: fixed;
+            width: 100%;
         }
 
         header {
@@ -37,6 +40,7 @@
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(59, 130, 246, 0.2);
             z-index: 100;
+            flex-shrink: 0;
         }
 
         .title-small {
@@ -57,6 +61,7 @@
             flex-direction: column;
             gap: 20px;
             scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
         }
 
         @keyframes slideUp {
@@ -105,11 +110,13 @@
         }
 
         .input-area {
-            padding: 15px 20px 35px;
+            padding: 12px 15px 12px;
             background: var(--panel-color);
             border-top: 1px solid rgba(59, 130, 246, 0.2);
             display: flex;
             gap: 10px;
+            flex-shrink: 0;
+            padding-bottom: env(safe-area-inset-bottom, 12px);
         }
 
         .field {
@@ -117,19 +124,21 @@
             background: var(--bg-color);
             border: 1px solid rgba(59, 130, 246, 0.2);
             border-radius: 25px;
-            padding: 12px 20px;
+            padding: 10px 18px;
             color: white;
             outline: none;
+            font-size: 16px;
         }
 
         .field:focus { border-color: var(--accent-color); box-shadow: 0 0 15px var(--accent-glow); }
 
         .send {
-            width: 45px; height: 45px;
+            width: 42px; height: 42px;
             background: var(--accent-color);
             border: none; border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
             cursor: pointer; box-shadow: 0 0 15px var(--accent-glow);
+            flex-shrink: 0;
         }
 
         /* Typing Dots */
