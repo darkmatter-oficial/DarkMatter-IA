@@ -1,490 +1,922 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DarkMatter Pro AI</title>
-    <style>
-        :root {
-            --bg-color: #020617;
-            --panel-color: #0f172a;
-            --accent-color: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.5);
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --user-bubble: linear-gradient(135deg, #1d4ed8, #1e40af);
-            --ai-bubble: linear-gradient(135deg, #1e293b, #0f172a);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
-            height: 100vh;
-            height: 100dvh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: fixed;
-            width: 100%;
-        }
-
-        header {
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
-            z-index: 100;
-            flex-shrink: 0;
-        }
-
-        .title-small {
-            font-size: 0.7rem;
-            font-weight: 900;
-            letter-spacing: 3px;
-            color: var(--accent-color);
-            text-shadow: 0 0 10px var(--accent-glow);
-        }
-
-        .status { font-size: 0.6rem; color: #10b981; text-transform: uppercase; letter-spacing: 1px; }
-
-        #chat-view {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px) scale(0.98); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        .msg-wrapper { max-width: 90%; display: flex; animation: slideUp 0.4s ease-out forwards; flex-direction: column; }
-        .user-wrapper { align-self: flex-end; }
-        .ai-wrapper { align-self: flex-start; }
-
-        .bubble {
-            padding: 14px 18px;
-            border-radius: 22px;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-
-        .user-bubble { background: var(--user-bubble); border-bottom-right-radius: 4px; }
-        .ai-bubble { background: var(--ai-bubble); border: 1px solid rgba(59, 130, 246, 0.1); border-bottom-left-radius: 4px; }
-
-        pre {
-            background: #000;
-            margin: 12px 0;
-            padding: 15px;
-            border-radius: 12px;
-            font-family: monospace;
-            font-size: 0.8rem;
-            overflow-x: auto;
-            border-left: 3px solid var(--accent-color);
-            position: relative;
-            color: #7dd3fc;
-        }
-
-        .copy-btn {
-            position: absolute;
-            top: 5px; right: 5px;
-            background: rgba(59, 130, 246, 0.2);
-            color: var(--accent-color);
-            border: 1px solid var(--accent-color);
-            padding: 2px 8px;
-            font-size: 0.6rem;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        /* Estilo para imágenes en el chat */
-        .chat-img {
-            max-width: 200px;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        /* Previsualización antes de enviar */
-        #preview-container {
-            display: none;
-            padding: 10px 20px;
-            background: var(--panel-color);
-            border-top: 1px solid rgba(59, 130, 246, 0.2);
-            position: relative;
-        }
-
-        #img-preview {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 8px;
-            border: 2px solid var(--accent-color);
-        }
-
-        .close-preview {
-            position: absolute;
-            top: 5px;
-            left: 75px;
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        .input-area {
-            padding: 12px 15px 12px;
-            background: var(--panel-color);
-            border-top: 1px solid rgba(59, 130, 246, 0.2);
-            display: flex;
-            gap: 10px;
-            flex-shrink: 0;
-            padding-bottom: env(safe-area-inset-bottom, 12px);
-            align-items: center;
-        }
-
-        .field {
-            flex: 1;
-            background: var(--bg-color);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            border-radius: 25px;
-            padding: 10px 18px;
-            color: white;
-            outline: none;
-            font-size: 16px;
-        }
-
-        .field:focus { border-color: var(--accent-color); box-shadow: 0 0 15px var(--accent-glow); }
-
-        .btn-icon {
-            width: 42px; height: 42px;
-            background: var(--accent-color);
-            border: none; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer; box-shadow: 0 0 15px var(--accent-glow);
-            flex-shrink: 0;
-        }
-
-        .attach-btn {
-            background: #334155;
-            box-shadow: none;
-        }
-
-        /* Typing Dots */
-        .dots { display: flex; gap: 4px; padding: 10px; }
-        .dot { width: 5px; height: 5px; background: var(--accent-color); border-radius: 50%; animation: pulse 1.5s infinite; }
-        .dot:nth-child(2) { animation-delay: 0.2s; }
-        .dot:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; transform: scale(1.2); } }
-    </style>
-</head>
-<body>
-
-<header>
-    <div class="title-small">DARKMATTER IA</div>
-    <div class="status">● ONLINE</div>
-</header>
-
-<div id="chat-view">
-    <div class="msg-wrapper ai-wrapper">
-        <div class="bubble ai-bubble">Núcleo DarkMatter iniciado. Ahora puedo procesar imágenes y guías. Esperando instrucciones...</div>
-    </div>
-</div>
-
-<div id="preview-container">
-    <img id="img-preview" src="">
-    <div class="close-preview" onclick="clearImage()">×</div>
-</div>
-
-<div class="input-area">
-    <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFile(this)">
-    <button class="btn-icon attach-btn" onclick="document.getElementById('fileInput').click()">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-    </button>
-    <input type="text" id="userInput" class="field" placeholder="Escribe un comando..." autocomplete="off">
-    <button class="btn-icon" onclick="send()">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
-    </button>
-</div>
-
-<script>
-    const KEY = "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";
-    const chat = document.getElementById('chat-view');
-    const input = document.getElementById('userInput');
-    let currentBase64 = null;
-
-    input.addEventListener('keypress', (e) => { if(e.key === 'Enter') send(); });
-
-    function handleFile(input) {
-        const file = input.files[0];
-
-        if (!file) {
-            return;
-        }
-
-        if (!file.type.startsWith("image/")) {
-            addMsg("Solo se permiten archivos de imagen.", 'ai');
-            return;
-        }
-
-        if (file.size > 20000000) {
-            addMsg("La imagen supera el límite permitido de 20MB.", 'ai');
-            return;
-        }
-
-        const reader = new FileReader();
-
-        reader.onload = function(e) {
-            currentBase64 = e.target.result;
-
-            document.getElementById('img-preview').src = currentBase64;
-            document.getElementById('preview-container').style.display = 'block';
-        };
-
-        reader.onerror = function() {
-            addMsg("No se pudo leer la imagen seleccionada.", 'ai');
-        };
-
-        reader.readAsDataURL(file);
-    }
-
-    function clearImage() {
-        currentBase64 = null;
-        document.getElementById('fileInput').value = '';
-        document.getElementById('preview-container').style.display = 'none';
-    }
-
-    async function send() {
-        const text = input.value.trim();
-
-        if(!text && !currentBase64) {
-            return;
-        }
-
-        addMsg(text, 'user', currentBase64);
-
-        const tempImage = currentBase64;
-
-        input.value = '';
-        clearImage();
-
-        toggleLoad(true);
-
-        const modelToUse = tempImage
-            ? "meta-llama/llama-4-scout-17b-16e-instruct"
-            : "llama-3.3-70b-versatile";
-
-        try {
-
-            let messages = [];
-
-            if (tempImage) {
-
-                messages = [
-                    {
-                        role: "user",
-                        content: [
-                            {
-                                type: "text",
-                                text: text || "Analiza esta imagen detalladamente."
-                            },
-                            {
-                                type: "image_url",
-                                image_url: {
-                                    url: tempImage
-                                }
-                            }
-                        ]
-                    }
-                ];
-
-            } else {
-
-                messages = [
-                    {
-                        role: "system",
-                        content: "Eres DarkMatter Pro AI. Experto en Luau, PHP y Firebase. Responde de forma técnica y directa."
-                    },
-                    {
-                        role: "user",
-                        content: text
-                    }
-                ];
-
-            }
-
-            const requestBody = {
-                model: modelToUse,
-                messages: messages,
-                temperature: 0.5,
-                max_tokens: 1024
-            };
-
-            const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${KEY}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(requestBody)
-            });
-
-            toggleLoad(false);
-
-            if (!r.ok) {
-
-                let errorText = await r.text();
-
-                try {
-
-                    const errorJson = JSON.parse(errorText);
-
-                    if (errorJson.error && errorJson.error.message) {
-                        addMsg("Error de la IA: " + errorJson.error.message, 'ai');
-                    } else {
-                        addMsg("Error HTTP " + r.status + ": " + errorText, 'ai');
-                    }
-
-                } catch {
-
-                    addMsg("Error HTTP " + r.status + ": " + errorText, 'ai');
-
-                }
-
-                return;
-            }
-
-            const d = await r.json();
-
-            if(d.choices && d.choices[0] && d.choices[0].message) {
-
-                addMsg(d.choices[0].message.content, 'ai');
-
-            } else if (d.error) {
-
-                if (d.error.code === "rate_limit_exceeded") {
-
-                    addMsg("Motor saturado (Rate Limit). Por favor, espera un momento antes de volver a subir una imagen.", 'ai');
-
-                } else {
-
-                    addMsg("Error de la IA: " + d.error.message, 'ai');
-
-                }
-
-            } else {
-
-                addMsg("Respuesta inesperada del servidor.", 'ai');
-
-            }
-
-        } catch(e) {
-
-            toggleLoad(false);
-
-            addMsg("Error de conexión al núcleo: " + e.message, 'ai');
-
-        }
-    }
-
-    function addMsg(t, type, img = null) {
-        const w = document.createElement('div');
-        w.className = `msg-wrapper ${type}-wrapper`;
-
-        if (img) {
-            const i = document.createElement('img');
-            i.src = img;
-            i.className = 'chat-img';
-            w.appendChild(i);
-        }
-
-        const b = document.createElement('div');
-        b.className = `bubble ${type}-bubble`;
-
-        if(t && t.includes('```')) {
-
-            const p = t.split('```');
-
-            b.innerHTML = p.map((c, i) =>
-                i % 2 === 1
-                    ? `<pre><button class="copy-btn" onclick="copy(this)">Copiar</button><code>${c.trim()}</code></pre>`
-                    : c.replace(/\n/g, '<br>')
-            ).join('');
-
-        } else if (t) {
-
-            b.innerHTML = t.replace(/\n/g, '<br>');
-
-        }
-
-        if (t || img) {
-            w.appendChild(b);
-            chat.appendChild(w);
-            chat.scrollTop = chat.scrollHeight;
-        }
-    }
-
-    function toggleLoad(s) {
-
-        if(s) {
-
-            const l = document.createElement('div');
-
-            l.id = 'loader';
-            l.className = 'msg-wrapper ai-wrapper';
-
-            l.innerHTML = '<div class="bubble ai-bubble dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
-
-            chat.appendChild(l);
-
-            chat.scrollTop = chat.scrollHeight;
-
-        } else {
-
-            const l = document.getElementById('loader');
-
-            if(l) {
-                l.remove();
-            }
-
-        }
-
-    }
-
-    function copy(btn) {
-
-        const codeElement = btn.nextElementSibling;
-
-        navigator.clipboard.writeText(codeElement.innerText).then(() => {
-
-            btn.innerText = "¡Listo!";
-
-            setTimeout(() => {
-                btn.innerText = "Copiar";
-            }, 2000);
-
-        });
-
-    }
-</script>
-
-</body>
+<!DOCTYPE html>  
+<html lang="es">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">  
+    <title>DarkMatter Pro AI</title>  
+    <style>  
+        :root {  
+            --bg-color: #020617;  
+            --panel-color: #0f172a;  
+            --accent-color: #3b82f6;  
+            --accent-glow: rgba(59, 130, 246, 0.5);  
+            --text-primary: #f8fafc;  
+            --text-secondary: #94a3b8;  
+            --user-bubble: linear-gradient(135deg, #1d4ed8, #1e40af);  
+            --ai-bubble: linear-gradient(135deg, #1e293b, #0f172a);  
+        }  
+  
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }  
+  
+        body {  
+            background-color: var(--bg-color);  
+            color: var(--text-primary);  
+            font-family: 'Inter', sans-serif;  
+            height: 100vh;  
+            height: 100dvh;  
+            display: flex;  
+            flex-direction: column;  
+            overflow: hidden;  
+            position: fixed;  
+            width: 100%;  
+        }  
+  
+        header {  
+            padding: 15px 20px;  
+            display: flex;  
+            justify-content: space-between;  
+            align-items: center;  
+            background: rgba(15, 23, 42, 0.9);  
+            backdrop-filter: blur(10px);  
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);  
+            z-index: 100;  
+            flex-shrink: 0;  
+        }  
+  
+        .title-small {  
+            font-size: 0.7rem;  
+            font-weight: 900;  
+            letter-spacing: 3px;  
+            color: var(--accent-color);  
+            text-shadow: 0 0 10px var(--accent-glow);  
+        }  
+  
+        .status { font-size: 0.6rem; color: #10b981; text-transform: uppercase; letter-spacing: 1px; }  
+  
+        #chat-view {  
+            flex: 1;  
+            overflow-y: auto;  
+            padding: 20px;  
+            display: flex;  
+            flex-direction: column;  
+            gap: 20px;  
+            scroll-behavior: smooth;  
+            -webkit-overflow-scrolling: touch;  
+        }  
+  
+        @keyframes slideUp {  
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }  
+            to { opacity: 1; transform: translateY(0) scale(1); }  
+        }  
+  
+        .msg-wrapper { max-width: 90%; display: flex; animation: slideUp 0.4s ease-out forwards; flex-direction: column; }  
+        .user-wrapper { align-self: flex-end; }  
+        .ai-wrapper { align-self: flex-start; }  
+  
+        .bubble {  
+            padding: 14px 18px;  
+            border-radius: 22px;  
+            font-size: 0.9rem;  
+            line-height: 1.5;  
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);  
+            white-space: pre-wrap;  
+            word-wrap: break-word;  
+        }  
+  
+        .user-bubble { background: var(--user-bubble); border-bottom-right-radius: 4px; }  
+        .ai-bubble { background: var(--ai-bubble); border: 1px solid rgba(59, 130, 246, 0.1); border-bottom-left-radius: 4px; }  
+  
+        .code-block-wrapper {  
+            margin: 12px 0;  
+            border-radius: 12px;  
+            overflow: hidden;  
+            border-left: 3px solid var(--accent-color);  
+            background: #000;  
+        }  
+  
+        .code-header {  
+            display: flex;  
+            justify-content: space-between;  
+            align-items: center;  
+            padding: 10px 14px;  
+            background: #0f172a;  
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);  
+        }  
+  
+        .code-language {  
+            color: var(--accent-color);  
+            font-size: 0.75rem;  
+            font-weight: bold;  
+            text-transform: uppercase;  
+            letter-spacing: 1px;  
+        }  
+  
+        .copy-indicator {  
+            color: #94a3b8;  
+            font-size: 0.7rem;  
+        }  
+  
+        pre {  
+            background: #000;  
+            margin: 0;  
+            padding: 15px;  
+            border-radius: 0;  
+            font-family: monospace;  
+            font-size: 0.8rem;  
+            overflow-x: auto;  
+            overflow-y: hidden;  
+            position: relative;  
+            color: #7dd3fc;  
+            -webkit-user-select: text;  
+            user-select: text;  
+        }  
+  
+        pre code {  
+            display: block;  
+            min-width: max-content;  
+            white-space: pre;  
+        }  
+  
+        .copy-btn {  
+            position: absolute;  
+            top: 8px;  
+            right: 8px;  
+            z-index: 999;  
+            background: rgba(59, 130, 246, 0.2);  
+            color: var(--accent-color);  
+            border: 1px solid var(--accent-color);  
+            padding: 6px 10px;  
+            font-size: 0.7rem;  
+            border-radius: 6px;  
+            cursor: pointer;  
+            backdrop-filter: blur(5px);  
+            transform: translateX(0px);  
+            pointer-events: auto;  
+        }  
+  
+        h1, h2, h3, h4, h5, h6 {  
+            margin-top: 12px;  
+            margin-bottom: 8px;  
+            color: #ffffff;  
+        }  
+  
+        h1 {  
+            font-size: 1.5rem;  
+        }  
+  
+        h2 {  
+            font-size: 1.3rem;  
+        }  
+  
+        h3 {  
+            font-size: 1.1rem;  
+        }  
+  
+        strong {  
+            color: #ffffff;  
+            font-weight: bold;  
+        }  
+  
+        ul, ol {  
+            padding-left: 20px;  
+            margin-top: 8px;  
+            margin-bottom: 8px;  
+        }  
+  
+        li {  
+            margin-bottom: 6px;  
+        }  
+  
+        /* Estilo para imágenes en el chat */  
+        .chat-img {  
+            max-width: 200px;  
+            border-radius: 12px;  
+            margin-bottom: 8px;  
+            border: 1px solid rgba(255,255,255,0.1);  
+        }  
+  
+        /* Previsualización antes de enviar */  
+        #preview-container {  
+            display: none;  
+            padding: 10px 20px;  
+            background: var(--panel-color);  
+            border-top: 1px solid rgba(59, 130, 246, 0.2);  
+            position: relative;  
+        }  
+  
+        #img-preview {  
+            width: 60px;  
+            height: 60px;  
+            object-fit: cover;  
+            border-radius: 8px;  
+            border: 2px solid var(--accent-color);  
+        }  
+  
+        .close-preview {  
+            position: absolute;  
+            top: 5px;  
+            left: 75px;  
+            background: #ef4444;  
+            color: white;  
+            border-radius: 50%;  
+            width: 20px;  
+            height: 20px;  
+            display: flex;  
+            align-items: center;  
+            justify-content: center;  
+            font-size: 12px;  
+            cursor: pointer;  
+        }  
+  
+        .input-area {  
+            padding: 12px 15px 12px;  
+            background: var(--panel-color);  
+            border-top: 1px solid rgba(59, 130, 246, 0.2);  
+            display: flex;  
+            gap: 10px;  
+            flex-shrink: 0;  
+            padding-bottom: env(safe-area-inset-bottom, 12px);  
+            align-items: center;  
+        }  
+  
+        .field {  
+            flex: 1;  
+            background: var(--bg-color);  
+            border: 1px solid rgba(59, 130, 246, 0.2);  
+            border-radius: 25px;  
+            padding: 10px 18px;  
+            color: white;  
+            outline: none;  
+            font-size: 16px;  
+        }  
+  
+        .field:focus { border-color: var(--accent-color); box-shadow: 0 0 15px var(--accent-glow); }  
+  
+        .btn-icon {  
+            width: 42px; height: 42px;  
+            background: var(--accent-color);  
+            border: none; border-radius: 50%;  
+            display: flex; justify-content: center; align-items: center;  
+            cursor: pointer; box-shadow: 0 0 15px var(--accent-glow);  
+            flex-shrink: 0;  
+        }  
+  
+        .attach-btn {  
+            background: #334155;  
+            box-shadow: none;  
+        }  
+  
+        /* Typing Dots */  
+        .dots { display: flex; gap: 4px; padding: 10px; }  
+        .dot { width: 5px; height: 5px; background: var(--accent-color); border-radius: 50%; animation: pulse 1.5s infinite; }  
+        .dot:nth-child(2) { animation-delay: 0.2s; }  
+        .dot:nth-child(3) { animation-delay: 0.4s; }  
+        @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; transform: scale(1.2); } }  
+    </style>  
+</head>  
+<body>  
+  
+<header>  
+    <div class="title-small">DARKMATTER IA</div>  
+    <div class="status">● ONLINE</div>  
+</header>  
+  
+<div id="chat-view">  
+    <div class="msg-wrapper ai-wrapper">  
+        <div class="bubble ai-bubble">Núcleo DarkMatter iniciado. Ahora puedo procesar imágenes y guías. Esperando instrucciones...</div>  
+    </div>  
+</div>  
+  
+<div id="preview-container">  
+    <img id="img-preview" src="">  
+    <div class="close-preview" onclick="clearImage()">×</div>  
+</div>  
+  
+<div class="input-area">  
+    <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFile(this)">  
+    <button class="btn-icon attach-btn" onclick="document.getElementById('fileInput').click()">  
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>  
+    </button>  
+    <input type="text" id="userInput" class="field" placeholder="Escribe un comando..." autocomplete="off">  
+    <button class="btn-icon" onclick="send()">  
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>  
+    </button>  
+</div>  
+  
+<script>  
+    const KEY = "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";  
+    const chat = document.getElementById('chat-view');  
+    const input = document.getElementById('userInput');  
+  
+    let currentBase64 = null;  
+    let lastImageBase64 = null;  
+  
+    let conversationHistory = [  
+        {  
+            role: "system",  
+            content: `  
+Eres DarkMatter Pro AI.  
+  
+REGLAS IMPORTANTES:  
+- Siempre responde en español.  
+- Si el usuario manda una imagen, analízala detalladamente.  
+- Recuerda la última imagen enviada aunque el usuario vuelva a escribir sin subirla otra vez.  
+- Si el usuario pregunta algo relacionado con la imagen anterior, usa el contexto visual anterior.  
+- Cuando resuelvas ejercicios matemáticos o físicos:  
+  - Haz el procedimiento completo.  
+  - Usa pasos ordenados.  
+  - Explica fórmulas de forma normal.  
+  - Nunca escribas fórmulas en formato LaTeX.  
+  - Nunca uses símbolos como \\( \\) o \\text{}.  
+  - Usa formato normal como:  
+    d = v × t  
+  - Explica sustitución de valores.  
+  - Explica resultado final.  
+- Si la respuesta usa markdown, conviértelo a texto visual limpio.  
+- Convierte automáticamente:  
+  - # Título → título grande  
+  - ## Subtítulo → subtítulo  
+  - **texto** → negrita  
+  - * texto → lista  
+- Nunca muestres símbolos markdown visibles al usuario.  
+- Si la imagen tiene texto borroso, intenta inferir el contenido cuidadosamente.  
+- Si el usuario dice "soluciona esto", resuelve todos los ejercicios visibles.  
+- Si el usuario pide "punto por punto", separa cada respuesta claramente.  
+- Responde de forma clara, humana y detallada.  
+`  
+        }  
+    ];  
+  
+    input.addEventListener('keypress', (e) => {  
+        if(e.key === 'Enter') {  
+            send();  
+        }  
+    });  
+  
+    function handleFile(input) {  
+  
+        const file = input.files[0];  
+  
+        if (!file) {  
+            return;  
+        }  
+  
+        if (!file.type.startsWith("image/")) {  
+            addMsg("Solo se permiten archivos de imagen.", 'ai');  
+            return;  
+        }  
+  
+        if (file.size > 20000000) {  
+            addMsg("La imagen supera el límite permitido de 20MB.", 'ai');  
+            return;  
+        }  
+  
+        const reader = new FileReader();  
+  
+        reader.onload = function(e) {  
+  
+            currentBase64 = e.target.result;  
+  
+            document.getElementById('img-preview').src = currentBase64;  
+            document.getElementById('preview-container').style.display = 'block';  
+  
+        };  
+  
+        reader.onerror = function() {  
+            addMsg("No se pudo leer la imagen seleccionada.", 'ai');  
+        };  
+  
+        reader.readAsDataURL(file);  
+  
+    }  
+  
+    function clearImage() {  
+  
+        currentBase64 = null;  
+  
+        document.getElementById('fileInput').value = '';  
+  
+        document.getElementById('preview-container').style.display = 'none';  
+  
+    }  
+  
+    function optimizeConversationHistory() {  
+  
+        const systemMessage = conversationHistory[0];  
+  
+        const recentMessages = conversationHistory.slice(-8);  
+  
+        conversationHistory = [  
+            systemMessage,  
+            ...recentMessages  
+        ];  
+  
+    }  
+  
+    async function send() {  
+  
+        const text = input.value.trim();  
+  
+        if(!text && !currentBase64) {  
+            return;  
+        }  
+  
+        addMsg(text, 'user', currentBase64);  
+  
+        const tempImage = currentBase64;  
+  
+        if (tempImage) {  
+            lastImageBase64 = tempImage;  
+        }  
+  
+        input.value = '';  
+  
+        clearImage();  
+  
+        toggleLoad(true);  
+  
+        try {  
+  
+            let userMessage = null;  
+  
+            if (tempImage) {  
+  
+                userMessage = {  
+                    role: "user",  
+                    content: [  
+                        {  
+                            type: "text",  
+                            text:  
+`Analiza esta imagen cuidadosamente.  
+  
+INSTRUCCIONES:  
+- Lee todo el texto visible.  
+- Si es un taller o guía, resuelve cada punto.  
+- Explica paso por paso.  
+- Usa fórmulas normales.  
+- No uses formato LaTeX.  
+- No uses símbolos raros matemáticos.  
+- Usa texto claro y entendible.  
+- Convierte markdown a formato visual limpio.  
+- No muestres #, ** o símbolos markdown visibles.  
+- Si hay operaciones, explica el procedimiento completo.  
+- Si algo no se ve bien, intenta inferirlo inteligentemente.  
+  
+Mensaje del usuario:  
+${text || "Analiza y resuelve esta imagen."}`  
+                        },  
+                        {  
+                            type: "image_url",  
+                            image_url: {  
+                                url: tempImage  
+                            }  
+                        }  
+                    ]  
+                };  
+  
+            } else {  
+  
+                if (lastImageBase64) {  
+  
+                    userMessage = {  
+                        role: "user",  
+                        content: [  
+                            {  
+                                type: "text",  
+                                text:  
+`El usuario está hablando sobre la última imagen enviada anteriormente.  
+  
+IMPORTANTE:  
+- Recuerda completamente la última imagen.  
+- Usa el contexto visual anterior.  
+- Responde específicamente a la duda nueva.  
+- Si es matemática o física, explica el procedimiento completo.  
+- Usa fórmulas normales.  
+- No uses LaTeX.  
+- Convierte markdown automáticamente.  
+- Nunca muestres # o ** visibles.  
+  
+Nueva pregunta:  
+${text}`  
+                            },  
+                            {  
+                                type: "image_url",  
+                                image_url: {  
+                                    url: lastImageBase64  
+                                }  
+                            }  
+                        ]  
+                    };  
+  
+                } else {  
+  
+                    userMessage = {  
+                        role: "user",  
+                        content: text  
+                    };  
+  
+                }  
+  
+            }  
+  
+            conversationHistory.push(userMessage);  
+  
+            optimizeConversationHistory();  
+  
+            const requestBody = {  
+                model: "meta-llama/llama-4-scout-17b-16e-instruct",  
+                messages: conversationHistory,  
+                temperature: 0.3,  
+                max_tokens: 2048  
+            };  
+  
+            const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {  
+                method: "POST",  
+                headers: {  
+                    "Authorization": `Bearer ${KEY}`,  
+                    "Content-Type": "application/json"  
+                },  
+                body: JSON.stringify(requestBody)  
+            });  
+  
+            toggleLoad(false);  
+  
+            if (!r.ok) {  
+  
+                let errorText = await r.text();  
+  
+                try {  
+  
+                    const errorJson = JSON.parse(errorText);  
+  
+                    if (errorJson.error && errorJson.error.message) {  
+  
+                        addMsg("Error de la IA: " + errorJson.error.message, 'ai');  
+  
+                    } else {  
+  
+                        addMsg("Error HTTP " + r.status + ": " + errorText, 'ai');  
+  
+                    }  
+  
+                } catch {  
+  
+                    addMsg("Error HTTP " + r.status + ": " + errorText, 'ai');  
+  
+                }  
+  
+                return;  
+  
+            }  
+  
+            const d = await r.json();  
+  
+            if(d.choices && d.choices[0] && d.choices[0].message) {  
+  
+                const aiResponse = cleanResponse(d.choices[0].message.content);  
+  
+                conversationHistory.push({  
+                    role: "assistant",  
+                    content: aiResponse  
+                });  
+  
+                addMsg(aiResponse, 'ai');  
+  
+            } else if (d.error) {  
+  
+                if (d.error.code === "rate_limit_exceeded") {  
+  
+                    addMsg("Motor saturado (Rate Limit). Por favor, espera un momento antes de volver a subir una imagen.", 'ai');  
+  
+                } else {  
+  
+                    addMsg("Error de la IA: " + d.error.message, 'ai');  
+  
+                }  
+  
+            } else {  
+  
+                addMsg("Respuesta inesperada del servidor.", 'ai');  
+  
+            }  
+  
+        } catch(e) {  
+  
+            toggleLoad(false);  
+  
+            addMsg("Error de conexión al núcleo: " + e.message, 'ai');  
+  
+        }  
+  
+    }  
+  
+    function cleanResponse(text) {  
+  
+        if (!text) {  
+            return "";  
+        }  
+  
+        let cleaned = text;  
+  
+        cleaned = cleaned.replace(/\\\(/g, "");  
+        cleaned = cleaned.replace(/\\\)/g, "");  
+  
+        cleaned = cleaned.replace(/\\times/g, "×");  
+        cleaned = cleaned.replace(/\\text\{([^}]*)\}/g, "$1");  
+  
+        cleaned = cleaned.replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, "$1/$2");  
+  
+        cleaned = cleaned.replace(/\\\\/g, "");  
+  
+        cleaned = cleaned.replace(/\$/g, "");  
+  
+        cleaned = cleaned.replace(/```math/g, "```math");  
+        cleaned = cleaned.replace(/```lua/g, "```lua");  
+        cleaned = cleaned.replace(/```luau/g, "```luau");  
+        cleaned = cleaned.replace(/```html/g, "```html");  
+        cleaned = cleaned.replace(/```css/g, "```css");  
+        cleaned = cleaned.replace(/```javascript/g, "```javascript");  
+        cleaned = cleaned.replace(/```js/g, "```js");  
+        cleaned = cleaned.replace(/```python/g, "```python");  
+  
+        cleaned = cleaned.replace(/\\,/g, "");  
+  
+        cleaned = cleaned.replace(/\\=/g, "=");  
+  
+        cleaned = cleaned.replace(/\\/g, "");  
+  
+        return cleaned;  
+  
+    }  
+  
+    function parseMarkdown(text) {  
+  
+        if (!text) {  
+            return "";  
+        }  
+  
+        let parsed = escapeHtml(text);  
+  
+        parsed = parsed.replace(/^### (.*$)/gim, '<h3>$1</h3>');  
+        parsed = parsed.replace(/^## (.*$)/gim, '<h2>$1</h2>');  
+        parsed = parsed.replace(/^# (.*$)/gim, '<h1>$1</h1>');  
+  
+        parsed = parsed.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');  
+  
+        parsed = parsed.replace(/^\* (.*$)/gim, '<li>$1</li>');  
+        parsed = parsed.replace(/^\- (.*$)/gim, '<li>$1</li>');  
+  
+        parsed = parsed.replace(/(<li>.*<\/li>)/gims, '<ul>$1</ul>');  
+  
+        parsed = parsed.replace(/\n/g, '<br>');  
+  
+        parsed = parsed.replace(/<\/ul><br><ul>/g, '');  
+  
+        return parsed;  
+  
+    }  
+  
+    function detectLanguage(codeText) {  
+  
+        const firstLine = codeText.split('\n')[0].trim().toLowerCase();  
+  
+        const languageList = [  
+            "html",  
+            "css",  
+            "javascript",  
+            "js",  
+            "python",  
+            "lua",  
+            "luau",  
+            "java",  
+            "cpp",  
+            "csharp",  
+            "php",  
+            "json"  
+        ];  
+  
+        if (languageList.includes(firstLine)) {  
+            return firstLine;  
+        }  
+  
+        return "código";  
+  
+    }  
+  
+    function removeLanguageLine(codeText, language) {  
+  
+        const lines = codeText.split('\n');  
+  
+        if (lines[0].trim().toLowerCase() === language.toLowerCase()) {  
+            lines.shift();  
+        }  
+  
+        return lines.join('\n');  
+  
+    }  
+  
+    function addMsg(t, type, img = null) {  
+  
+        const w = document.createElement('div');  
+  
+        w.className = `msg-wrapper ${type}-wrapper`;  
+  
+        if (img) {  
+  
+            const i = document.createElement('img');  
+  
+            i.src = img;  
+  
+            i.className = 'chat-img';  
+  
+            w.appendChild(i);  
+  
+        }  
+  
+        const b = document.createElement('div');  
+  
+        b.className = `bubble ${type}-bubble`;  
+  
+        if(t && t.includes('```')) {  
+  
+            const p = t.split('```');  
+  
+            b.innerHTML = p.map((c, i) => {  
+  
+                if (i % 2 === 1) {  
+  
+                    const detectedLanguage = detectLanguage(c.trim());  
+  
+                    const cleanCode = removeLanguageLine(c.trim(), detectedLanguage);  
+  
+                    return `  
+<div class="code-block-wrapper">  
+    <div class="code-header">  
+        <div class="code-language">${escapeHtml(detectedLanguage)}</div>  
+        <div class="copy-indicator">Mantén presionado para copiar</div>  
+    </div>  
+    <pre oncontextmenu="copyCode(event, this)"><code>${escapeHtml(cleanCode)}</code></pre>  
+</div>`;  
+  
+                }  
+  
+                return parseMarkdown(c);  
+  
+            }).join('');  
+  
+        } else if (t) {  
+  
+            b.innerHTML = parseMarkdown(t);  
+  
+        }  
+  
+        if (t || img) {  
+  
+            w.appendChild(b);  
+  
+            chat.appendChild(w);  
+  
+            chat.scrollTop = chat.scrollHeight;  
+  
+        }  
+  
+    }  
+  
+    function escapeHtml(text) {  
+  
+        if (!text) {  
+            return "";  
+        }  
+  
+        return text  
+            .replace(/&/g, "&amp;")  
+            .replace(/</g, "&lt;")  
+            .replace(/>/g, "&gt;");  
+  
+    }  
+  
+    function toggleLoad(s) {  
+  
+        if(s) {  
+  
+            const l = document.createElement('div');  
+  
+            l.id = 'loader';  
+  
+            l.className = 'msg-wrapper ai-wrapper';  
+  
+            l.innerHTML = '<div class="bubble ai-bubble dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';  
+  
+            chat.appendChild(l);  
+  
+            chat.scrollTop = chat.scrollHeight;  
+  
+        } else {  
+  
+            const l = document.getElementById('loader');  
+  
+            if(l) {  
+                l.remove();  
+            }  
+  
+        }  
+  
+    }  
+  
+    async function copy(btn) {  
+  
+        const codeElement = btn.nextElementSibling;  
+  
+        try {  
+  
+            await navigator.clipboard.writeText(codeElement.innerText);  
+  
+            btn.innerText = "¡Listo!";  
+  
+            setTimeout(() => {  
+  
+                btn.innerText = "Copiar";  
+  
+            }, 2000);  
+  
+        } catch (error) {  
+  
+            const tempTextArea = document.createElement("textarea");  
+  
+            tempTextArea.value = codeElement.innerText;  
+  
+            document.body.appendChild(tempTextArea);  
+  
+            tempTextArea.select();  
+  
+            document.execCommand("copy");  
+  
+            document.body.removeChild(tempTextArea);  
+  
+            btn.innerText = "¡Listo!";  
+  
+            setTimeout(() => {  
+  
+                btn.innerText = "Copiar";  
+  
+            }, 2000);  
+  
+        }  
+  
+    }  
+  
+    async function copyCode(event, element) {  
+  
+        event.preventDefault();  
+  
+        const codeElement = element.querySelector("code");  
+  
+        try {  
+  
+            await navigator.clipboard.writeText(codeElement.innerText);  
+  
+            const indicator = element.parentElement.querySelector(".copy-indicator");  
+  
+            const originalText = indicator.innerText;  
+  
+            indicator.innerText = "¡Código copiado!";  
+  
+            setTimeout(() => {  
+  
+                indicator.innerText = originalText;  
+  
+            }, 2000);  
+  
+        } catch (error) {  
+  
+            const tempTextArea = document.createElement("textarea");  
+  
+            tempTextArea.value = codeElement.innerText;  
+  
+            document.body.appendChild(tempTextArea);  
+  
+            tempTextArea.select();  
+  
+            document.execCommand("copy");  
+  
+            document.body.removeChild(tempTextArea);  
+  
+            const indicator = element.parentElement.querySelector(".copy-indicator");  
+  
+            const originalText = indicator.innerText;  
+  
+            indicator.innerText = "¡Código copiado!";  
+  
+            setTimeout(() => {  
+  
+                indicator.innerText = originalText;  
+  
+            }, 2000);  
+  
+        }  
+  
+    }  
+</script>  
+  
+</body>  
 </html>
