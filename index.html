@@ -69,7 +69,7 @@
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        .msg-wrapper { max-width: 90%; display: flex; animation: slideUp 0.4s ease-out forwards; }
+        .msg-wrapper { max-width: 90%; display: flex; animation: slideUp 0.4s ease-out forwards; flex-direction: column; }
         .user-wrapper { align-self: flex-end; }
         .ai-wrapper { align-self: flex-start; }
 
@@ -109,6 +109,47 @@
             cursor: pointer;
         }
 
+        /* Estilo para imágenes en el chat */
+        .chat-img {
+            max-width: 200px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Previsualización antes de enviar */
+        #preview-container {
+            display: none;
+            padding: 10px 20px;
+            background: var(--panel-color);
+            border-top: 1px solid rgba(59, 130, 246, 0.2);
+            position: relative;
+        }
+
+        #img-preview {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid var(--accent-color);
+        }
+
+        .close-preview {
+            position: absolute;
+            top: 5px;
+            left: 75px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
         .input-area {
             padding: 12px 15px 12px;
             background: var(--panel-color);
@@ -117,6 +158,7 @@
             gap: 10px;
             flex-shrink: 0;
             padding-bottom: env(safe-area-inset-bottom, 12px);
+            align-items: center;
         }
 
         .field {
@@ -132,13 +174,18 @@
 
         .field:focus { border-color: var(--accent-color); box-shadow: 0 0 15px var(--accent-glow); }
 
-        .send {
+        .btn-icon {
             width: 42px; height: 42px;
             background: var(--accent-color);
             border: none; border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
             cursor: pointer; box-shadow: 0 0 15px var(--accent-glow);
             flex-shrink: 0;
+        }
+
+        .attach-btn {
+            background: #334155;
+            box-shadow: none;
         }
 
         /* Typing Dots */
@@ -158,13 +205,22 @@
 
 <div id="chat-view">
     <div class="msg-wrapper ai-wrapper">
-        <div class="bubble ai-bubble">Núcleo DarkMatter iniciado. Esperando instrucciones técnicas...</div>
+        <div class="bubble ai-bubble">Núcleo DarkMatter iniciado. Ahora puedo procesar imágenes y guías. Esperando instrucciones...</div>
     </div>
 </div>
 
+<div id="preview-container">
+    <img id="img-preview" src="">
+    <div class="close-preview" onclick="clearImage()">×</div>
+</div>
+
 <div class="input-area">
+    <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFile(this)">
+    <button class="btn-icon attach-btn" onclick="document.getElementById('fileInput').click()">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+    </button>
     <input type="text" id="userInput" class="field" placeholder="Escribe un comando..." autocomplete="off">
-    <button class="send" onclick="send()">
+    <button class="btn-icon" onclick="send()">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
     </button>
 </div>
@@ -173,71 +229,263 @@
     const KEY = "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";
     const chat = document.getElementById('chat-view');
     const input = document.getElementById('userInput');
+    let currentBase64 = null;
 
     input.addEventListener('keypress', (e) => { if(e.key === 'Enter') send(); });
 
+    function handleFile(input) {
+        const file = input.files[0];
+
+        if (!file) {
+            return;
+        }
+
+        if (!file.type.startsWith("image/")) {
+            addMsg("Solo se permiten archivos de imagen.", 'ai');
+            return;
+        }
+
+        if (file.size > 20000000) {
+            addMsg("La imagen supera el límite permitido de 20MB.", 'ai');
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            currentBase64 = e.target.result;
+
+            document.getElementById('img-preview').src = currentBase64;
+            document.getElementById('preview-container').style.display = 'block';
+        };
+
+        reader.onerror = function() {
+            addMsg("No se pudo leer la imagen seleccionada.", 'ai');
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    function clearImage() {
+        currentBase64 = null;
+        document.getElementById('fileInput').value = '';
+        document.getElementById('preview-container').style.display = 'none';
+    }
+
     async function send() {
         const text = input.value.trim();
-        if(!text) return;
 
-        addMsg(text, 'user');
+        if(!text && !currentBase64) {
+            return;
+        }
+
+        addMsg(text, 'user', currentBase64);
+
+        const tempImage = currentBase64;
+
         input.value = '';
+        clearImage();
+
         toggleLoad(true);
 
+        const modelToUse = tempImage
+            ? "meta-llama/llama-4-scout-17b-16e-instruct"
+            : "llama-3.3-70b-versatile";
+
         try {
+
+            let messages = [];
+
+            if (tempImage) {
+
+                messages = [
+                    {
+                        role: "user",
+                        content: [
+                            {
+                                type: "text",
+                                text: text || "Analiza esta imagen detalladamente."
+                            },
+                            {
+                                type: "image_url",
+                                image_url: {
+                                    url: tempImage
+                                }
+                            }
+                        ]
+                    }
+                ];
+
+            } else {
+
+                messages = [
+                    {
+                        role: "system",
+                        content: "Eres DarkMatter Pro AI. Experto en Luau, PHP y Firebase. Responde de forma técnica y directa."
+                    },
+                    {
+                        role: "user",
+                        content: text
+                    }
+                ];
+
+            }
+
+            const requestBody = {
+                model: modelToUse,
+                messages: messages,
+                temperature: 0.5,
+                max_tokens: 1024
+            };
+
             const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
-                headers: { "Authorization": `Bearer ${KEY}`, "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    model: "llama-3.3-70b-versatile",
-                    messages: [{ role: "system", content: "Eres DarkMatter Pro AI. Experto en Luau, PHP y Firebase." }, { role: "user", content: text }]
-                })
+                headers: {
+                    "Authorization": `Bearer ${KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestBody)
             });
+
+            toggleLoad(false);
+
+            if (!r.ok) {
+
+                let errorText = await r.text();
+
+                try {
+
+                    const errorJson = JSON.parse(errorText);
+
+                    if (errorJson.error && errorJson.error.message) {
+                        addMsg("Error de la IA: " + errorJson.error.message, 'ai');
+                    } else {
+                        addMsg("Error HTTP " + r.status + ": " + errorText, 'ai');
+                    }
+
+                } catch {
+
+                    addMsg("Error HTTP " + r.status + ": " + errorText, 'ai');
+
+                }
+
+                return;
+            }
+
             const d = await r.json();
+
+            if(d.choices && d.choices[0] && d.choices[0].message) {
+
+                addMsg(d.choices[0].message.content, 'ai');
+
+            } else if (d.error) {
+
+                if (d.error.code === "rate_limit_exceeded") {
+
+                    addMsg("Motor saturado (Rate Limit). Por favor, espera un momento antes de volver a subir una imagen.", 'ai');
+
+                } else {
+
+                    addMsg("Error de la IA: " + d.error.message, 'ai');
+
+                }
+
+            } else {
+
+                addMsg("Respuesta inesperada del servidor.", 'ai');
+
+            }
+
+        } catch(e) {
+
             toggleLoad(false);
-            if(d.choices) addMsg(d.choices[0].message.content, 'ai');
-        } catch(e) { 
-            toggleLoad(false);
-            addMsg("Error de conexión al núcleo.", 'ai');
+
+            addMsg("Error de conexión al núcleo: " + e.message, 'ai');
+
         }
     }
 
-    function addMsg(t, type) {
+    function addMsg(t, type, img = null) {
         const w = document.createElement('div');
         w.className = `msg-wrapper ${type}-wrapper`;
+
+        if (img) {
+            const i = document.createElement('img');
+            i.src = img;
+            i.className = 'chat-img';
+            w.appendChild(i);
+        }
+
         const b = document.createElement('div');
         b.className = `bubble ${type}-bubble`;
-        
-        if(t.includes('```')) {
-            const p = t.split('```');
-            b.innerHTML = p.map((c, i) => i % 2 === 1 ? `<pre><button class="copy-btn" onclick="copy(this)">Copiar</button><code>${c.trim()}</code></pre>` : c).join('');
-        } else { b.innerText = t; }
 
-        w.appendChild(b);
-        chat.appendChild(w);
-        chat.scrollTop = chat.scrollHeight;
+        if(t && t.includes('```')) {
+
+            const p = t.split('```');
+
+            b.innerHTML = p.map((c, i) =>
+                i % 2 === 1
+                    ? `<pre><button class="copy-btn" onclick="copy(this)">Copiar</button><code>${c.trim()}</code></pre>`
+                    : c.replace(/\n/g, '<br>')
+            ).join('');
+
+        } else if (t) {
+
+            b.innerHTML = t.replace(/\n/g, '<br>');
+
+        }
+
+        if (t || img) {
+            w.appendChild(b);
+            chat.appendChild(w);
+            chat.scrollTop = chat.scrollHeight;
+        }
     }
 
     function toggleLoad(s) {
+
         if(s) {
+
             const l = document.createElement('div');
+
             l.id = 'loader';
             l.className = 'msg-wrapper ai-wrapper';
+
             l.innerHTML = '<div class="bubble ai-bubble dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+
             chat.appendChild(l);
+
             chat.scrollTop = chat.scrollHeight;
+
         } else {
+
             const l = document.getElementById('loader');
-            if(l) l.remove();
+
+            if(l) {
+                l.remove();
+            }
+
         }
+
     }
 
     function copy(btn) {
-        navigator.clipboard.writeText(btn.nextElementSibling.innerText);
-        btn.innerText = "¡Listo!";
-        setTimeout(() => btn.innerText = "Copiar", 2000);
+
+        const codeElement = btn.nextElementSibling;
+
+        navigator.clipboard.writeText(codeElement.innerText).then(() => {
+
+            btn.innerText = "¡Listo!";
+
+            setTimeout(() => {
+                btn.innerText = "Copiar";
+            }, 2000);
+
+        });
+
     }
 </script>
 
 </body>
 </html>
+```0
