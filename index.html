@@ -234,7 +234,7 @@
             gap: 10px;  
             flex-shrink: 0;  
             padding-bottom: env(safe-area-inset-bottom, 12px);  
-            align-items: center;  
+            align-items: flex-end;  
         }  
   
         .field {  
@@ -242,13 +242,23 @@
             background: var(--bg-color);  
             border: 1px solid rgba(59, 130, 246, 0.2);  
             border-radius: 25px;  
-            padding: 10px 18px;  
+            padding: 12px 18px;  
             color: white;  
             outline: none;  
             font-size: 16px;  
+            resize: none;  
+            min-height: 48px;  
+            max-height: 140px;  
+            overflow-y: auto;  
+            line-height: 1.5;  
         }  
   
         .field:focus { border-color: var(--accent-color); box-shadow: 0 0 15px var(--accent-glow); }  
+  
+        .field:disabled {  
+            opacity: 0.5;  
+            cursor: not-allowed;  
+        }  
   
         .btn-icon {  
             width: 42px; height: 42px;  
@@ -257,6 +267,14 @@
             display: flex; justify-content: center; align-items: center;  
             cursor: pointer; box-shadow: 0 0 15px var(--accent-glow);  
             flex-shrink: 0;  
+            transition: 0.2s;  
+        }  
+  
+        .btn-icon:disabled {  
+            opacity: 0.5;  
+            cursor: not-allowed;  
+            box-shadow: none;  
+            background: #475569;  
         }  
   
         .attach-btn {  
@@ -291,11 +309,11 @@
   
 <div class="input-area">  
     <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFile(this)">  
-    <button class="btn-icon attach-btn" onclick="document.getElementById('fileInput').click()">  
+    <button class="btn-icon attach-btn" id="attachButton" onclick="document.getElementById('fileInput').click()">  
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>  
     </button>  
-    <input type="text" id="userInput" class="field" placeholder="Escribe un comando..." autocomplete="off">  
-    <button class="btn-icon" onclick="send()">  
+    <textarea id="userInput" class="field" placeholder="Escribe un comando..." autocomplete="off" enterkeyhint="enter"></textarea>  
+    <button class="btn-icon" id="sendButton" onclick="send()">  
         <svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>  
     </button>  
 </div>  
@@ -304,11 +322,18 @@
     const KEY = "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";  
     const chat = document.getElementById('chat-view');  
     const input = document.getElementById('userInput');  
+    const sendButton = document.getElementById('sendButton');  
+    const attachButton = document.getElementById('attachButton');  
+    const fileInput = document.getElementById('fileInput');  
   
     let currentBase64 = null;  
     let lastImageBase64 = null;  
     let lastCompressedImageBase64 = null;  
     let lastUserText = "";  
+    let isGeneratingResponse = false;  
+    let isMobileEnterPressed = false;  
+  
+    const IMAGE_COOLDOWN_TIME = 180000;  
   
     let conversationHistory = [  
         {  
@@ -350,11 +375,157 @@ REGLAS IMPORTANTES:
         }  
     ];  
   
-    input.addEventListener('keypress', (e) => {  
-        if(e.key === 'Enter') {  
-            send();  
-        }  
+    function autoResizeTextarea() {  
+  
+        input.style.height = "48px";  
+  
+        input.style.height = input.scrollHeight + "px";  
+  
+    }  
+  
+    input.addEventListener('input', () => {  
+  
+        autoResizeTextarea();  
+  
     });  
+  
+    input.addEventListener('keydown', (e) => {  
+  
+        if (e.key === 'Enter') {  
+  
+            if (e.shiftKey) {  
+  
+                return;  
+  
+            }  
+  
+            if (window.innerWidth <= 1024) {  
+  
+                isMobileEnterPressed = true;  
+  
+                return;  
+  
+            }  
+  
+            e.preventDefault();  
+  
+            send();  
+  
+        }  
+  
+    });  
+  
+    input.addEventListener('keyup', (e) => {  
+  
+        if (e.key === 'Enter') {  
+  
+            setTimeout(() => {  
+  
+                autoResizeTextarea();  
+  
+            }, 0);  
+  
+        }  
+  
+    });  
+  
+    input.addEventListener('beforeinput', (e) => {  
+  
+        if (e.inputType === "insertLineBreak") {  
+  
+            isMobileEnterPressed = true;  
+  
+            setTimeout(() => {  
+  
+                autoResizeTextarea();  
+  
+            }, 0);  
+  
+        }  
+  
+    });  
+  
+    function getImageCooldownRemaining() {  
+  
+        const savedTime = localStorage.getItem("darkmatter_last_image_time");  
+  
+        if (!savedTime) {  
+            return 0;  
+        }  
+  
+        const elapsed = Date.now() - parseInt(savedTime);  
+  
+        const remaining = IMAGE_COOLDOWN_TIME - elapsed;  
+  
+        if (remaining < 0) {  
+            return 0;  
+        }  
+  
+        return remaining;  
+  
+    }  
+  
+    function saveGeneratingState() {  
+  
+        localStorage.setItem("darkmatter_generating_response", "true");  
+  
+    }  
+  
+    function clearGeneratingState() {  
+  
+        localStorage.removeItem("darkmatter_generating_response");  
+  
+    }  
+  
+    function checkPreviousSessionGeneration() {  
+  
+        const previousGenerating = localStorage.getItem("darkmatter_generating_response");  
+  
+        if (previousGenerating === "true") {  
+  
+            isGeneratingResponse = true;  
+  
+            toggleLoad(true);  
+  
+            sendButton.disabled = true;  
+  
+            addMsg("Respuesta generada en la sesión anterior. Espera a que finalice el proceso anterior.", 'ai');  
+  
+            setTimeout(() => {  
+  
+                toggleLoad(false);  
+  
+                isGeneratingResponse = false;  
+  
+                sendButton.disabled = false;  
+  
+                clearGeneratingState();  
+  
+            }, 15000);  
+  
+        }  
+  
+    }  
+  
+    checkPreviousSessionGeneration();  
+  
+    function setGeneratingState(state) {  
+  
+        isGeneratingResponse = state;  
+  
+        sendButton.disabled = state;  
+  
+        if (state) {  
+  
+            input.placeholder = "DarkMatter está respondiendo...";  
+  
+        } else {  
+  
+            input.placeholder = "Escribe un comando...";  
+  
+        }  
+  
+    }  
   
     async function compressImage(base64, quality = 0.6, maxWidth = 1280) {  
   
@@ -395,6 +566,20 @@ REGLAS IMPORTANTES:
   
     async function handleFile(input) {  
   
+        const remainingCooldown = getImageCooldownRemaining();  
+  
+        if (remainingCooldown > 0) {  
+  
+            const seconds = Math.ceil(remainingCooldown / 1000);  
+  
+            addMsg("Debes esperar " + seconds + " segundos antes de enviar otra imagen.", 'ai');  
+  
+            document.getElementById('fileInput').value = '';  
+  
+            return;  
+  
+        }  
+  
         const file = input.files[0];  
   
         if (!file) {  
@@ -410,6 +595,8 @@ REGLAS IMPORTANTES:
             addMsg("La imagen supera el límite permitido de 20MB.", 'ai');  
             return;  
         }  
+  
+        localStorage.setItem("darkmatter_last_image_time", Date.now().toString());  
   
         const reader = new FileReader();  
   
@@ -561,11 +748,19 @@ REGLAS IMPORTANTES:
   
     async function send() {  
   
+        if (isGeneratingResponse) {  
+            return;  
+        }  
+  
         const text = input.value.trim();  
   
         if(!text && !currentBase64) {  
             return;  
         }  
+  
+        saveGeneratingState();  
+  
+        setGeneratingState(true);  
   
         addMsg(text, 'user', currentBase64);  
   
@@ -581,6 +776,8 @@ REGLAS IMPORTANTES:
         }  
   
         input.value = '';  
+  
+        autoResizeTextarea();  
   
         clearImage();  
   
@@ -726,6 +923,14 @@ ${text}`
             toggleLoad(false);  
   
             addMsg("Error de conexión al núcleo: " + e.message, 'ai');  
+  
+        } finally {  
+  
+            toggleLoad(false);  
+  
+            setGeneratingState(false);  
+  
+            clearGeneratingState();  
   
         }  
   
