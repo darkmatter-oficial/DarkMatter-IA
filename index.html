@@ -175,73 +175,6 @@
             transform: scale(0.95);
         }
 
-        /* NUEVO: Sección de modos en el sidebar */
-        .sidebar-modes-section {
-            padding: 12px 10px 6px 10px;
-            border-bottom: 1px solid rgba(168, 85, 247, 0.15);
-            animation: fadeIn 0.5s ease-out forwards;
-        }
-
-        .sidebar-modes-label {
-            font-size: 0.65rem;
-            font-weight: bold;
-            color: #a855f7;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 8px;
-            padding-left: 4px;
-        }
-
-        .modes-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 7px;
-        }
-
-        .mode-btn {
-            background: rgba(168, 85, 247, 0.07);
-            border: 1px solid rgba(168, 85, 247, 0.18);
-            border-radius: 12px;
-            padding: 9px 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            color: #e9d5ff;
-            font-size: 0.72rem;
-            font-weight: bold;
-            text-align: center;
-            line-height: 1.2;
-        }
-
-        .mode-btn:hover {
-            background: rgba(168, 85, 247, 0.18);
-            border-color: var(--accent-color);
-            box-shadow: 0 0 10px rgba(168, 85, 247, 0.25);
-            transform: scale(1.03);
-        }
-
-        .mode-btn:active {
-            transform: scale(0.96);
-        }
-
-        .mode-btn.active-mode {
-            background: rgba(168, 85, 247, 0.28);
-            border-color: #a855f7;
-            box-shadow: 0 0 14px rgba(168, 85, 247, 0.45);
-            color: #ffffff;
-        }
-
-        .mode-btn .mode-icon {
-            font-size: 1.3rem;
-        }
-
-        .mode-btn .mode-name {
-            font-size: 0.68rem;
-        }
-
         #chat-list {
             flex: 1;
             overflow-y: auto;
@@ -797,25 +730,6 @@
         .msg-context-menu button:active {
             background: rgba(168, 85, 247, 0.35);
         }
-
-        /* NUEVO: Badge de modo activo en el header */
-        .mode-badge {
-            font-size: 0.6rem;
-            background: rgba(168, 85, 247, 0.25);
-            border: 1px solid rgba(168, 85, 247, 0.4);
-            border-radius: 999px;
-            padding: 2px 8px;
-            color: #d8b4fe;
-            letter-spacing: 1px;
-            font-weight: bold;
-            margin-left: 8px;
-            display: none;
-            animation: fadeIn 0.3s ease-out forwards;
-        }
-
-        .mode-badge.visible {
-            display: inline-block;
-        }
     </style>
 </head>
 <body>
@@ -826,33 +740,6 @@
     <div class="sidebar-header">
         <div class="sidebar-title">Chats guardados</div>
         <button class="new-chat-btn" onclick="createNewChat()">+ Nuevo</button>
-    </div>
-
-    <!-- NUEVO: Sección de modos de IA -->
-    <div class="sidebar-modes-section">
-        <div class="sidebar-modes-label">Modo de IA</div>
-        <div class="modes-grid">
-            <button class="mode-btn active-mode" id="modeBtn-default" onclick="setMode('default')">
-                <span class="mode-icon">🤖</span>
-                <span class="mode-name">Normal</span>
-            </button>
-            <button class="mode-btn" id="modeBtn-exam" onclick="setMode('exam')">
-                <span class="mode-icon">📝</span>
-                <span class="mode-name">Copiar examen</span>
-            </button>
-            <button class="mode-btn" id="modeBtn-teacher" onclick="setMode('teacher')">
-                <span class="mode-icon">🎓</span>
-                <span class="mode-name">Profesor</span>
-            </button>
-            <button class="mode-btn" id="modeBtn-programmer" onclick="setMode('programmer')">
-                <span class="mode-icon">💻</span>
-                <span class="mode-name">Programador</span>
-            </button>
-            <button class="mode-btn" id="modeBtn-friend" onclick="setMode('friend')" style="grid-column: span 2;">
-                <span class="mode-icon">😎</span>
-                <span class="mode-name">Modo Amigo</span>
-            </button>
-        </div>
     </div>
 
     <div id="chat-list"></div>
@@ -867,8 +754,6 @@
         </button>
 
         <div class="title-small">DARKMATTER IA</div>
-        <!-- NUEVO: Badge que muestra el modo activo -->
-        <span class="mode-badge" id="modeBadge"></span>
     </div>
 
     <div class="status">● ONLINE</div>
@@ -933,15 +818,11 @@
     let contextMenuTargetText = "";
     let contextMenuTargetMessageIndex = -1;
 
-    const IMAGE_COOLDOWN_TIME = 180000;
+    const IMAGE_COOLDOWN_TIME = 1000;
 
-    // NUEVO: Variable de modo activo
-    let currentMode = "default";
-
-    // NUEVO: Definición de los system prompts por modo
-    const modeSystemPrompts = {
-
-        default: `
+    const systemPrompt = {
+        role: "system",
+        content: `
 Eres DarkMatter Pro AI.
 
 REGLAS IMPORTANTES:
@@ -975,197 +856,13 @@ REGLAS IMPORTANTES:
 - Si el usuario pide "punto por punto", separa cada respuesta claramente.
 - Responde de forma clara, humana y detallada.
 - IMPORTANTE: Nunca abrevies respuestas. Si el usuario manda un código largo o texto largo, devuélvelo COMPLETO sin omitir nada, sin "..." ni abreviaciones.
-`,
-
-        exam: `
-Eres DarkMatter Pro AI en MODO COPIAR EXAMEN.
-
-TU ÚNICA MISIÓN: Dar respuestas directas, cortas y listas para copiar en un examen o prueba.
-
-REGLAS ESTRICTAS DEL MODO EXAMEN:
-- Siempre responde en español.
-- Si el usuario manda una imagen con preguntas o ejercicios: identifica CADA pregunta y respóndelas en orden.
-- Para preguntas de opción múltiple (a, b, c, d...): responde SOLO la letra correcta. Nada más.
-  Ejemplo: "b"
-- Para preguntas que piden definición o concepto corto: responde en 1 línea máxima.
-  Ejemplo: "La fotosíntesis es el proceso por el que las plantas producen energía usando luz solar."
-- Para preguntas que SÍ necesitan justificación breve (por qué, explica, argumenta): responde en máximo 2 líneas, directo al punto.
-- Para preguntas de verdadero/falso: responde solo "Verdadero" o "Falso", y si pide por qué, agrega 1 sola línea corta.
-- Para preguntas matemáticas o de cálculo: muestra solo el resultado final y el paso clave si es necesario. No desarrolles todo el procedimiento.
-- Para completar espacios o frases: da solo la palabra o frase que va en el espacio.
-- NUNCA escribas introducciones, saludos, explicaciones largas ni texto de relleno.
-- NUNCA uses markdown visible (#, **, etc.).
-- NUNCA abrevies con "..." ni omitas preguntas de la imagen.
-- Si hay varias preguntas, listarlas numeradas y responde cada una en su línea.
-- Si el usuario escribe una pregunta directamente (sin imagen), respóndela igual de corto y directo.
-- FORMATO IDEAL:
-  1. b
-  2. La mitocondria es la central energética de la célula.
-  3. Verdadero
-  4. 42 km/h
-`,
-
-        teacher: `
-Eres DarkMatter Pro AI en MODO PROFESOR.
-
-TU MISIÓN: Enseñar de forma clara, completa y detallada como un excelente profesor haría.
-
-REGLAS DEL MODO PROFESOR:
-- Siempre responde en español.
-- Explica TODOS los conceptos desde cero, asumiendo que el estudiante no sabe nada del tema.
-- Usa ejemplos reales y cotidianos para explicar conceptos abstractos.
-- Cuando expliques un tema, sigue este orden:
-  1. Introducción: ¿Qué es y por qué es importante?
-  2. Explicación detallada paso a paso.
-  3. Ejemplo práctico resuelto completamente.
-  4. Conclusión o resumen del concepto.
-- Para matemáticas o física:
-  - Explica cada fórmula con palabras antes de usarla.
-  - Muestra el procedimiento COMPLETO paso a paso.
-  - Explica qué significa cada variable.
-  - Resuelve el ejemplo desde el principio hasta el final.
-  - Usa fórmulas en texto normal (ejemplo: d = v × t), NUNCA LaTeX.
-- Usa un tono amable, paciente y motivador como un buen maestro.
-- Si el usuario manda una imagen con ejercicios: resuélvelos todos, explicando cada paso.
-- Si el usuario no entiende algo, vuelve a explicarlo de otra manera diferente.
-- Nunca muestres #, **, ni símbolos markdown visibles.
-- NUNCA abrevies ni omitas nada. Responde COMPLETO y DETALLADO siempre.
-- Termina cada respuesta con un pequeño resumen o consejo para recordar el tema.
-`,
-
-        programmer: `
-Eres DarkMatter Pro AI en MODO PROGRAMADOR EXPERTO.
-
-TU MISIÓN: Ayudar con cualquier tarea de programación sin importar el lenguaje, la complejidad ni el tamaño del código.
-
-REGLAS DEL MODO PROGRAMADOR:
-- Siempre responde en español (pero el código lo escribes en el lenguaje que corresponda).
-- Eres experto en TODOS los lenguajes de programación: JavaScript, Python, HTML, CSS, Lua, Luau, Java, C++, C#, PHP, TypeScript, Go, Rust, Swift, Kotlin, Ruby, SQL, Bash, PowerShell, Assembly, y cualquier otro.
-- Puedes procesar, leer, analizar, corregir, optimizar y reescribir scripts de cualquier tamaño.
-- NUNCA abrevies el código. Si el usuario pide un script largo, lo generas COMPLETO sin "..." ni omisiones.
-- Si el usuario manda un código para revisar: analízalo completo, identifica errores, sugiere mejoras y devuelve la versión corregida completa.
-- Cuando escribas código:
-  - Siempre usa bloques de código con el lenguaje especificado.
-  - Comenta el código de forma clara para que el usuario entienda cada parte importante.
-  - Sigue las buenas prácticas del lenguaje correspondiente.
-  - Si el código es muy largo, divídelo en secciones claramente comentadas.
-- Para errores o bugs: identifica la línea exacta del error, explica por qué ocurre y cómo solucionarlo.
-- Para optimizaciones: explica qué cambiaste y por qué es mejor.
-- Si el usuario manda una imagen con código: transcríbelo y analízalo.
-- Si el usuario pide algo complejo: divídelo en pasos y resuelve cada parte.
-- NUNCA digas que algo es "muy largo" o que "no puedes". Siempre completas la tarea completa.
-- Nunca muestres #, **, ni símbolos markdown visibles fuera de los bloques de código.
-`,
-
-        friend: `
-Eres DarkMatter Pro AI en MODO AMIGO.
-
-TU MISIÓN: Ser el mejor amigo del usuario. Hablar con total confianza, como hablaría un amigo cercano de verdad.
-
-REGLAS DEL MODO AMIGO:
-- Siempre responde en español, con lenguaje informal y natural de amistad.
-- Habla con confianza total: usa "bro", "vale", "en serio", "wey" (solo si es natural), "jaja", expresiones coloquiales.
-- Puedes hacer bromas ligeras SOBRE EL USUARIO o sobre lo que dice, de forma amistosa y sin ofender gravemente.
-  Ejemplo: si el usuario dice que no entiende algo, puedes decir "jaja bro llevas 3 veces preguntando eso, ya apréndetelo 😂" de forma cariñosa.
-- Puedes burlarte sutilmente de sus errores con humor amistoso, nunca con crueldad.
-- Haz bromas inteligentes, observaciones graciosas y comentarios inesperados sobre lo que dice el usuario.
-- NUNCA hagas chistes ofensivos, racistas, sexistas, o que puedan herir genuinamente.
-- Aun siendo amigo, sigues respondiendo las preguntas correctamente y ayudas de verdad.
-- Si el usuario tiene un problema, lo escuchas con empatía real como haría un amigo de verdad.
-- Si el usuario manda una imagen con ejercicios, la resuelves pero con comentarios de amigo:
-  "Uff bro esto está difícil pero aquí va..."
-- Usa emojis de forma natural y ocasional, no en exceso.
-- Puedes hacer observaciones sobre el estilo del usuario, sus preguntas recurrentes, sus errores frecuentes, todo de forma afectuosa.
-- Si el usuario está frustrado, lo animas de verdad como un amigo haría.
-- Nunca muestres #, **, ni símbolos markdown visibles.
-- NUNCA abrevies respuestas importantes. Ayudas completo aunque seas su amigo.
 `
-
     };
-
-    // NUEVO: Función para construir el systemPrompt actual según el modo
-    function buildSystemPrompt() {
-        return {
-            role: "system",
-            content: modeSystemPrompts[currentMode] || modeSystemPrompts["default"]
-        };
-    }
-
-    // NUEVO: systemPrompt inicial (modo default)
-    const systemPrompt = buildSystemPrompt();
 
     let conversationHistory = [systemPrompt];
 
     let chats = [];
     let currentChatId = null;
-
-    // NUEVO: Función para cambiar el modo de IA
-    function setMode(mode) {
-
-        currentMode = mode;
-
-        // Actualizar botones del sidebar
-        const allModeButtons = document.querySelectorAll('.mode-btn');
-        allModeButtons.forEach(btn => {
-            btn.classList.remove('active-mode');
-        });
-
-        const activeBtn = document.getElementById('modeBtn-' + mode);
-        if (activeBtn) {
-            activeBtn.classList.add('active-mode');
-        }
-
-        // Actualizar badge en el header
-        const badge = document.getElementById('modeBadge');
-        const modeLabels = {
-            default: null,
-            exam: "📝 EXAMEN",
-            teacher: "🎓 PROFESOR",
-            programmer: "💻 PROGRAMADOR",
-            friend: "😎 AMIGO"
-        };
-
-        if (mode === "default") {
-            badge.classList.remove('visible');
-            badge.textContent = "";
-        } else {
-            badge.textContent = modeLabels[mode];
-            badge.classList.add('visible');
-        }
-
-        // Actualizar el system prompt del historial actual con el nuevo modo
-        const newSysPrompt = buildSystemPrompt();
-        if (conversationHistory.length > 0 && conversationHistory[0].role === "system") {
-            conversationHistory[0] = newSysPrompt;
-        } else {
-            conversationHistory.unshift(newSysPrompt);
-        }
-
-        // Actualizar también en el chat actual guardado
-        const currentChat = chats.find(c => c.id === currentChatId);
-        if (currentChat && currentChat.history.length > 0 && currentChat.history[0].role === "system") {
-            currentChat.history[0] = newSysPrompt;
-            saveChats();
-        }
-
-        // Guardar el modo en localStorage para persistirlo
-        localStorage.setItem("darkmatter_current_mode", mode);
-
-        // Cerrar el sidebar al cambiar de modo
-        toggleSidebar(false);
-
-        // Mostrar mensaje de confirmación en el chat
-        const modeConfirmMessages = {
-            default: "🤖 Modo Normal activado. Estoy listo para ayudarte con cualquier cosa.",
-            exam: "📝 Modo Copiar Examen activado. Ahora te daré respuestas directas y cortas para que puedas copiar rápido. Mándame la imagen del examen o escribe las preguntas.",
-            teacher: "🎓 Modo Profesor activado. A partir de ahora te explicaré todo con detalle, paso a paso, como un buen maestro. ¿Qué quieres aprender hoy?",
-            programmer: "💻 Modo Programador activado. Soy experto en todos los lenguajes. Sin importar qué tan largo sea el código, lo resuelvo completo. ¿Qué necesitas programar?",
-            friend: "😎 Bro, modo amigo ON. Ya no soy una IA seria, soy tu mero mero amigo jaja. Cuéntame qué necesitas wey 🤙"
-        };
-
-        addMsg(modeConfirmMessages[mode] || "Modo cambiado.", 'ai');
-
-    }
 
     function generateChatId() {
         return "chat_" + Date.now() + "_" + Math.floor(Math.random() * 999999);
@@ -1277,35 +974,6 @@ REGLAS DEL MODO AMIGO:
             chats = JSON.parse(savedChats);
         }
 
-        // NUEVO: Restaurar el modo guardado en localStorage
-        const savedMode = localStorage.getItem("darkmatter_current_mode");
-        if (savedMode && modeSystemPrompts[savedMode]) {
-            currentMode = savedMode;
-            const allModeButtons = document.querySelectorAll('.mode-btn');
-            allModeButtons.forEach(btn => {
-                btn.classList.remove('active-mode');
-            });
-            const activeBtn = document.getElementById('modeBtn-' + currentMode);
-            if (activeBtn) {
-                activeBtn.classList.add('active-mode');
-            }
-            const badge = document.getElementById('modeBadge');
-            const modeLabels = {
-                default: null,
-                exam: "📝 EXAMEN",
-                teacher: "🎓 PROFESOR",
-                programmer: "💻 PROGRAMADOR",
-                friend: "😎 AMIGO"
-            };
-            if (currentMode === "default") {
-                badge.classList.remove('visible');
-                badge.textContent = "";
-            } else {
-                badge.textContent = modeLabels[currentMode];
-                badge.classList.add('visible');
-            }
-        }
-
         // MODIFICADO: Siempre crear un chat nuevo al cargar la página
         createNewChat();
 
@@ -1321,9 +989,6 @@ REGLAS DEL MODO AMIGO:
             return hasUserMessage;
         });
 
-        // NUEVO: El chat nuevo usa el systemPrompt del modo actual
-        const currentSysPrompt = buildSystemPrompt();
-
         const newChat = {
             id: generateChatId(),
             title: "Nuevo chat",
@@ -1334,7 +999,7 @@ REGLAS DEL MODO AMIGO:
                     image: null
                 }
             ],
-            history: [currentSysPrompt]
+            history: [systemPrompt]
         };
 
         chats.unshift(newChat);
