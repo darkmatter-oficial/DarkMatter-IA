@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DarkMatter Pro AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
     <style>
         :root {
             --bg-color: #14081f;
@@ -298,6 +301,21 @@
 
         .user-bubble { background: var(--user-bubble); border-bottom-right-radius: 4px; animation: slideUp 0.5s ease-out forwards; }
         .ai-bubble { background: var(--ai-bubble); border: 1px solid rgba(168, 85, 247, 0.15); border-bottom-left-radius: 4px; animation: slideUp 0.5s ease-out forwards; }
+
+        .katex {
+            color: #f0e6ff;
+            font-size: 1em;
+        }
+
+        .katex-display {
+            margin: 10px 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        .katex-display > .katex {
+            font-size: 1.1em;
+        }
 
         .code-block-wrapper {
             margin: 12px 0;
@@ -772,7 +790,7 @@
 
     const systemPrompt = {
         role: "system",
-        content: `Eres DarkMatter Pro AI. Responde siempre en español. Cuando el usuario te haga una pregunta, responde de forma completa, detallada y bien explicada. No des resúmenes a menos que el usuario lo pida explícitamente. Explica cada concepto con claridad, da ejemplos cuando sea útil, desarrolla los temas paso a paso y asegúrate de que el usuario entienda bien el tema. Si el usuario te pide que seas más corto, más resumido o más conciso, entonces adáptate a eso. Si recibes una imagen, analízala detalladamente. Siempre sé exhaustivo en tus explicaciones por defecto.`
+        content: `Eres DarkMatter Pro AI. Responde siempre en español. Cuando el usuario te haga una pregunta, responde de forma completa, detallada y bien explicada. No des resúmenes a menos que el usuario lo pida explícitamente. Explica cada concepto con claridad, da ejemplos cuando sea útil, desarrolla los temas paso a paso y asegúrate de que el usuario entienda bien el tema. Si el usuario te pide que seas más corto, más resumido o más conciso, entonces adáptate a eso. Si recibes una imagen, analízala detalladamente. Siempre sé exhaustivo en tus explicaciones por defecto. Cuando uses fórmulas o expresiones matemáticas, escríbelas siempre en formato LaTeX: usa $...$ para fórmulas en línea y $$...$$ para fórmulas en bloque centradas. Por ejemplo: la raíz cúbica de x se escribe $\\sqrt[3]{x}$, una fracción se escribe $\\frac{a}{b}$, una potencia se escribe $x^{3}$. NUNCA escribas las ecuaciones como texto plano tipo "sqrt[3]{x}" o "x^3". Usa siempre LaTeX dentro de los delimitadores $ o $$.`
     };
 
     let conversationHistory = [systemPrompt];
@@ -1592,7 +1610,7 @@
                     content: [
                         {
                             type: "text",
-                            text: `Analiza esta imagen detalladamente. Lee todo el texto visible. Si es un ejercicio o guía, resuelve cada punto con claridad. Explica procedimientos paso a paso. Usa texto normal, no LaTeX. ${text ? "Pregunta: " + text : ""}`
+                            text: `Analiza esta imagen detalladamente. Lee todo el texto visible. Si es un ejercicio o guía, resuelve cada punto con claridad. Explica procedimientos paso a paso. Escribe todas las fórmulas y expresiones matemáticas en formato LaTeX usando $...$ para fórmulas en línea y $$...$$ para fórmulas en bloque. ${text ? "Pregunta: " + text : ""}`
                         },
                         {
                             type: "image_url",
@@ -1876,18 +1894,6 @@
 
         let cleaned = text;
 
-        cleaned = cleaned.replace(/\\\(/g, "");
-        cleaned = cleaned.replace(/\\\)/g, "");
-
-        cleaned = cleaned.replace(/\\times/g, "×");
-        cleaned = cleaned.replace(/\\text\{([^}]*)\}/g, "$1");
-
-        cleaned = cleaned.replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, "$1/$2");
-
-        cleaned = cleaned.replace(/\\\\/g, "");
-
-        cleaned = cleaned.replace(/\$/g, "");
-
         cleaned = cleaned.replace(/```math/g, "```math");
         cleaned = cleaned.replace(/```lua/g, "```lua");
         cleaned = cleaned.replace(/```luau/g, "```luau");
@@ -1897,13 +1903,31 @@
         cleaned = cleaned.replace(/```js/g, "```js");
         cleaned = cleaned.replace(/```python/g, "```python");
 
-        cleaned = cleaned.replace(/\\,/g, "");
-
-        cleaned = cleaned.replace(/\\=/g, "=");
-
-        cleaned = cleaned.replace(/\\/g, "");
-
         return cleaned;
+
+    }
+
+    function renderKatexInElement(element) {
+
+        if (typeof renderMathInElement !== 'undefined') {
+
+            renderMathInElement(element, {
+                delimiters: [
+                    { left: "$$", right: "$$", display: true },
+                    { left: "$", right: "$", display: false },
+                    { left: "\\(", right: "\\)", display: false },
+                    { left: "\\[", right: "\\]", display: true }
+                ],
+                throwOnError: false,
+                errorColor: '#cc0000',
+                strict: false,
+                trust: false,
+                macros: {
+                    "\\sqrt": "\\sqrt"
+                }
+            });
+
+        }
 
     }
 
@@ -2033,6 +2057,8 @@
             w.appendChild(b);
 
             if (type === 'ai') {
+
+                renderKatexInElement(b);
 
                 const actionsDiv = document.createElement('div');
                 actionsDiv.className = 'ai-actions';
