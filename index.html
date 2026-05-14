@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DarkMatter Pro AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
     <style>
         :root {
             --bg-color: #14081f;
@@ -175,72 +178,6 @@
             transform: scale(0.95);
         }
 
-        .sidebar-modes-section {
-            padding: 12px 10px 6px 10px;
-            border-bottom: 1px solid rgba(168, 85, 247, 0.15);
-            animation: fadeIn 0.5s ease-out forwards;
-        }
-
-        .sidebar-modes-label {
-            font-size: 0.65rem;
-            font-weight: bold;
-            color: #a855f7;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 8px;
-            padding-left: 4px;
-        }
-
-        .modes-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 7px;
-        }
-
-        .mode-btn {
-            background: rgba(168, 85, 247, 0.07);
-            border: 1px solid rgba(168, 85, 247, 0.18);
-            border-radius: 12px;
-            padding: 9px 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            color: #e9d5ff;
-            font-size: 0.72rem;
-            font-weight: bold;
-            text-align: center;
-            line-height: 1.2;
-        }
-
-        .mode-btn:hover {
-            background: rgba(168, 85, 247, 0.18);
-            border-color: var(--accent-color);
-            box-shadow: 0 0 10px rgba(168, 85, 247, 0.25);
-            transform: scale(1.03);
-        }
-
-        .mode-btn:active {
-            transform: scale(0.96);
-        }
-
-        .mode-btn.active-mode {
-            background: rgba(168, 85, 247, 0.28);
-            border-color: #a855f7;
-            box-shadow: 0 0 14px rgba(168, 85, 247, 0.45);
-            color: #ffffff;
-        }
-
-        .mode-btn .mode-icon {
-            font-size: 1.3rem;
-        }
-
-        .mode-btn .mode-name {
-            font-size: 0.68rem;
-        }
-
         #chat-list {
             flex: 1;
             overflow-y: auto;
@@ -337,11 +274,6 @@
             50% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.6); }
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
-        }
-
         @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
@@ -369,6 +301,21 @@
 
         .user-bubble { background: var(--user-bubble); border-bottom-right-radius: 4px; animation: slideUp 0.5s ease-out forwards; }
         .ai-bubble { background: var(--ai-bubble); border: 1px solid rgba(168, 85, 247, 0.15); border-bottom-left-radius: 4px; animation: slideUp 0.5s ease-out forwards; }
+
+        .katex {
+            color: #f0e6ff;
+            font-size: 1em;
+        }
+
+        .katex-display {
+            margin: 10px 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        .katex-display > .katex {
+            font-size: 1.1em;
+        }
 
         .code-block-wrapper {
             margin: 12px 0;
@@ -572,32 +519,7 @@
         }
 
         .image-cooldown-text {
-            font-size: 0.65rem;
-            color: #ede9fe;
-            text-align: center;
-            min-height: 0px;
-            height: 0px;
-            overflow: hidden;
-            background: rgba(91, 33, 182, 0.25);
-            border: 1px solid rgba(168, 85, 247, 0.25);
-            border-radius: 999px;
-            padding: 0px;
-            width: fit-content;
-            max-width: 100%;
-            align-self: center;
-            backdrop-filter: blur(6px);
-            transition: 0.2s ease;
-            margin: 0;
-            opacity: 0;
-        }
-
-        .image-cooldown-text.active {
-            min-height: 12px;
-            height: auto;
-            padding: 3px 10px;
-            margin-bottom: 6px;
-            opacity: 1;
-            animation: slideDown 0.3s ease-out forwards;
+            display: none;
         }
 
         .input-area {
@@ -610,6 +532,38 @@
             padding-bottom: 0;
             align-items: center;
             justify-content: center;
+        }
+
+        .attach-btn-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .cooldown-badge {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.52rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.3px;
+            pointer-events: none;
+            white-space: nowrap;
+            text-shadow: 0 0 6px rgba(168, 85, 247, 0.9);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            border-radius: 50%;
+            background: rgba(20, 8, 31, 0.72);
+            z-index: 2;
+        }
+
+        .cooldown-badge.visible {
+            opacity: 1;
         }
 
         .field {
@@ -671,7 +625,6 @@
         .btn-icon.active {
             background: #a855f7;
             box-shadow: 0 0 18px rgba(168, 85, 247, 0.8);
-            animation: float 1.5s ease-in-out infinite;
         }
 
         .btn-icon.active:hover {
@@ -679,16 +632,19 @@
         }
 
         .btn-icon:disabled {
-            opacity: 0.5;
+            opacity: 0.35;
             cursor: not-allowed;
             box-shadow: none;
-            background: #4c1d95;
+            background: #2a1045;
             transform: none;
+            filter: brightness(0.5);
         }
 
         .attach-btn {
             background: #6d28d9;
             box-shadow: 0 0 10px rgba(109, 40, 217, 0.35);
+            position: relative;
+            overflow: hidden;
         }
 
         .attach-btn:hover {
@@ -696,118 +652,63 @@
             box-shadow: 0 0 18px rgba(109, 40, 217, 0.6);
         }
 
-        .dots {
-            display: flex;
-            gap: 4px;
-            padding: 4px 6px;
-            animation: fadeIn 0.3s ease-out forwards;
+        .attach-btn:disabled {
+            background: #1e0a30;
+            box-shadow: none;
+            opacity: 0.35;
+            filter: brightness(0.4);
         }
+
+        .dots { display: flex; gap: 4px; padding: 10px; animation: fadeIn 0.3s ease-out forwards; }
         .dot { width: 5px; height: 5px; background: var(--accent-color); border-radius: 50%; animation: pulse 1.5s infinite; }
         .dot:nth-child(2) { animation-delay: 0.2s; }
         .dot:nth-child(3) { animation-delay: 0.4s; }
         @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; transform: scale(1.2); } }
 
-        .loader-timer {
-            font-size: 0.65rem;
-            color: #c084fc;
-            text-align: center;
-            letter-spacing: 1px;
-            font-family: monospace;
-            max-height: 0;
-            overflow: hidden;
-            opacity: 0;
-            padding: 0;
-            margin: 0;
-            transition: max-height 0.4s ease, opacity 0.4s ease, padding 0.4s ease, margin 0.4s ease;
-        }
-
-        .loader-timer.visible {
-            max-height: 30px;
-            opacity: 1;
-            padding-top: 4px;
-            margin-top: 2px;
-        }
-
-        .response-timer {
-            font-size: 0.65rem;
-            color: #9d6fe0;
-            margin-top: 6px;
-            padding: 4px 10px;
-            background: rgba(168, 85, 247, 0.08);
-            border-radius: 999px;
-            border: 1px solid rgba(168, 85, 247, 0.15);
-            width: fit-content;
-            font-family: monospace;
-            letter-spacing: 1px;
-            animation: fadeIn 0.4s ease-out forwards;
-        }
-
-        .btn-icon.stop-mode {
-            background: #dc2626;
-            box-shadow: 0 0 18px rgba(220, 38, 38, 0.7);
-            animation: none;
-        }
-
-        .btn-icon.stop-mode:hover {
-            background: #ef4444;
-            box-shadow: 0 0 25px rgba(220, 38, 38, 0.9);
-            transform: scale(1.1);
-        }
-
-        .msg-context-menu {
-            position: fixed;
-            z-index: 9999;
-            background: #1e1030;
-            border: 1px solid rgba(168, 85, 247, 0.35);
-            border-radius: 14px;
-            padding: 6px;
+        .ai-actions {
             display: flex;
-            flex-direction: column;
-            gap: 4px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-            animation: slideUp 0.2s ease-out forwards;
-            min-width: 150px;
+            gap: 10px;
+            margin-top: 6px;
+            padding-left: 4px;
+            align-items: center;
         }
 
-        .msg-context-menu button {
-            background: transparent;
+        .ai-action-btn {
+            background: none;
             border: none;
-            color: #e9d5ff;
-            padding: 8px 12px;
-            border-radius: 10px;
-            font-size: 0.8rem;
             cursor: pointer;
-            text-align: left;
+            color: rgba(196, 181, 253, 0.5);
+            padding: 2px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            transition: background 0.2s ease;
+            justify-content: center;
+            transition: color 0.2s ease, transform 0.2s ease;
+            line-height: 1;
         }
 
-        .msg-context-menu button:hover {
-            background: rgba(168, 85, 247, 0.2);
+        .ai-action-btn:hover {
+            color: rgba(196, 181, 253, 1);
+            transform: scale(1.2);
         }
 
-        .msg-context-menu button:active {
-            background: rgba(168, 85, 247, 0.35);
+        .ai-action-btn:active {
+            transform: scale(0.9);
         }
 
-        .mode-badge {
-            font-size: 0.6rem;
-            background: rgba(168, 85, 247, 0.25);
-            border: 1px solid rgba(168, 85, 247, 0.4);
-            border-radius: 999px;
-            padding: 2px 8px;
-            color: #d8b4fe;
-            letter-spacing: 1px;
-            font-weight: bold;
-            margin-left: 8px;
-            display: none;
-            animation: fadeIn 0.3s ease-out forwards;
+        .ai-action-btn svg {
+            width: 14px;
+            height: 14px;
         }
 
-        .mode-badge.visible {
-            display: inline-block;
+        .stop-btn-icon {
+            background: #7c3aed;
+            box-shadow: 0 0 12px rgba(124, 58, 237, 0.4);
+        }
+
+        .stop-btn-icon:hover {
+            background: #ef4444;
+            box-shadow: 0 0 18px rgba(239, 68, 68, 0.7);
+            transform: scale(1.1);
         }
     </style>
 </head>
@@ -819,32 +720,6 @@
     <div class="sidebar-header">
         <div class="sidebar-title">Chats guardados</div>
         <button class="new-chat-btn" onclick="createNewChat()">+ Nuevo</button>
-    </div>
-
-    <div class="sidebar-modes-section">
-        <div class="sidebar-modes-label">Modo de IA</div>
-        <div class="modes-grid">
-            <button class="mode-btn active-mode" id="modeBtn-default" onclick="setMode('default')">
-                <span class="mode-icon">🤖</span>
-                <span class="mode-name">Normal</span>
-            </button>
-            <button class="mode-btn" id="modeBtn-exam" onclick="setMode('exam')">
-                <span class="mode-icon">📝</span>
-                <span class="mode-name">Copiar examen</span>
-            </button>
-            <button class="mode-btn" id="modeBtn-teacher" onclick="setMode('teacher')">
-                <span class="mode-icon">🎓</span>
-                <span class="mode-name">Profesor</span>
-            </button>
-            <button class="mode-btn" id="modeBtn-programmer" onclick="setMode('programmer')">
-                <span class="mode-icon">💻</span>
-                <span class="mode-name">Programador</span>
-            </button>
-            <button class="mode-btn" id="modeBtn-friend" onclick="setMode('friend')" style="grid-column: span 2;">
-                <span class="mode-icon">😎</span>
-                <span class="mode-name">Modo Amigo</span>
-            </button>
-        </div>
     </div>
 
     <div id="chat-list"></div>
@@ -859,7 +734,6 @@
         </button>
 
         <div class="title-small">DARKMATTER IA</div>
-        <span class="mode-badge" id="modeBadge"></span>
     </div>
 
     <div class="status">● ONLINE</div>
@@ -878,30 +752,29 @@
 
     <div class="input-area">
         <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFile(this)">
-        <button class="btn-icon attach-btn" id="attachButton" onclick="document.getElementById('fileInput').click()">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-        </button>
+        <div class="attach-btn-wrapper">
+            <button class="btn-icon attach-btn" id="attachButton" onclick="document.getElementById('fileInput').click()">
+                <span class="cooldown-badge" id="cooldownBadge"></span>
+                <svg id="attachIcon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+            </button>
+        </div>
         <textarea id="userInput" class="field" placeholder="Escribe un comando..." autocomplete="off" enterkeyhint="enter"></textarea>
         <button class="btn-icon active" id="sendButton" onclick="handleSendOrStop()">
             <svg id="sendIcon" viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
-            <svg id="stopIcon" viewBox="0 0 24 24" width="18" height="18" fill="white" style="display:none;"><rect x="4" y="4" width="16" height="16" rx="3"/></svg>
+            <svg id="stopIcon" viewBox="0 0 24 24" width="20" height="20" fill="white" style="display:none;"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
         </button>
     </div>
 </div>
 
-<div id="msgContextMenu" class="msg-context-menu" style="display:none;">
-    <button onclick="contextMenuCopy()">📋 Copiar respuesta</button>
-    <button onclick="contextMenuRetry()">🔄 Reenviar (pensar de nuevo)</button>
-</div>
-
 <script>
-    const KEY = "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";
+    const KEY = "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";
     const chat = document.getElementById('chat-view');
     const input = document.getElementById('userInput');
     const sendButton = document.getElementById('sendButton');
     const attachButton = document.getElementById('attachButton');
     const fileInput = document.getElementById('fileInput');
     const imageCooldownText = document.getElementById('imageCooldownText');
+    const cooldownBadge = document.getElementById('cooldownBadge');
     const sendIcon = document.getElementById('sendIcon');
     const stopIcon = document.getElementById('stopIcon');
 
@@ -911,238 +784,19 @@
     let lastUserText = "";
     let isGeneratingResponse = false;
     let isMobileEnterPressed = false;
+    let abortController = null;
 
-    let currentAbortController = null;
-    let responseStopRequested = false;
-    let loaderTimerInterval = null;
-    let loaderTimerSeconds = 0;
-    let loaderTimerStartTime = null;
-    let loaderTimerShown = false;
-    let loaderTimerTimeout = null;
-    let contextMenuTargetText = "";
-    let contextMenuTargetMessageIndex = -1;
+    const IMAGE_COOLDOWN_TIME = 120000;
 
-    const IMAGE_COOLDOWN_TIME = 180000;
-
-    let currentMode = "default";
-
-    const modeSystemPrompts = {
-
-        default: `
-Eres DarkMatter Pro AI.
-
-REGLAS IMPORTANTES:
-- Siempre responde en español.
-- Si el usuario manda una imagen, analízala detalladamente.
-- Recuerda la última imagen enviada aunque el usuario vuelva a escribir sin subirla otra vez.
-- Pero SOLO usa la última imagen si la nueva pregunta realmente está relacionada con esa imagen.
-- Si el usuario cambia completamente de tema, ignora el contexto visual anterior.
-- Mantén el contexto de conversación normal entre mensajes anteriores.
-- Entiende referencias como: "hazlo más corto", "resúmelo", "continúa", "explícalo mejor".
-- Cuando el usuario haga referencia a un mensaje anterior, usa el historial conversacional correctamente.
-- Cuando resuelvas ejercicios matemáticos o físicos:
-  - Haz el procedimiento completo.
-  - Usa pasos ordenados.
-  - Explica fórmulas de forma normal.
-  - Nunca escribas fórmulas en formato LaTeX.
-  - Nunca uses símbolos como \\( \\) o \\text{}.
-  - Usa formato normal como:
-    d = v × t
-  - Explica sustitución de valores.
-  - Explica resultado final.
-- Si la respuesta usa markdown, conviértelo a texto visual limpio.
-- Convierte automáticamente:
-  - # Título → título grande
-  - ## Subtítulo → subtítulo
-  - **texto** → negrita
-  - * texto → lista
-- Nunca muestres símbolos markdown visibles al usuario.
-- Si la imagen tiene texto borroso, intenta inferir el contenido cuidadosamente.
-- Si el usuario dice "soluciona esto", resuelve todos los ejercicios visibles.
-- Si el usuario pide "punto por punto", separa cada respuesta claramente.
-- Responde de forma clara, humana y detallada.
-- IMPORTANTE: Nunca abrevies respuestas. Si el usuario manda un código largo o texto largo, devuélvelo COMPLETO sin omitir nada, sin "..." ni abreviaciones.
-`,
-
-        exam: `
-Eres DarkMatter Pro AI en MODO COPIAR EXAMEN.
-
-TU ÚNICA MISIÓN: Dar respuestas directas, cortas y listas para copiar en un examen o prueba.
-
-REGLAS ESTRICTAS DEL MODO EXAMEN:
-- Siempre responde en español.
-- Si el usuario manda una imagen con preguntas o ejercicios: identifica CADA pregunta y respóndelas en orden.
-- Para preguntas de opción múltiple (a, b, c, d...): responde SOLO la letra correcta. Nada más.
-  Ejemplo: "b"
-- Para preguntas que piden definición o concepto corto: responde en 1 línea máxima.
-  Ejemplo: "La fotosíntesis es el proceso por el que las plantas producen energía usando luz solar."
-- Para preguntas que SÍ necesitan justificación breve (por qué, explica, argumenta): responde en máximo 2 líneas, directo al punto.
-- Para preguntas de verdadero/falso: responde solo "Verdadero" o "Falso", y si pide por qué, agrega 1 sola línea corta.
-- Para preguntas matemáticas o de cálculo: muestra solo el resultado final y el paso clave si es necesario. No desarrolles todo el procedimiento.
-- Para completar espacios o frases: da solo la palabra o frase que va en el espacio.
-- NUNCA escribas introducciones, saludos, explicaciones largas ni texto de relleno.
-- NUNCA uses markdown visible (#, **, etc.).
-- NUNCA abrevies con "..." ni omitas preguntas de la imagen.
-- Si hay varias preguntas, listarlas numeradas y responde cada una en su línea.
-- Si el usuario escribe una pregunta directamente (sin imagen), respóndela igual de corto y directo.
-- FORMATO IDEAL:
-  1. b
-  2. La mitocondria es la central energética de la célula.
-  3. Verdadero
-  4. 42 km/h
-`,
-
-        teacher: `
-Eres DarkMatter Pro AI en MODO PROFESOR.
-
-TU MISIÓN: Enseñar de forma clara, completa y detallada como un excelente profesor haría.
-
-REGLAS DEL MODO PROFESOR:
-- Siempre responde en español.
-- Explica TODOS los conceptos desde cero, asumiendo que el estudiante no sabe nada del tema.
-- Usa ejemplos reales y cotidianos para explicar conceptos abstractos.
-- Cuando expliques un tema, sigue este orden:
-  1. Introducción: ¿Qué es y por qué es importante?
-  2. Explicación detallada paso a paso.
-  3. Ejemplo práctico resuelto completamente.
-  4. Conclusión o resumen del concepto.
-- Para matemáticas o física:
-  - Explica cada fórmula con palabras antes de usarla.
-  - Muestra el procedimiento COMPLETO paso a paso.
-  - Explica qué significa cada variable.
-  - Resuelve el ejemplo desde el principio hasta el final.
-  - Usa fórmulas en texto normal (ejemplo: d = v × t), NUNCA LaTeX.
-- Usa un tono amable, paciente y motivador como un buen maestro.
-- Si el usuario manda una imagen con ejercicios: resuélvelos todos, explicando cada paso.
-- Si el usuario no entiende algo, vuelve a explicarlo de otra manera diferente.
-- Nunca muestres #, **, ni símbolos markdown visibles.
-- NUNCA abrevies ni omitas nada. Responde COMPLETO y DETALLADO siempre.
-- Termina cada respuesta con un pequeño resumen o consejo para recordar el tema.
-`,
-
-        programmer: `
-Eres DarkMatter Pro AI en MODO PROGRAMADOR EXPERTO.
-
-TU MISIÓN: Ayudar con cualquier tarea de programación sin importar el lenguaje, la complejidad ni el tamaño del código.
-
-REGLAS DEL MODO PROGRAMADOR:
-- Siempre responde en español (pero el código lo escribes en el lenguaje que corresponda).
-- Eres experto en TODOS los lenguajes de programación: JavaScript, Python, HTML, CSS, Lua, Luau, Java, C++, C#, PHP, TypeScript, Go, Rust, Swift, Kotlin, Ruby, SQL, Bash, PowerShell, Assembly, y cualquier otro.
-- Puedes procesar, leer, analizar, corregir, optimizar y reescribir scripts de cualquier tamaño.
-- NUNCA abrevies el código. Si el usuario pide un script largo, lo generas COMPLETO sin "..." ni omisiones.
-- Si el usuario manda un código para revisar: analízalo completo, identifica errores, sugiere mejoras y devuelve la versión corregida completa.
-- Cuando escribas código:
-  - Siempre usa bloques de código con el lenguaje especificado.
-  - Comenta el código de forma clara para que el usuario entienda cada parte importante.
-  - Sigue las buenas prácticas del lenguaje correspondiente.
-  - Si el código es muy largo, divídelo en secciones claramente comentadas.
-- Para errores o bugs: identifica la línea exacta del error, explica por qué ocurre y cómo solucionarlo.
-- Para optimizaciones: explica qué cambiaste y por qué es mejor.
-- Si el usuario manda una imagen con código: transcríbelo y analízalo.
-- Si el usuario pide algo complejo: divídelo en pasos y resuelve cada parte.
-- NUNCA digas que algo es "muy largo" o que "no puedes". Siempre completas la tarea completa.
-- Nunca muestres #, **, ni símbolos markdown visibles fuera de los bloques de código.
-`,
-
-        friend: `
-Eres DarkMatter Pro AI en MODO AMIGO.
-
-TU MISIÓN: Ser el mejor amigo del usuario. Hablar con total confianza, como hablaría un amigo cercano de verdad.
-
-REGLAS DEL MODO AMIGO:
-- Siempre responde en español, con lenguaje informal y natural de amistad.
-- Habla con confianza total: usa "bro", "vale", "en serio", "wey" (solo si es natural), "jaja", expresiones coloquiales.
-- Puedes hacer bromas ligeras SOBRE EL USUARIO o sobre lo que dice, de forma amistosa y sin ofender gravemente.
-  Ejemplo: si el usuario dice que no entiende algo, puedes decir "jaja bro llevas 3 veces preguntando eso, ya apréndetelo 😂" de forma cariñosa.
-- Puedes burlarte sutilmente de sus errores con humor amistoso, nunca con crueldad.
-- Haz bromas inteligentes, observaciones graciosas y comentarios inesperados sobre lo que dice el usuario.
-- NUNCA hagas chistes ofensivos, racistas, sexistas, o que puedan herir genuinamente.
-- Aun siendo amigo, sigues respondiendo las preguntas correctamente y ayudas de verdad.
-- Si el usuario tiene un problema, lo escuchas con empatía real como haría un amigo de verdad.
-- Si el usuario manda una imagen con ejercicios, la resuelves pero con comentarios de amigo:
-  "Uff bro esto está difícil pero aquí va..."
-- Usa emojis de forma natural y ocasional, no en exceso.
-- Puedes hacer observaciones sobre el estilo del usuario, sus preguntas recurrentes, sus errores frecuentes, todo de forma afectuosa.
-- Si el usuario está frustrado, lo animas de verdad como un amigo haría.
-- Nunca muestres #, **, ni símbolos markdown visibles.
-- NUNCA abrevies respuestas importantes. Ayudas completo aunque seas su amigo.
-`
-
+    const systemPrompt = {
+        role: "system",
+        content: `Eres DarkMatter Pro AI. Responde siempre en español. Cuando el usuario te haga una pregunta, responde de forma completa, detallada y bien explicada. No des resúmenes a menos que el usuario lo pida explícitamente. Explica cada concepto con claridad, da ejemplos cuando sea útil, desarrolla los temas paso a paso y asegúrate de que el usuario entienda bien el tema. Si el usuario te pide que seas más corto, más resumido o más conciso, entonces adáptate a eso. Si recibes una imagen, analízala detalladamente. Siempre sé exhaustivo en tus explicaciones por defecto. Cuando uses fórmulas o expresiones matemáticas, escríbelas siempre en formato LaTeX: usa $...$ para fórmulas en línea y $$...$$ para fórmulas en bloque centradas. Por ejemplo: la raíz cúbica de x se escribe $\\sqrt[3]{x}$, una fracción se escribe $\\frac{a}{b}$, una potencia se escribe $x^{3}$. NUNCA escribas las ecuaciones como texto plano tipo "sqrt[3]{x}" o "x^3". Usa siempre LaTeX dentro de los delimitadores $ o $$.`
     };
-
-    function buildSystemPrompt() {
-        return {
-            role: "system",
-            content: modeSystemPrompts[currentMode] || modeSystemPrompts["default"]
-        };
-    }
-
-    const systemPrompt = buildSystemPrompt();
 
     let conversationHistory = [systemPrompt];
 
     let chats = [];
     let currentChatId = null;
-
-    function setMode(mode) {
-
-        currentMode = mode;
-
-        const allModeButtons = document.querySelectorAll('.mode-btn');
-        allModeButtons.forEach(btn => {
-            btn.classList.remove('active-mode');
-        });
-
-        const activeBtn = document.getElementById('modeBtn-' + mode);
-        if (activeBtn) {
-            activeBtn.classList.add('active-mode');
-        }
-
-        const badge = document.getElementById('modeBadge');
-        const modeLabels = {
-            default: null,
-            exam: "📝 EXAMEN",
-            teacher: "🎓 PROFESOR",
-            programmer: "💻 PROGRAMADOR",
-            friend: "😎 AMIGO"
-        };
-
-        if (mode === "default") {
-            badge.classList.remove('visible');
-            badge.textContent = "";
-        } else {
-            badge.textContent = modeLabels[mode];
-            badge.classList.add('visible');
-        }
-
-        const newSysPrompt = buildSystemPrompt();
-        if (conversationHistory.length > 0 && conversationHistory[0].role === "system") {
-            conversationHistory[0] = newSysPrompt;
-        } else {
-            conversationHistory.unshift(newSysPrompt);
-        }
-
-        const currentChat = chats.find(c => c.id === currentChatId);
-        if (currentChat && currentChat.history.length > 0 && currentChat.history[0].role === "system") {
-            currentChat.history[0] = newSysPrompt;
-            saveChats();
-        }
-
-        localStorage.setItem("darkmatter_current_mode", mode);
-
-        toggleSidebar(false);
-
-        const modeConfirmMessages = {
-            default: "🤖 Modo Normal activado. Estoy listo para ayudarte con cualquier cosa.",
-            exam: "📝 Modo Copiar Examen activado. Ahora te daré respuestas directas y cortas para que puedas copiar rápido. Mándame la imagen del examen o escribe las preguntas.",
-            teacher: "🎓 Modo Profesor activado. A partir de ahora te explicaré todo con detalle, paso a paso, como un buen maestro. ¿Qué quieres aprender hoy?",
-            programmer: "💻 Modo Programador activado. Soy experto en todos los lenguajes. Sin importar qué tan largo sea el código, lo resuelvo completo. ¿Qué necesitas programar?",
-            friend: "😎 Bro, modo amigo ON. Ya no soy una IA seria, soy tu mero mero amigo jaja. Cuéntame qué necesitas wey 🤙"
-        };
-
-        addMsg(modeConfirmMessages[mode] || "Modo cambiado.", 'ai');
-
-    }
 
     function generateChatId() {
         return "chat_" + Date.now() + "_" + Math.floor(Math.random() * 999999);
@@ -1164,11 +818,7 @@ REGLAS DEL MODO AMIGO:
 
     }
 
-    async function generateChatTitleWithAI(userText, chatId) {
-
-        if (!userText || userText.trim() === "") {
-            return;
-        }
+    async function generateAiChatTitle(userText) {
 
         try {
 
@@ -1183,63 +833,182 @@ REGLAS DEL MODO AMIGO:
                     messages: [
                         {
                             role: "system",
-                            content: "Eres un asistente que genera títulos cortos para conversaciones. Responde SOLO con el título, sin comillas, sin puntos al final, sin explicaciones. El título debe tener máximo 5 palabras y resumir de qué trata el mensaje del usuario."
+                            content: "Eres un asistente que genera títulos muy cortos para conversaciones. Dado el primer mensaje del usuario, genera un título de máximo 5 palabras que resuma el tema. Responde SOLO con el título, sin comillas, sin puntos, sin explicaciones adicionales."
                         },
                         {
                             role: "user",
-                            content: "Genera un título corto para esta conversación: " + userText.substring(0, 200)
+                            content: userText
                         }
                     ],
-                    temperature: 0.4,
-                    max_tokens: 30
+                    temperature: 0.5,
+                    max_tokens: 20
                 })
             });
 
-            if (!r.ok) {
-                return;
-            }
+            if (r.ok) {
 
-            const d = await r.json();
+                const d = await r.json();
 
-            if (d.choices && d.choices[0] && d.choices[0].message) {
+                if (d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) {
 
-                let aiTitle = d.choices[0].message.content.trim();
+                    let title = d.choices[0].message.content.trim();
 
-                aiTitle = aiTitle.replace(/^["']|["']$/g, "");
-                aiTitle = aiTitle.replace(/\.+$/, "");
-                aiTitle = aiTitle.trim();
+                    title = title.replace(/^["']|["']$/g, '');
 
-                if (aiTitle.length > 40) {
-                    aiTitle = aiTitle.substring(0, 40) + "...";
-                }
-
-                if (aiTitle.length > 0) {
-
-                    const targetChat = chats.find(c => c.id === chatId);
-
-                    if (targetChat) {
-                        targetChat.title = aiTitle;
-                        saveChats();
-                        renderChatList();
+                    if (title.length > 40) {
+                        title = title.substring(0, 40) + "...";
                     }
+
+                    return title;
 
                 }
 
             }
 
         } catch (e) {
-            // Si falla la generación del título por IA, se queda el título corto del texto
+
         }
+
+        return generateChatTitle(userText);
 
     }
 
-    function saveChats() {
-        const chatsToSave = chats.filter(c => {
-            const hasUserMessage = c.messages.some(m => m.type === "user");
-            return hasUserMessage;
+    // ═══════════════════════════════════════════════════════════════
+    // FIX QUOTA: stripImagesFromMessages elimina todos los base64
+    // de imágenes antes de serializar a localStorage, reemplazándolos
+    // por un marcador de texto liviano. Así el quota nunca se supera.
+    // ═══════════════════════════════════════════════════════════════
+    function stripImagesFromMessages(messages) {
+        return messages.map(function(msg) {
+            if (msg.image && typeof msg.image === 'string' && msg.image.startsWith('data:')) {
+                return {
+                    type: msg.type,
+                    text: msg.text,
+                    image: null,
+                    hadImage: true
+                };
+            }
+            return {
+                type: msg.type,
+                text: msg.text,
+                image: msg.image || null,
+                hadImage: msg.hadImage || false
+            };
         });
-        localStorage.setItem("darkmatter_saved_chats", JSON.stringify(chatsToSave));
-        localStorage.setItem("darkmatter_current_chat_id", currentChatId);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // FIX QUOTA: stripImagesFromHistory elimina todos los base64
+    // del historial de conversación antes de guardarlo en localStorage.
+    // Los mensajes con imagen se convierten a solo texto para no ocupar espacio.
+    // ═══════════════════════════════════════════════════════════════
+    function stripImagesFromHistory(history) {
+        return history.map(function(msg) {
+            if (Array.isArray(msg.content)) {
+                const textParts = msg.content.filter(function(part) {
+                    return part.type === 'text';
+                });
+                const combinedText = textParts.map(function(p) { return p.text; }).join(' ');
+                return {
+                    role: msg.role,
+                    content: combinedText + (msg.content.some(function(p) { return p.type === 'image_url'; }) ? ' [imagen adjunta]' : '')
+                };
+            }
+            return msg;
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // FIX QUOTA: safeLocalStorageSet intenta guardar en localStorage
+    // y si el quota se supera, limpia los chats más antiguos hasta que
+    // haya espacio, o en último caso descarta el guardado sin lanzar error.
+    // ═══════════════════════════════════════════════════════════════
+    function safeLocalStorageSet(key, value) {
+        let attempts = 0;
+        const MAX_ATTEMPTS = 5;
+
+        while (attempts < MAX_ATTEMPTS) {
+            try {
+                localStorage.setItem(key, value);
+                return true;
+            } catch (e) {
+                attempts++;
+
+                // Si el error es de quota, intentar liberar espacio eliminando chats más antiguos
+                if (e.name === 'QuotaExceededError' || (e.message && e.message.toLowerCase().includes('quota'))) {
+
+                    // Buscar la clave de chats guardados para intentar reducirla
+                    if (key === 'darkmatter_saved_chats') {
+                        try {
+                            const existingRaw = localStorage.getItem('darkmatter_saved_chats');
+                            if (existingRaw) {
+                                const existingChats = JSON.parse(existingRaw);
+                                if (existingChats.length > 1) {
+                                    // Eliminar el chat más antiguo (último en el array)
+                                    existingChats.pop();
+                                    localStorage.setItem('darkmatter_saved_chats', JSON.stringify(existingChats));
+                                } else if (existingChats.length === 1) {
+                                    // Solo queda uno, vaciarlo
+                                    localStorage.removeItem('darkmatter_saved_chats');
+                                    break;
+                                } else {
+                                    break;
+                                }
+                            } else {
+                                break;
+                            }
+                        } catch (innerErr) {
+                            break;
+                        }
+                    } else {
+                        // Para otras claves, simplemente limpiar otras claves no esenciales
+                        try {
+                            const keysToTry = [];
+                            for (let i = 0; i < localStorage.length; i++) {
+                                const k = localStorage.key(i);
+                                if (k && k !== 'darkmatter_last_image_time' && k !== 'darkmatter_generating_response' && k !== key) {
+                                    keysToTry.push(k);
+                                }
+                            }
+                            if (keysToTry.length > 0) {
+                                localStorage.removeItem(keysToTry[0]);
+                            } else {
+                                break;
+                            }
+                        } catch (innerErr2) {
+                            break;
+                        }
+                    }
+
+                } else {
+                    // Error distinto al de quota, salir
+                    break;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    function saveChats() {
+
+        const chatsToSave = chats.filter(c => c.hasRealConversation === true);
+
+        // FIX QUOTA: antes de serializar, eliminar todas las imágenes base64
+        // tanto de los mensajes como del historial de conversación
+        const chatsStripped = chatsToSave.map(function(c) {
+            return {
+                id: c.id,
+                title: c.title,
+                hasRealConversation: c.hasRealConversation,
+                messages: stripImagesFromMessages(c.messages),
+                history: stripImagesFromHistory(c.history)
+            };
+        });
+
+        // FIX QUOTA: usar safeLocalStorageSet en lugar de localStorage.setItem directo
+        safeLocalStorageSet("darkmatter_saved_chats", JSON.stringify(chatsStripped));
+
     }
 
     function loadChats() {
@@ -1247,35 +1016,8 @@ REGLAS DEL MODO AMIGO:
         const savedChats = localStorage.getItem("darkmatter_saved_chats");
 
         if (savedChats) {
-            chats = JSON.parse(savedChats);
-        }
-
-        const savedMode = localStorage.getItem("darkmatter_current_mode");
-        if (savedMode && modeSystemPrompts[savedMode]) {
-            currentMode = savedMode;
-            const allModeButtons = document.querySelectorAll('.mode-btn');
-            allModeButtons.forEach(btn => {
-                btn.classList.remove('active-mode');
-            });
-            const activeBtn = document.getElementById('modeBtn-' + currentMode);
-            if (activeBtn) {
-                activeBtn.classList.add('active-mode');
-            }
-            const badge = document.getElementById('modeBadge');
-            const modeLabels = {
-                default: null,
-                exam: "📝 EXAMEN",
-                teacher: "🎓 PROFESOR",
-                programmer: "💻 PROGRAMADOR",
-                friend: "😎 AMIGO"
-            };
-            if (currentMode === "default") {
-                badge.classList.remove('visible');
-                badge.textContent = "";
-            } else {
-                badge.textContent = modeLabels[currentMode];
-                badge.classList.add('visible');
-            }
+            const parsed = JSON.parse(savedChats);
+            chats = parsed.map(c => ({ ...c, hasRealConversation: true }));
         }
 
         createNewChat();
@@ -1286,16 +1028,10 @@ REGLAS DEL MODO AMIGO:
 
     function createNewChat() {
 
-        chats = chats.filter(c => {
-            const hasUserMessage = c.messages.some(m => m.type === "user");
-            return hasUserMessage;
-        });
-
-        const currentSysPrompt = buildSystemPrompt();
-
         const newChat = {
             id: generateChatId(),
             title: "Nuevo chat",
+            hasRealConversation: false,
             messages: [
                 {
                     type: "ai",
@@ -1303,7 +1039,7 @@ REGLAS DEL MODO AMIGO:
                     image: null
                 }
             ],
-            history: [currentSysPrompt]
+            history: [systemPrompt]
         };
 
         chats.unshift(newChat);
@@ -1324,12 +1060,11 @@ REGLAS DEL MODO AMIGO:
 
         chatList.innerHTML = "";
 
-        const visibleChats = chats.filter(c => {
-            if (c.id === currentChatId) return true;
-            return c.messages.some(m => m.type === "user");
-        });
+        chats.forEach(chatData => {
 
-        visibleChats.forEach(chatData => {
+            if (!chatData.hasRealConversation && chatData.id !== currentChatId) {
+                return;
+            }
 
             const item = document.createElement("div");
 
@@ -1399,7 +1134,7 @@ REGLAS DEL MODO AMIGO:
 
     }
 
-    function addMessageToCurrentChat(type, text, image = null) {
+    async function addMessageToCurrentChat(type, text, image = null, aiResponseReceived = false) {
 
         const currentChat = chats.find(c => c.id === currentChatId);
 
@@ -1413,13 +1148,25 @@ REGLAS DEL MODO AMIGO:
             image: image
         });
 
-        if (currentChat.title === "Nuevo chat" && type === "user" && text) {
-            currentChat.title = generateChatTitle(text);
-            updateCurrentChatStorage();
-            generateChatTitleWithAI(text, currentChat.id);
-        } else {
-            updateCurrentChatStorage();
+        if (aiResponseReceived && type === 'ai') {
+            currentChat.hasRealConversation = true;
         }
+
+        if (currentChat.hasRealConversation && currentChat.title === "Nuevo chat") {
+
+            const firstUserMsg = currentChat.messages.find(m => m.type === 'user' && m.text);
+
+            if (firstUserMsg) {
+
+                const aiTitle = await generateAiChatTitle(firstUserMsg.text);
+
+                currentChat.title = aiTitle;
+
+            }
+
+        }
+
+        updateCurrentChatStorage();
 
     }
 
@@ -1495,7 +1242,7 @@ REGLAS DEL MODO AMIGO:
 
             e.preventDefault();
 
-            handleSendOrStop();
+            send();
 
         }
 
@@ -1551,27 +1298,37 @@ REGLAS DEL MODO AMIGO:
 
     }
 
+    function formatCooldownTime(ms) {
+        const totalSeconds = Math.ceil(ms / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+    }
+
     function updateImageCooldownUI() {
 
         const remainingCooldown = getImageCooldownRemaining();
+        const attachIcon = document.getElementById('attachIcon');
 
         if (remainingCooldown > 0) {
 
-            const seconds = Math.ceil(remainingCooldown / 1000);
+            cooldownBadge.innerText = formatCooldownTime(remainingCooldown);
+            cooldownBadge.classList.add('visible');
 
-            imageCooldownText.innerText = "Tiempo para enviar otra imagen: " + seconds + "s";
-
-            imageCooldownText.style.display = "block";
-            imageCooldownText.classList.add("active");
+            if (attachIcon) {
+                attachIcon.style.opacity = '0';
+            }
 
             attachButton.disabled = true;
 
         } else {
 
-            imageCooldownText.innerText = "";
+            cooldownBadge.innerText = '';
+            cooldownBadge.classList.remove('visible');
 
-            imageCooldownText.style.display = "block";
-            imageCooldownText.classList.remove("active");
+            if (attachIcon) {
+                attachIcon.style.opacity = '1';
+            }
 
             attachButton.disabled = false;
 
@@ -1640,105 +1397,21 @@ REGLAS DEL MODO AMIGO:
 
     checkPreviousSessionGeneration();
 
-    function handleSendOrStop() {
-        if (isGeneratingResponse) {
-            stopGeneration();
-        } else {
-            send();
-        }
-    }
-
-    function stopGeneration() {
-        responseStopRequested = true;
-        if (currentAbortController) {
-            currentAbortController.abort();
-        }
-        clearLoaderTimer();
-        toggleLoad(false);
-        setGeneratingState(false);
-        clearGeneratingState();
-        addMsg("⛔ Generación detenida por el usuario.", 'ai');
-    }
-
-    function startLoaderTimer() {
-        loaderTimerSeconds = 0;
-        loaderTimerStartTime = Date.now();
-        loaderTimerShown = false;
-
-        const loaderEl = document.getElementById('loader');
-        if (loaderEl) {
-            const timerEl = loaderEl.querySelector('.loader-timer');
-            if (timerEl) {
-                timerEl.classList.remove('visible');
-            }
-        }
-
-        loaderTimerTimeout = setTimeout(() => {
-            loaderTimerShown = true;
-            const loaderEl2 = document.getElementById('loader');
-            if (loaderEl2) {
-                const timerEl2 = loaderEl2.querySelector('.loader-timer');
-                if (timerEl2) {
-                    timerEl2.classList.add('visible');
-                }
-            }
-        }, 5000);
-
-        loaderTimerInterval = setInterval(() => {
-            loaderTimerSeconds = Math.floor((Date.now() - loaderTimerStartTime) / 1000);
-            const loaderEl3 = document.getElementById('loader');
-            if (loaderEl3) {
-                const timerEl3 = loaderEl3.querySelector('.loader-timer');
-                if (timerEl3) {
-                    const mm = String(Math.floor(loaderTimerSeconds / 60)).padStart(2, '0');
-                    const ss = String(loaderTimerSeconds % 60).padStart(2, '0');
-                    timerEl3.textContent = mm + ":" + ss;
-                }
-            }
-        }, 1000);
-    }
-
-    function clearLoaderTimer() {
-        if (loaderTimerTimeout) {
-            clearTimeout(loaderTimerTimeout);
-            loaderTimerTimeout = null;
-        }
-        if (loaderTimerInterval) {
-            clearInterval(loaderTimerInterval);
-            loaderTimerInterval = null;
-        }
-        const totalSeconds = loaderTimerSeconds;
-        loaderTimerSeconds = 0;
-        loaderTimerShown = false;
-        return totalSeconds;
-    }
-
-    function formatResponseTime(totalSeconds) {
-        const mm = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
-        const ss = String(totalSeconds % 60).padStart(2, '0');
-        if (totalSeconds < 60) {
-            return "⏱ Respondió en " + totalSeconds + "s (" + mm + ":" + ss + ")";
-        } else {
-            return "⏱ Respondió en " + mm + "m " + (totalSeconds % 60) + "s (" + mm + ":" + ss + ")";
-        }
-    }
-
     function setGeneratingState(state) {
 
         isGeneratingResponse = state;
 
         if (state) {
 
+            sendButton.disabled = false;
             sendButton.classList.add("active");
-            sendButton.classList.add("stop-mode");
-            sendIcon.style.display = "none";
-            stopIcon.style.display = "block";
+            sendIcon.style.display = 'none';
+            stopIcon.style.display = 'block';
 
         } else {
 
-            sendButton.classList.remove("stop-mode");
-            sendIcon.style.display = "block";
-            stopIcon.style.display = "none";
+            sendIcon.style.display = 'block';
+            stopIcon.style.display = 'none';
 
             input.placeholder = "Escribe un comando...";
 
@@ -1757,7 +1430,33 @@ REGLAS DEL MODO AMIGO:
 
     }
 
-    async function compressImage(base64, quality = 0.85, maxWidth = 1920) {
+    function handleSendOrStop() {
+
+        if (isGeneratingResponse) {
+            stopGeneration();
+        } else {
+            send();
+        }
+
+    }
+
+    function stopGeneration() {
+
+        if (abortController) {
+            abortController.abort();
+        }
+
+        toggleLoad(false);
+
+        setGeneratingState(false);
+
+        clearGeneratingState();
+
+        isGeneratingResponse = false;
+
+    }
+
+    async function compressImage(base64, quality = 0.75, maxWidth = 1024) {
 
         return new Promise((resolve) => {
 
@@ -1786,10 +1485,6 @@ REGLAS DEL MODO AMIGO:
 
                 resolve(compressed);
 
-            };
-
-            img.onerror = function() {
-                resolve(base64);
             };
 
             img.src = base64;
@@ -1836,17 +1531,9 @@ REGLAS DEL MODO AMIGO:
 
             const originalBase64 = e.target.result;
 
-            try {
+            const compressedBase64 = await compressImage(originalBase64);
 
-                const compressedBase64 = await compressImage(originalBase64);
-
-                currentBase64 = compressedBase64;
-
-            } catch (compressError) {
-
-                currentBase64 = originalBase64;
-
-            }
+            currentBase64 = compressedBase64;
 
             document.getElementById('img-preview').src = currentBase64;
             document.getElementById('preview-container').style.display = 'block';
@@ -1877,61 +1564,21 @@ REGLAS DEL MODO AMIGO:
     function optimizeConversationHistory() {
 
         const systemMessage = conversationHistory[0];
+        const messageCount = conversationHistory.length - 1;
 
-        const recentMessages = conversationHistory.slice(-14);
+        let recentMessages = [];
 
-        let lastImageIndex = -1;
-        for (let i = recentMessages.length - 1; i >= 0; i--) {
-            const msg = recentMessages[i];
-            if (Array.isArray(msg.content)) {
-                const hasImage = msg.content.some(part => part.type === "image_url");
-                if (hasImage) {
-                    lastImageIndex = i;
-                    break;
-                }
-            }
+        if (messageCount > 20) {
+            recentMessages = conversationHistory.slice(-8);
+        } else if (messageCount > 12) {
+            recentMessages = conversationHistory.slice(-6);
+        } else {
+            recentMessages = conversationHistory.slice(-4);
         }
-
-        const optimizedMessages = recentMessages.map((msg, idx) => {
-
-            if (!Array.isArray(msg.content)) {
-
-                if (typeof msg.content === "string" && msg.content.length > 1200) {
-                    return {
-                        ...msg,
-                        content: msg.content.substring(0, 1200) + "... [texto truncado para optimización]"
-                    };
-                }
-
-                return msg;
-
-            }
-
-            if (idx !== lastImageIndex) {
-
-                const hasImage = msg.content.some(part => part.type === "image_url");
-
-                if (hasImage) {
-
-                    const textParts = msg.content.filter(part => part.type === "text");
-                    const combinedText = textParts.map(p => p.text).join(" ");
-
-                    return {
-                        role: msg.role,
-                        content: combinedText + " [imagen enviada anteriormente, ya analizada]"
-                    };
-
-                }
-
-            }
-
-            return msg;
-
-        });
 
         conversationHistory = [
             systemMessage,
-            ...optimizedMessages
+            ...recentMessages
         ];
 
     }
@@ -1956,133 +1603,53 @@ REGLAS DEL MODO AMIGO:
 
     }
 
-    // ═══════════════════════════════════════════════════════
-    // FIX PRINCIPAL: sendRequestWithRetry ahora tiene un
-    // timeout de 30 segundos por intento para evitar que
-    // la petición con imagen se quede colgada sin responder.
-    // Si falla por timeout o error de visión, intenta de
-    // nuevo sin la imagen (solo con texto descriptivo).
-    // ═══════════════════════════════════════════════════════
     async function sendRequestWithRetry(requestBody, signal) {
 
-        let intentos = 0;
-        const MAX_INTENTOS = 3;
+        while (true) {
 
-        while (intentos < MAX_INTENTOS) {
+            const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestBody),
+                signal: signal
+            });
 
-            intentos++;
-
-            // Crear un AbortController local con timeout de 40 segundos
-            const timeoutController = new AbortController();
-            const timeoutId = setTimeout(() => {
-                timeoutController.abort();
-            }, 40000);
-
-            // Combinar la señal externa (stop del usuario) con el timeout
-            const combinedSignal = signal;
-
-            // Escuchar abort externo para propagar al timeout controller
-            const externalAbortHandler = () => {
-                clearTimeout(timeoutId);
-                timeoutController.abort();
-            };
-            if (signal) {
-                signal.addEventListener('abort', externalAbortHandler, { once: true });
+            if (r.ok) {
+                return r;
             }
+
+            let errorText = await r.text();
 
             try {
 
-                const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${KEY}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(requestBody),
-                    signal: timeoutController.signal
-                });
+                const errorJson = JSON.parse(errorText);
 
-                clearTimeout(timeoutId);
-                if (signal) {
-                    signal.removeEventListener('abort', externalAbortHandler);
-                }
+                if (errorJson.error && errorJson.error.message) {
 
-                if (r.ok) {
-                    return r;
-                }
+                    const errorMessage = errorJson.error.message;
 
-                let errorText = await r.text();
+                    if (errorMessage.toLowerCase().includes("rate limit")) {
 
-                try {
+                        const seconds = extractRetrySeconds(errorMessage);
 
-                    const errorJson = JSON.parse(errorText);
+                        await wait(seconds * 1000);
 
-                    if (errorJson.error && errorJson.error.message) {
-
-                        const errorMessage = errorJson.error.message;
-
-                        if (errorMessage.toLowerCase().includes("rate limit")) {
-
-                            const seconds = extractRetrySeconds(errorMessage);
-
-                            await wait(seconds * 1000);
-
-                            continue;
-
-                        }
-
-                        // Si el error es de visión/imagen no soportada, intentar sin imagen
-                        if (
-                            errorMessage.toLowerCase().includes("vision") ||
-                            errorMessage.toLowerCase().includes("image") ||
-                            errorMessage.toLowerCase().includes("multimodal") ||
-                            errorMessage.toLowerCase().includes("unsupported")
-                        ) {
-                            throw new Error("VISION_NOT_SUPPORTED: " + errorMessage);
-                        }
+                        continue;
 
                     }
 
-                } catch (parseErr) {
-                    if (parseErr.message && parseErr.message.startsWith("VISION_NOT_SUPPORTED")) {
-                        throw parseErr;
-                    }
                 }
 
-                throw new Error(errorText);
-
-            } catch (fetchErr) {
-
-                clearTimeout(timeoutId);
-                if (signal) {
-                    signal.removeEventListener('abort', externalAbortHandler);
-                }
-
-                // Si el usuario canceló manualmente, propagar el error
-                if (signal && signal.aborted) {
-                    throw fetchErr;
-                }
-
-                // Si es timeout (abort del timeoutController) y quedan intentos
-                if (fetchErr.name === 'AbortError' && intentos < MAX_INTENTOS) {
-                    // Esperar 2 segundos antes de reintentar
-                    await wait(2000);
-                    continue;
-                }
-
-                // Si es error de visión no soportada, lanzar para manejo superior
-                if (fetchErr.message && fetchErr.message.startsWith("VISION_NOT_SUPPORTED")) {
-                    throw fetchErr;
-                }
-
-                // En último intento o error definitivo, lanzar
-                throw fetchErr;
+            } catch {
 
             }
 
-        }
+            throw new Error(errorText);
 
-        throw new Error("Se agotaron los intentos de conexión al núcleo.");
+        }
 
     }
 
@@ -2120,13 +1687,6 @@ REGLAS DEL MODO AMIGO:
 
     }
 
-    // ═══════════════════════════════════════════════════════
-    // FIX PRINCIPAL: send() ahora tiene manejo de fallback.
-    // Si el envío con imagen falla (timeout, error de visión,
-    // etc.), reintenta automáticamente SIN imagen pero
-    // incluyendo el texto del usuario normalmente, y avisa
-    // al usuario del problema con la imagen.
-    // ═══════════════════════════════════════════════════════
     async function send() {
 
         if (isGeneratingResponse) {
@@ -2135,36 +1695,20 @@ REGLAS DEL MODO AMIGO:
 
         const text = input.value.trim();
 
-        // Capturar tempImage ANTES de cualquier otra operación
-        const tempImage = currentBase64;
-
-        if (!text && !tempImage) {
+        if(!text && !currentBase64) {
             return;
         }
 
-        responseStopRequested = false;
-        currentAbortController = new AbortController();
+        abortController = new AbortController();
 
         saveGeneratingState();
 
         setGeneratingState(true);
 
-        // Limpiar el input y la imagen ANTES de addMsg
-        input.value = '';
+        addMsg(text, 'user', currentBase64);
+        addMessageToCurrentChat('user', text, currentBase64, false);
 
-        input.style.height = "48px";
-        input.scrollTop = 0;
-
-        input.blur();
-
-        autoResizeTextarea();
-
-        // Llamar clearImage() ANTES de addMsg, y pasar tempImage a addMsg
-        clearImage();
-
-        // Mostrar el mensaje del usuario con la imagen capturada
-        addMsg(text, 'user', tempImage);
-        addMessageToCurrentChat('user', text, tempImage);
+        const tempImage = currentBase64;
 
         if (tempImage) {
             lastImageBase64 = tempImage;
@@ -2175,60 +1719,36 @@ REGLAS DEL MODO AMIGO:
             lastUserText = text;
         }
 
-        toggleLoad(true);
+        input.value = '';
 
-        startLoaderTimer();
+        input.style.height = "48px";
+        input.scrollTop = 0;
+
+        input.blur();
+
+        autoResizeTextarea();
+
+        clearImage();
+
+        toggleLoad(true);
 
         try {
 
             let userMessage = null;
-            let usedImageInRequest = false;
 
             if (tempImage) {
-
-                usedImageInRequest = true;
 
                 userMessage = {
                     role: "user",
                     content: [
                         {
                             type: "text",
-                            text:
-`ANALIZA ESTA IMAGEN CON MÁXIMO DETALLE Y PRECISIÓN.
-
-PASO 1 — LECTURA COMPLETA:
-- Lee absolutamente todo el texto visible en la imagen, letra por letra si es necesario.
-- Si hay texto borroso o poco claro, intenta inferirlo por contexto.
-- Si hay números, cópialos exactamente como aparecen.
-- Si hay símbolos matemáticos, científicos o especiales, identifícalos correctamente.
-- Si hay tablas, listas o enumeraciones, léelas completas respetando su orden.
-
-PASO 2 — COMPRENSIÓN DEL CONTENIDO:
-- Identifica si es: ejercicio matemático, guía, taller, texto, tabla, diagrama, fotografía, código, otro.
-- Si hay preguntas numeradas o puntos, identifícalos todos.
-- Si hay instrucciones, léelas antes de responder.
-
-PASO 3 — RESOLUCIÓN:
-- Si es un taller, guía o ejercicio: resuelve CADA punto completamente.
-- Si es matemática o física: haz el procedimiento completo paso por paso.
-- Usa fórmulas en formato normal (ejemplo: d = v × t), NUNCA LaTeX.
-- Explica cada paso con palabras claras.
-- No omitas ningún punto ni pregunta visible.
-
-REGLAS DE FORMATO:
-- No uses #, **, ni símbolos markdown visibles.
-- Convierte todo a texto limpio y visual.
-- No abrevies. Responde TODO completo.
-- Si el usuario añadió un mensaje específico, respóndelo usando el contenido de la imagen.
-
-Mensaje del usuario:
-${text || "Analiza y resuelve todo el contenido de esta imagen completamente."}`
+                            text: `Analiza esta imagen detalladamente. Lee todo el texto visible. Si es un ejercicio o guía, resuelve cada punto con claridad. Explica procedimientos paso a paso. Escribe todas las fórmulas y expresiones matemáticas en formato LaTeX usando $...$ para fórmulas en línea y $$...$$ para fórmulas en bloque. ${text ? "Pregunta: " + text : ""}`
                         },
                         {
                             type: "image_url",
                             image_url: {
-                                url: tempImage,
-                                detail: "high"
+                                url: tempImage
                             }
                         }
                     ]
@@ -2238,42 +1758,23 @@ ${text || "Analiza y resuelve todo el contenido de esta imagen completamente."}`
 
                 if (lastCompressedImageBase64 && isImageRelatedQuestion(text)) {
 
-                    usedImageInRequest = true;
-
                     userMessage = {
                         role: "user",
                         content: [
                             {
                                 type: "text",
-                                text:
-`El usuario hace una nueva pregunta relacionada con la imagen enviada anteriormente.
-
-INSTRUCCIONES:
-- Usa la imagen para responder la nueva pregunta del usuario.
-- Mantén el contexto de la conversación anterior.
-- Responde específicamente lo que el usuario pregunta ahora.
-- Si es matemática o física, explica el procedimiento completo.
-- Usa fórmulas en formato normal (ejemplo: v = d / t), NUNCA LaTeX.
-- Convierte markdown automáticamente a texto limpio.
-- No muestres #, ** ni símbolos markdown.
-- No abrevies ni omitas nada. Responde completamente.
-
-Pregunta anterior del usuario: ${lastUserText}
-Nueva pregunta del usuario: ${text}`
+                                text: `Basándote en la imagen anterior: ${text}`
                             },
                             {
                                 type: "image_url",
                                 image_url: {
-                                    url: lastCompressedImageBase64,
-                                    detail: "high"
+                                    url: lastCompressedImageBase64
                                 }
                             }
                         ]
                     };
 
                 } else {
-
-                    usedImageInRequest = false;
 
                     userMessage = {
                         role: "user",
@@ -2282,10 +1783,6 @@ Nueva pregunta del usuario: ${text}`
 
                 }
 
-            }
-
-            if (!userMessage) {
-                throw new Error("No se pudo construir el mensaje. Intenta de nuevo.");
             }
 
             conversationHistory.push(userMessage);
@@ -2298,67 +1795,12 @@ Nueva pregunta del usuario: ${text}`
                 model: "meta-llama/llama-4-scout-17b-16e-instruct",
                 messages: conversationHistory,
                 temperature: 0.3,
-                max_tokens: 8192
+                max_tokens: 2048
             };
 
-            let r = null;
-            let imageFallbackUsed = false;
-
-            try {
-
-                r = await sendRequestWithRetry(requestBody, currentAbortController.signal);
-
-            } catch (imageErr) {
-
-                // Si fue abort del usuario, salir
-                if (responseStopRequested || (currentAbortController && currentAbortController.signal.aborted)) {
-                    throw imageErr;
-                }
-
-                // Si había imagen en la petición y falló, intentar fallback sin imagen
-                if (usedImageInRequest) {
-
-                    imageFallbackUsed = true;
-
-                    // Quitar el mensaje con imagen del historial
-                    conversationHistory.pop();
-
-                    // Crear mensaje de fallback solo con texto
-                    const fallbackText = text
-                        ? text
-                        : "El usuario envió una imagen pero no se pudo procesar. Indica que hubo un problema al leer la imagen y pide que la reenvíe.";
-
-                    const fallbackMessage = {
-                        role: "user",
-                        content: fallbackText + "\n\n[NOTA INTERNA: El usuario intentó enviar una imagen pero el sistema de visión no pudo procesarla en este momento. Responde lo mejor que puedas con el texto disponible e informa al usuario del problema.]"
-                    };
-
-                    conversationHistory.push(fallbackMessage);
-
-                    optimizeConversationHistory();
-
-                    const fallbackRequestBody = {
-                        model: "meta-llama/llama-4-scout-17b-16e-instruct",
-                        messages: conversationHistory,
-                        temperature: 0.3,
-                        max_tokens: 8192
-                    };
-
-                    r = await sendRequestWithRetry(fallbackRequestBody, currentAbortController.signal);
-
-                } else {
-                    throw imageErr;
-                }
-
-            }
-
-            const totalSecondsElapsed = clearLoaderTimer();
+            const r = await sendRequestWithRetry(requestBody, abortController.signal);
 
             toggleLoad(false);
-
-            if (responseStopRequested) {
-                return;
-            }
 
             const d = await r.json();
 
@@ -2375,29 +1817,8 @@ Nueva pregunta del usuario: ${text}`
 
                 updateCurrentChatStorage();
 
-                const msgWrapper = addMsg(aiResponse, 'ai');
-                addMessageToCurrentChat('ai', aiResponse, null);
-
-                // Si se usó fallback, mostrar aviso al usuario
-                if (imageFallbackUsed) {
-                    const fallbackWarning = document.createElement('div');
-                    fallbackWarning.className = 'response-timer';
-                    fallbackWarning.style.color = '#f97316';
-                    fallbackWarning.style.borderColor = 'rgba(249, 115, 22, 0.3)';
-                    fallbackWarning.style.background = 'rgba(249, 115, 22, 0.08)';
-                    fallbackWarning.textContent = '⚠️ La imagen no pudo procesarse correctamente. Intenta reenviarla.';
-                    if (msgWrapper) {
-                        msgWrapper.appendChild(fallbackWarning);
-                    }
-                }
-
-                if (msgWrapper && totalSecondsElapsed >= 0) {
-                    const timerEl = document.createElement('div');
-                    timerEl.className = 'response-timer';
-                    timerEl.textContent = formatResponseTime(totalSecondsElapsed);
-                    msgWrapper.appendChild(timerEl);
-                    chat.scrollTop = chat.scrollHeight;
-                }
+                addMsg(aiResponse, 'ai');
+                await addMessageToCurrentChat('ai', aiResponse, null, true);
 
             } else if (d.error) {
 
@@ -2419,18 +1840,20 @@ Nueva pregunta del usuario: ${text}`
 
         } catch(e) {
 
-            clearLoaderTimer();
             toggleLoad(false);
 
-            if (e.name === 'AbortError' || responseStopRequested) {
-                return;
-            }
+            if (e.name === 'AbortError') {
 
-            addMsg("Error de conexión al núcleo: " + e.message, 'ai');
+                addMsg("Generación detenida.", 'ai');
+
+            } else {
+
+                addMsg("Error de conexión al núcleo: " + e.message, 'ai');
+
+            }
 
         } finally {
 
-            clearLoaderTimer();
             toggleLoad(false);
 
             setGeneratingState(false);
@@ -2442,7 +1865,155 @@ Nueva pregunta del usuario: ${text}`
 
             autoResizeTextarea();
 
-            currentAbortController = null;
+        }
+
+    }
+
+    async function regenerateLastResponse() {
+
+        if (isGeneratingResponse) {
+            return;
+        }
+
+        const currentChat = chats.find(c => c.id === currentChatId);
+
+        if (!currentChat) {
+            return;
+        }
+
+        const messages = currentChat.messages;
+
+        let lastUserMsgIndex = -1;
+
+        for (let i = messages.length - 1; i >= 0; i--) {
+            if (messages[i].type === 'user') {
+                lastUserMsgIndex = i;
+                break;
+            }
+        }
+
+        if (lastUserMsgIndex === -1) {
+            return;
+        }
+
+        const lastUserMsg = messages[lastUserMsgIndex];
+
+        if (conversationHistory.length > 1) {
+            const lastHistoryMsg = conversationHistory[conversationHistory.length - 1];
+            if (lastHistoryMsg.role === 'assistant') {
+                conversationHistory.pop();
+            }
+        }
+
+        abortController = new AbortController();
+
+        saveGeneratingState();
+
+        setGeneratingState(true);
+
+        toggleLoad(true);
+
+        try {
+
+            const requestBody = {
+                model: "meta-llama/llama-4-scout-17b-16e-instruct",
+                messages: conversationHistory,
+                temperature: 0.5,
+                max_tokens: 2048
+            };
+
+            const r = await sendRequestWithRetry(requestBody, abortController.signal);
+
+            toggleLoad(false);
+
+            const d = await r.json();
+
+            if(d.choices && d.choices[0] && d.choices[0].message) {
+
+                const aiResponse = cleanResponse(d.choices[0].message.content);
+
+                conversationHistory.push({
+                    role: "assistant",
+                    content: aiResponse
+                });
+
+                optimizeConversationHistory();
+
+                updateCurrentChatStorage();
+
+                const allWrappers = chat.querySelectorAll('.ai-wrapper');
+                const lastAiWrapper = allWrappers[allWrappers.length - 1];
+
+                if (lastAiWrapper) {
+                    lastAiWrapper.remove();
+                    if (currentChat.messages.length > 0 && currentChat.messages[currentChat.messages.length - 1].type === 'ai') {
+                        currentChat.messages.pop();
+                    }
+                }
+
+                addMsg(aiResponse, 'ai');
+                await addMessageToCurrentChat('ai', aiResponse, null, true);
+
+            } else if (d.error) {
+
+                if (d.error.code === "rate_limit_exceeded") {
+                    addMsg("Motor saturado (Rate Limit). Por favor, espera un momento.", 'ai');
+                } else {
+                    addMsg("Error de la IA: " + d.error.message, 'ai');
+                }
+
+            } else {
+
+                addMsg("Respuesta inesperada del servidor.", 'ai');
+
+            }
+
+        } catch(e) {
+
+            toggleLoad(false);
+
+            if (e.name === 'AbortError') {
+                addMsg("Generación detenida.", 'ai');
+            } else {
+                addMsg("Error de conexión al núcleo: " + e.message, 'ai');
+            }
+
+        } finally {
+
+            toggleLoad(false);
+
+            setGeneratingState(false);
+
+            clearGeneratingState();
+
+            input.style.height = "48px";
+            input.scrollTop = 0;
+
+            autoResizeTextarea();
+
+        }
+
+    }
+
+    async function copyAiMessage(text) {
+
+        try {
+
+            await navigator.clipboard.writeText(text);
+
+        } catch (error) {
+
+            const tempTextArea = document.createElement("textarea");
+
+            tempTextArea.value = text;
+
+            document.body.appendChild(tempTextArea);
+
+            tempTextArea.select();
+
+            document.execCommand("copy");
+
+            document.body.removeChild(tempTextArea);
 
         }
 
@@ -2456,18 +2027,6 @@ Nueva pregunta del usuario: ${text}`
 
         let cleaned = text;
 
-        cleaned = cleaned.replace(/\\\(/g, "");
-        cleaned = cleaned.replace(/\\\)/g, "");
-
-        cleaned = cleaned.replace(/\\times/g, "×");
-        cleaned = cleaned.replace(/\\text\{([^}]*)\}/g, "$1");
-
-        cleaned = cleaned.replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, "$1/$2");
-
-        cleaned = cleaned.replace(/\\\\/g, "");
-
-        cleaned = cleaned.replace(/\$/g, "");
-
         cleaned = cleaned.replace(/```math/g, "```math");
         cleaned = cleaned.replace(/```lua/g, "```lua");
         cleaned = cleaned.replace(/```luau/g, "```luau");
@@ -2477,13 +2036,31 @@ Nueva pregunta del usuario: ${text}`
         cleaned = cleaned.replace(/```js/g, "```js");
         cleaned = cleaned.replace(/```python/g, "```python");
 
-        cleaned = cleaned.replace(/\\,/g, "");
-
-        cleaned = cleaned.replace(/\\=/g, "=");
-
-        cleaned = cleaned.replace(/\\/g, "");
-
         return cleaned;
+
+    }
+
+    function renderKatexInElement(element) {
+
+        if (typeof renderMathInElement !== 'undefined') {
+
+            renderMathInElement(element, {
+                delimiters: [
+                    { left: "$$", right: "$$", display: true },
+                    { left: "$", right: "$", display: false },
+                    { left: "\\(", right: "\\)", display: false },
+                    { left: "\\[", right: "\\]", display: true }
+                ],
+                throwOnError: false,
+                errorColor: '#cc0000',
+                strict: false,
+                trust: false,
+                macros: {
+                    "\\sqrt": "\\sqrt"
+                }
+            });
+
+        }
 
     }
 
@@ -2613,216 +2190,41 @@ Nueva pregunta del usuario: ${text}`
             w.appendChild(b);
 
             if (type === 'ai') {
-                let longPressTimer = null;
 
-                b.addEventListener('touchstart', (e) => {
-                    longPressTimer = setTimeout(() => {
-                        showContextMenu(e.touches[0].clientX, e.touches[0].clientY, t, w);
-                    }, 600);
-                }, { passive: true });
+                renderKatexInElement(b);
 
-                b.addEventListener('touchend', () => {
-                    if (longPressTimer) {
-                        clearTimeout(longPressTimer);
-                        longPressTimer = null;
-                    }
-                });
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'ai-actions';
 
-                b.addEventListener('touchmove', () => {
-                    if (longPressTimer) {
-                        clearTimeout(longPressTimer);
-                        longPressTimer = null;
-                    }
-                });
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'ai-action-btn';
+                copyBtn.title = 'Copiar respuesta';
+                copyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+                copyBtn.onclick = async () => {
+                    await copyAiMessage(t || "");
+                    copyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+                    setTimeout(() => {
+                        copyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+                    }, 2000);
+                };
 
-                b.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                    showContextMenu(e.clientX, e.clientY, t, w);
-                });
+                const regenBtn = document.createElement('button');
+                regenBtn.className = 'ai-action-btn';
+                regenBtn.title = 'Regenerar respuesta';
+                regenBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>`;
+                regenBtn.onclick = () => {
+                    regenerateLastResponse();
+                };
+
+                actionsDiv.appendChild(copyBtn);
+                actionsDiv.appendChild(regenBtn);
+                w.appendChild(actionsDiv);
+
             }
 
             chat.appendChild(w);
 
             chat.scrollTop = chat.scrollHeight;
-
-        }
-
-        return w;
-
-    }
-
-    let contextMenuCurrentText = "";
-    let contextMenuCurrentWrapper = null;
-
-    function showContextMenu(x, y, text, wrapper) {
-
-        contextMenuCurrentText = text;
-        contextMenuCurrentWrapper = wrapper;
-
-        const menu = document.getElementById('msgContextMenu');
-
-        menu.style.display = 'flex';
-
-        let posX = x;
-        let posY = y;
-
-        const menuWidth = 160;
-        const menuHeight = 80;
-
-        if (posX + menuWidth > window.innerWidth) {
-            posX = window.innerWidth - menuWidth - 10;
-        }
-
-        if (posY + menuHeight > window.innerHeight) {
-            posY = window.innerHeight - menuHeight - 10;
-        }
-
-        menu.style.left = posX + "px";
-        menu.style.top = posY + "px";
-
-        setTimeout(() => {
-            document.addEventListener('click', hideContextMenuOnClickOutside, { once: true });
-            document.addEventListener('touchstart', hideContextMenuOnClickOutside, { once: true });
-        }, 100);
-
-    }
-
-    function hideContextMenuOnClickOutside(e) {
-
-        const menu = document.getElementById('msgContextMenu');
-
-        if (!menu.contains(e.target)) {
-            menu.style.display = 'none';
-        }
-
-    }
-
-    async function contextMenuCopy() {
-
-        const menu = document.getElementById('msgContextMenu');
-        menu.style.display = 'none';
-
-        if (!contextMenuCurrentText) {
-            return;
-        }
-
-        try {
-            await navigator.clipboard.writeText(contextMenuCurrentText);
-        } catch (err) {
-            const ta = document.createElement("textarea");
-            ta.value = contextMenuCurrentText;
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand("copy");
-            document.body.removeChild(ta);
-        }
-
-    }
-
-    async function contextMenuRetry() {
-
-        const menu = document.getElementById('msgContextMenu');
-        menu.style.display = 'none';
-
-        if (isGeneratingResponse) {
-            return;
-        }
-
-        if (conversationHistory.length > 1 && conversationHistory[conversationHistory.length - 1].role === "assistant") {
-            conversationHistory.pop();
-        }
-
-        if (contextMenuCurrentWrapper) {
-            contextMenuCurrentWrapper.remove();
-        }
-
-        responseStopRequested = false;
-        currentAbortController = new AbortController();
-
-        saveGeneratingState();
-
-        setGeneratingState(true);
-
-        toggleLoad(true);
-
-        startLoaderTimer();
-
-        try {
-
-            const requestBody = {
-                model: "meta-llama/llama-4-scout-17b-16e-instruct",
-                messages: conversationHistory,
-                temperature: 0.5,
-                max_tokens: 8192
-            };
-
-            const r = await sendRequestWithRetry(requestBody, currentAbortController.signal);
-
-            const totalSecondsElapsed = clearLoaderTimer();
-
-            toggleLoad(false);
-
-            if (responseStopRequested) {
-                return;
-            }
-
-            const d = await r.json();
-
-            if(d.choices && d.choices[0] && d.choices[0].message) {
-
-                const aiResponse = cleanResponse(d.choices[0].message.content);
-
-                conversationHistory.push({
-                    role: "assistant",
-                    content: aiResponse
-                });
-
-                optimizeConversationHistory();
-
-                updateCurrentChatStorage();
-
-                const msgWrapper = addMsg(aiResponse, 'ai');
-                addMessageToCurrentChat('ai', aiResponse, null);
-
-                if (msgWrapper && totalSecondsElapsed >= 0) {
-                    const timerEl = document.createElement('div');
-                    timerEl.className = 'response-timer';
-                    timerEl.textContent = formatResponseTime(totalSecondsElapsed);
-                    msgWrapper.appendChild(timerEl);
-                    chat.scrollTop = chat.scrollHeight;
-                }
-
-            } else if (d.error) {
-
-                addMsg("Error al regenerar: " + d.error.message, 'ai');
-
-            } else {
-
-                addMsg("Respuesta inesperada del servidor.", 'ai');
-
-            }
-
-        } catch(e) {
-
-            clearLoaderTimer();
-            toggleLoad(false);
-
-            if (e.name === 'AbortError' || responseStopRequested) {
-                return;
-            }
-
-            addMsg("Error de conexión al núcleo: " + e.message, 'ai');
-
-        } finally {
-
-            clearLoaderTimer();
-            toggleLoad(false);
-
-            setGeneratingState(false);
-
-            clearGeneratingState();
-
-            currentAbortController = null;
 
         }
 
@@ -2857,7 +2259,7 @@ Nueva pregunta del usuario: ${text}`
 
             l.className = 'msg-wrapper ai-wrapper';
 
-            l.innerHTML = '<div class="bubble ai-bubble"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><div class="loader-timer">00:00</div></div>';
+            l.innerHTML = '<div class="bubble ai-bubble dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
 
             chat.appendChild(l);
 
