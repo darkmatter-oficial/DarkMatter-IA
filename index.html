@@ -905,7 +905,7 @@
 </div>
 
 <script>
-    const KEY = "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";
+    const KEY = "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";
     const chat = document.getElementById('chat-view');
     const input = document.getElementById('userInput');
     const sendButton = document.getElementById('sendButton');
@@ -1829,6 +1829,11 @@ REGLAS DEL MODO AMIGO:
 
             };
 
+            // CORREGIDO: Agregar manejo de error en la carga de imagen para evitar que se quede colgado
+            img.onerror = function() {
+                resolve(base64);
+            };
+
             img.src = base64;
 
         });
@@ -1873,9 +1878,19 @@ REGLAS DEL MODO AMIGO:
 
             const originalBase64 = e.target.result;
 
-            const compressedBase64 = await compressImage(originalBase64);
+            // CORREGIDO: Envolver compressImage en try-catch para evitar que un error aquí bloquee todo
+            try {
 
-            currentBase64 = compressedBase64;
+                const compressedBase64 = await compressImage(originalBase64);
+
+                currentBase64 = compressedBase64;
+
+            } catch (compressError) {
+
+                // Si falla la compresión, usar la imagen original sin comprimir
+                currentBase64 = originalBase64;
+
+            }
 
             document.getElementById('img-preview').src = currentBase64;
             document.getElementById('preview-container').style.display = 'block';
@@ -2079,6 +2094,7 @@ REGLAS DEL MODO AMIGO:
 
     }
 
+    // CORREGIDO: send() completamente refactorizado para evitar el bug de imagen que no responde
     async function send() {
 
         if (isGeneratingResponse) {
@@ -2087,7 +2103,10 @@ REGLAS DEL MODO AMIGO:
 
         const text = input.value.trim();
 
-        if(!text && !currentBase64) {
+        // CORREGIDO: Capturar tempImage ANTES de cualquier otra operación para evitar pérdida de estado
+        const tempImage = currentBase64;
+
+        if (!text && !tempImage) {
             return;
         }
 
@@ -2098,20 +2117,7 @@ REGLAS DEL MODO AMIGO:
 
         setGeneratingState(true);
 
-        addMsg(text, 'user', currentBase64);
-        addMessageToCurrentChat('user', text, currentBase64);
-
-        const tempImage = currentBase64;
-
-        if (tempImage) {
-            lastImageBase64 = tempImage;
-            lastCompressedImageBase64 = tempImage;
-        }
-
-        if (text) {
-            lastUserText = text;
-        }
-
+        // CORREGIDO: Limpiar el input y la imagen ANTES de addMsg para evitar estado inconsistente
         input.value = '';
 
         input.style.height = "48px";
@@ -2121,7 +2127,21 @@ REGLAS DEL MODO AMIGO:
 
         autoResizeTextarea();
 
+        // CORREGIDO: Llamar clearImage() ANTES de addMsg, y pasar tempImage a addMsg
         clearImage();
+
+        // Ahora sí mostrar el mensaje del usuario con la imagen capturada
+        addMsg(text, 'user', tempImage);
+        addMessageToCurrentChat('user', text, tempImage);
+
+        if (tempImage) {
+            lastImageBase64 = tempImage;
+            lastCompressedImageBase64 = tempImage;
+        }
+
+        if (text) {
+            lastUserText = text;
+        }
 
         toggleLoad(true);
 
@@ -2226,6 +2246,11 @@ Nueva pregunta del usuario: ${text}`
 
                 }
 
+            }
+
+            // CORREGIDO: Validar que userMessage se construyó correctamente antes de continuar
+            if (!userMessage) {
+                throw new Error("No se pudo construir el mensaje. Intenta de nuevo.");
             }
 
             conversationHistory.push(userMessage);
