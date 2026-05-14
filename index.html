@@ -175,7 +175,6 @@
             transform: scale(0.95);
         }
 
-        /* NUEVO: Sección de modos en el sidebar */
         .sidebar-modes-section {
             padding: 12px 10px 6px 10px;
             border-bottom: 1px solid rgba(168, 85, 247, 0.15);
@@ -697,7 +696,6 @@
             box-shadow: 0 0 18px rgba(109, 40, 217, 0.6);
         }
 
-        /* MODIFICADO: Loader compacto — las bolitas no tienen padding extra */
         .dots {
             display: flex;
             gap: 4px;
@@ -709,7 +707,6 @@
         .dot:nth-child(3) { animation-delay: 0.4s; }
         @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; transform: scale(1.2); } }
 
-        /* MODIFICADO: Contador oculto por defecto, sin espacio; cuando aparece se expande */
         .loader-timer {
             font-size: 0.65rem;
             color: #c084fc;
@@ -731,7 +728,6 @@
             margin-top: 2px;
         }
 
-        /* NUEVO: Contador final debajo de la respuesta */
         .response-timer {
             font-size: 0.65rem;
             color: #9d6fe0;
@@ -746,7 +742,6 @@
             animation: fadeIn 0.4s ease-out forwards;
         }
 
-        /* NUEVO: Botón de pausa (stop) */
         .btn-icon.stop-mode {
             background: #dc2626;
             box-shadow: 0 0 18px rgba(220, 38, 38, 0.7);
@@ -759,7 +754,6 @@
             transform: scale(1.1);
         }
 
-        /* NUEVO: Mini menú contextual para mensajes IA */
         .msg-context-menu {
             position: fixed;
             z-index: 9999;
@@ -798,7 +792,6 @@
             background: rgba(168, 85, 247, 0.35);
         }
 
-        /* NUEVO: Badge de modo activo en el header */
         .mode-badge {
             font-size: 0.6rem;
             background: rgba(168, 85, 247, 0.25);
@@ -828,7 +821,6 @@
         <button class="new-chat-btn" onclick="createNewChat()">+ Nuevo</button>
     </div>
 
-    <!-- NUEVO: Sección de modos de IA -->
     <div class="sidebar-modes-section">
         <div class="sidebar-modes-label">Modo de IA</div>
         <div class="modes-grid">
@@ -867,7 +859,6 @@
         </button>
 
         <div class="title-small">DARKMATTER IA</div>
-        <!-- NUEVO: Badge que muestra el modo activo -->
         <span class="mode-badge" id="modeBadge"></span>
     </div>
 
@@ -898,7 +889,6 @@
     </div>
 </div>
 
-<!-- NUEVO: Contenedor del menú contextual -->
 <div id="msgContextMenu" class="msg-context-menu" style="display:none;">
     <button onclick="contextMenuCopy()">📋 Copiar respuesta</button>
     <button onclick="contextMenuRetry()">🔄 Reenviar (pensar de nuevo)</button>
@@ -922,7 +912,6 @@
     let isGeneratingResponse = false;
     let isMobileEnterPressed = false;
 
-    // NUEVO: variables para control de abort, timer, y menú contextual
     let currentAbortController = null;
     let responseStopRequested = false;
     let loaderTimerInterval = null;
@@ -935,10 +924,8 @@
 
     const IMAGE_COOLDOWN_TIME = 180000;
 
-    // NUEVO: Variable de modo activo
     let currentMode = "default";
 
-    // NUEVO: Definición de los system prompts por modo
     const modeSystemPrompts = {
 
         default: `
@@ -1083,7 +1070,6 @@ REGLAS DEL MODO AMIGO:
 
     };
 
-    // NUEVO: Función para construir el systemPrompt actual según el modo
     function buildSystemPrompt() {
         return {
             role: "system",
@@ -1091,7 +1077,6 @@ REGLAS DEL MODO AMIGO:
         };
     }
 
-    // NUEVO: systemPrompt inicial (modo default)
     const systemPrompt = buildSystemPrompt();
 
     let conversationHistory = [systemPrompt];
@@ -1099,12 +1084,10 @@ REGLAS DEL MODO AMIGO:
     let chats = [];
     let currentChatId = null;
 
-    // NUEVO: Función para cambiar el modo de IA
     function setMode(mode) {
 
         currentMode = mode;
 
-        // Actualizar botones del sidebar
         const allModeButtons = document.querySelectorAll('.mode-btn');
         allModeButtons.forEach(btn => {
             btn.classList.remove('active-mode');
@@ -1115,7 +1098,6 @@ REGLAS DEL MODO AMIGO:
             activeBtn.classList.add('active-mode');
         }
 
-        // Actualizar badge en el header
         const badge = document.getElementById('modeBadge');
         const modeLabels = {
             default: null,
@@ -1133,7 +1115,6 @@ REGLAS DEL MODO AMIGO:
             badge.classList.add('visible');
         }
 
-        // Actualizar el system prompt del historial actual con el nuevo modo
         const newSysPrompt = buildSystemPrompt();
         if (conversationHistory.length > 0 && conversationHistory[0].role === "system") {
             conversationHistory[0] = newSysPrompt;
@@ -1141,20 +1122,16 @@ REGLAS DEL MODO AMIGO:
             conversationHistory.unshift(newSysPrompt);
         }
 
-        // Actualizar también en el chat actual guardado
         const currentChat = chats.find(c => c.id === currentChatId);
         if (currentChat && currentChat.history.length > 0 && currentChat.history[0].role === "system") {
             currentChat.history[0] = newSysPrompt;
             saveChats();
         }
 
-        // Guardar el modo en localStorage para persistirlo
         localStorage.setItem("darkmatter_current_mode", mode);
 
-        // Cerrar el sidebar al cambiar de modo
         toggleSidebar(false);
 
-        // Mostrar mensaje de confirmación en el chat
         const modeConfirmMessages = {
             default: "🤖 Modo Normal activado. Estoy listo para ayudarte con cualquier cosa.",
             exam: "📝 Modo Copiar Examen activado. Ahora te daré respuestas directas y cortas para que puedas copiar rápido. Mándame la imagen del examen o escribe las preguntas.",
@@ -1171,7 +1148,6 @@ REGLAS DEL MODO AMIGO:
         return "chat_" + Date.now() + "_" + Math.floor(Math.random() * 999999);
     }
 
-    // MODIFICADO: El título ya no se genera aquí, se genera por IA en generateChatTitleWithAI
     function generateChatTitle(text) {
 
         if (!text || text.trim() === "") {
@@ -1188,7 +1164,6 @@ REGLAS DEL MODO AMIGO:
 
     }
 
-    // NUEVO: Generar título con IA de forma asíncrona
     async function generateChatTitleWithAI(userText, chatId) {
 
         if (!userText || userText.trim() === "") {
@@ -1230,7 +1205,6 @@ REGLAS DEL MODO AMIGO:
 
                 let aiTitle = d.choices[0].message.content.trim();
 
-                // Limpiar el título: quitar comillas, puntos finales, etc.
                 aiTitle = aiTitle.replace(/^["']|["']$/g, "");
                 aiTitle = aiTitle.replace(/\.+$/, "");
                 aiTitle = aiTitle.trim();
@@ -1260,7 +1234,6 @@ REGLAS DEL MODO AMIGO:
     }
 
     function saveChats() {
-        // MODIFICADO: Solo guarda chats que tengan al menos un mensaje del usuario
         const chatsToSave = chats.filter(c => {
             const hasUserMessage = c.messages.some(m => m.type === "user");
             return hasUserMessage;
@@ -1277,7 +1250,6 @@ REGLAS DEL MODO AMIGO:
             chats = JSON.parse(savedChats);
         }
 
-        // NUEVO: Restaurar el modo guardado en localStorage
         const savedMode = localStorage.getItem("darkmatter_current_mode");
         if (savedMode && modeSystemPrompts[savedMode]) {
             currentMode = savedMode;
@@ -1306,7 +1278,6 @@ REGLAS DEL MODO AMIGO:
             }
         }
 
-        // MODIFICADO: Siempre crear un chat nuevo al cargar la página
         createNewChat();
 
         renderChatList();
@@ -1315,13 +1286,11 @@ REGLAS DEL MODO AMIGO:
 
     function createNewChat() {
 
-        // MODIFICADO: Antes de crear uno nuevo, eliminar chats vacíos (sin mensajes de usuario) que ya existan en el array
         chats = chats.filter(c => {
             const hasUserMessage = c.messages.some(m => m.type === "user");
             return hasUserMessage;
         });
 
-        // NUEVO: El chat nuevo usa el systemPrompt del modo actual
         const currentSysPrompt = buildSystemPrompt();
 
         const newChat = {
@@ -1355,7 +1324,6 @@ REGLAS DEL MODO AMIGO:
 
         chatList.innerHTML = "";
 
-        // MODIFICADO: Solo renderizar chats que tengan al menos un mensaje del usuario
         const visibleChats = chats.filter(c => {
             if (c.id === currentChatId) return true;
             return c.messages.some(m => m.type === "user");
@@ -1445,11 +1413,9 @@ REGLAS DEL MODO AMIGO:
             image: image
         });
 
-        // MODIFICADO: Si es el primer mensaje del usuario, asigna título corto y luego lanza generación por IA
         if (currentChat.title === "Nuevo chat" && type === "user" && text) {
             currentChat.title = generateChatTitle(text);
             updateCurrentChatStorage();
-            // Lanza la generación de título por IA sin bloquear
             generateChatTitleWithAI(text, currentChat.id);
         } else {
             updateCurrentChatStorage();
@@ -1674,7 +1640,6 @@ REGLAS DEL MODO AMIGO:
 
     checkPreviousSessionGeneration();
 
-    // NUEVO: Función para manejar el botón de enviar / parar
     function handleSendOrStop() {
         if (isGeneratingResponse) {
             stopGeneration();
@@ -1683,7 +1648,6 @@ REGLAS DEL MODO AMIGO:
         }
     }
 
-    // NUEVO: Función para detener la generación
     function stopGeneration() {
         responseStopRequested = true;
         if (currentAbortController) {
@@ -1696,7 +1660,6 @@ REGLAS DEL MODO AMIGO:
         addMsg("⛔ Generación detenida por el usuario.", 'ai');
     }
 
-    // NUEVO: Iniciar el timer del loader
     function startLoaderTimer() {
         loaderTimerSeconds = 0;
         loaderTimerStartTime = Date.now();
@@ -1735,7 +1698,6 @@ REGLAS DEL MODO AMIGO:
         }, 1000);
     }
 
-    // NUEVO: Detener el timer del loader y devolver segundos totales
     function clearLoaderTimer() {
         if (loaderTimerTimeout) {
             clearTimeout(loaderTimerTimeout);
@@ -1751,7 +1713,6 @@ REGLAS DEL MODO AMIGO:
         return totalSeconds;
     }
 
-    // NUEVO: Formatear segundos a texto detallado
     function formatResponseTime(totalSeconds) {
         const mm = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
         const ss = String(totalSeconds % 60).padStart(2, '0');
@@ -1766,7 +1727,6 @@ REGLAS DEL MODO AMIGO:
 
         isGeneratingResponse = state;
 
-        // MODIFICADO: El botón ya no se desactiva, cambia entre enviar y parar
         if (state) {
 
             sendButton.classList.add("active");
@@ -1797,7 +1757,6 @@ REGLAS DEL MODO AMIGO:
 
     }
 
-    // MODIFICADO: Mayor calidad (0.85) y mayor resolución máxima (1920px) para mejor lectura de imágenes
     async function compressImage(base64, quality = 0.85, maxWidth = 1920) {
 
         return new Promise((resolve) => {
@@ -1829,7 +1788,6 @@ REGLAS DEL MODO AMIGO:
 
             };
 
-            // CORREGIDO: Agregar manejo de error en la carga de imagen para evitar que se quede colgado
             img.onerror = function() {
                 resolve(base64);
             };
@@ -1878,7 +1836,6 @@ REGLAS DEL MODO AMIGO:
 
             const originalBase64 = e.target.result;
 
-            // CORREGIDO: Envolver compressImage en try-catch para evitar que un error aquí bloquee todo
             try {
 
                 const compressedBase64 = await compressImage(originalBase64);
@@ -1887,7 +1844,6 @@ REGLAS DEL MODO AMIGO:
 
             } catch (compressError) {
 
-                // Si falla la compresión, usar la imagen original sin comprimir
                 currentBase64 = originalBase64;
 
             }
@@ -1918,17 +1874,12 @@ REGLAS DEL MODO AMIGO:
 
     }
 
-    // MODIFICADO: optimizeConversationHistory ahora limpia imágenes base64 de mensajes antiguos
-    // para reducir el tamaño del payload y acelerar las respuestas sin perder el contexto textual.
-    // Solo el último mensaje con imagen conserva la imagen real; los anteriores se convierten en texto.
     function optimizeConversationHistory() {
 
         const systemMessage = conversationHistory[0];
 
-        // Tomar solo los últimos 14 mensajes (7 turnos) para reducir tokens
         const recentMessages = conversationHistory.slice(-14);
 
-        // Encontrar el índice del último mensaje que contiene una imagen real
         let lastImageIndex = -1;
         for (let i = recentMessages.length - 1; i >= 0; i--) {
             const msg = recentMessages[i];
@@ -1941,12 +1892,10 @@ REGLAS DEL MODO AMIGO:
             }
         }
 
-        // Procesar mensajes: convertir imágenes antiguas a referencia de texto para reducir payload
         const optimizedMessages = recentMessages.map((msg, idx) => {
 
             if (!Array.isArray(msg.content)) {
 
-                // Mensaje de texto puro: truncar si es muy largo para reducir tokens
                 if (typeof msg.content === "string" && msg.content.length > 1200) {
                     return {
                         ...msg,
@@ -1958,14 +1907,12 @@ REGLAS DEL MODO AMIGO:
 
             }
 
-            // Si este mensaje tiene imagen y NO es el más reciente con imagen, quitar la imagen
             if (idx !== lastImageIndex) {
 
                 const hasImage = msg.content.some(part => part.type === "image_url");
 
                 if (hasImage) {
 
-                    // Reemplazar el bloque de imagen con texto de referencia
                     const textParts = msg.content.filter(part => part.type === "text");
                     const combinedText = textParts.map(p => p.text).join(" ");
 
@@ -1978,7 +1925,6 @@ REGLAS DEL MODO AMIGO:
 
             }
 
-            // Si es el mensaje con la imagen más reciente, conservarlo completo
             return msg;
 
         });
@@ -2010,53 +1956,133 @@ REGLAS DEL MODO AMIGO:
 
     }
 
+    // ═══════════════════════════════════════════════════════
+    // FIX PRINCIPAL: sendRequestWithRetry ahora tiene un
+    // timeout de 30 segundos por intento para evitar que
+    // la petición con imagen se quede colgada sin responder.
+    // Si falla por timeout o error de visión, intenta de
+    // nuevo sin la imagen (solo con texto descriptivo).
+    // ═══════════════════════════════════════════════════════
     async function sendRequestWithRetry(requestBody, signal) {
 
-        while (true) {
+        let intentos = 0;
+        const MAX_INTENTOS = 3;
 
-            const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${KEY}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(requestBody),
-                signal: signal
-            });
+        while (intentos < MAX_INTENTOS) {
 
-            if (r.ok) {
-                return r;
+            intentos++;
+
+            // Crear un AbortController local con timeout de 40 segundos
+            const timeoutController = new AbortController();
+            const timeoutId = setTimeout(() => {
+                timeoutController.abort();
+            }, 40000);
+
+            // Combinar la señal externa (stop del usuario) con el timeout
+            const combinedSignal = signal;
+
+            // Escuchar abort externo para propagar al timeout controller
+            const externalAbortHandler = () => {
+                clearTimeout(timeoutId);
+                timeoutController.abort();
+            };
+            if (signal) {
+                signal.addEventListener('abort', externalAbortHandler, { once: true });
             }
-
-            let errorText = await r.text();
 
             try {
 
-                const errorJson = JSON.parse(errorText);
+                const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${KEY}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(requestBody),
+                    signal: timeoutController.signal
+                });
 
-                if (errorJson.error && errorJson.error.message) {
+                clearTimeout(timeoutId);
+                if (signal) {
+                    signal.removeEventListener('abort', externalAbortHandler);
+                }
 
-                    const errorMessage = errorJson.error.message;
+                if (r.ok) {
+                    return r;
+                }
 
-                    if (errorMessage.toLowerCase().includes("rate limit")) {
+                let errorText = await r.text();
 
-                        const seconds = extractRetrySeconds(errorMessage);
+                try {
 
-                        await wait(seconds * 1000);
+                    const errorJson = JSON.parse(errorText);
 
-                        continue;
+                    if (errorJson.error && errorJson.error.message) {
+
+                        const errorMessage = errorJson.error.message;
+
+                        if (errorMessage.toLowerCase().includes("rate limit")) {
+
+                            const seconds = extractRetrySeconds(errorMessage);
+
+                            await wait(seconds * 1000);
+
+                            continue;
+
+                        }
+
+                        // Si el error es de visión/imagen no soportada, intentar sin imagen
+                        if (
+                            errorMessage.toLowerCase().includes("vision") ||
+                            errorMessage.toLowerCase().includes("image") ||
+                            errorMessage.toLowerCase().includes("multimodal") ||
+                            errorMessage.toLowerCase().includes("unsupported")
+                        ) {
+                            throw new Error("VISION_NOT_SUPPORTED: " + errorMessage);
+                        }
 
                     }
 
+                } catch (parseErr) {
+                    if (parseErr.message && parseErr.message.startsWith("VISION_NOT_SUPPORTED")) {
+                        throw parseErr;
+                    }
                 }
 
-            } catch {
+                throw new Error(errorText);
+
+            } catch (fetchErr) {
+
+                clearTimeout(timeoutId);
+                if (signal) {
+                    signal.removeEventListener('abort', externalAbortHandler);
+                }
+
+                // Si el usuario canceló manualmente, propagar el error
+                if (signal && signal.aborted) {
+                    throw fetchErr;
+                }
+
+                // Si es timeout (abort del timeoutController) y quedan intentos
+                if (fetchErr.name === 'AbortError' && intentos < MAX_INTENTOS) {
+                    // Esperar 2 segundos antes de reintentar
+                    await wait(2000);
+                    continue;
+                }
+
+                // Si es error de visión no soportada, lanzar para manejo superior
+                if (fetchErr.message && fetchErr.message.startsWith("VISION_NOT_SUPPORTED")) {
+                    throw fetchErr;
+                }
+
+                // En último intento o error definitivo, lanzar
+                throw fetchErr;
 
             }
 
-            throw new Error(errorText);
-
         }
+
+        throw new Error("Se agotaron los intentos de conexión al núcleo.");
 
     }
 
@@ -2094,7 +2120,13 @@ REGLAS DEL MODO AMIGO:
 
     }
 
-    // CORREGIDO: send() completamente refactorizado para evitar el bug de imagen que no responde
+    // ═══════════════════════════════════════════════════════
+    // FIX PRINCIPAL: send() ahora tiene manejo de fallback.
+    // Si el envío con imagen falla (timeout, error de visión,
+    // etc.), reintenta automáticamente SIN imagen pero
+    // incluyendo el texto del usuario normalmente, y avisa
+    // al usuario del problema con la imagen.
+    // ═══════════════════════════════════════════════════════
     async function send() {
 
         if (isGeneratingResponse) {
@@ -2103,7 +2135,7 @@ REGLAS DEL MODO AMIGO:
 
         const text = input.value.trim();
 
-        // CORREGIDO: Capturar tempImage ANTES de cualquier otra operación para evitar pérdida de estado
+        // Capturar tempImage ANTES de cualquier otra operación
         const tempImage = currentBase64;
 
         if (!text && !tempImage) {
@@ -2117,7 +2149,7 @@ REGLAS DEL MODO AMIGO:
 
         setGeneratingState(true);
 
-        // CORREGIDO: Limpiar el input y la imagen ANTES de addMsg para evitar estado inconsistente
+        // Limpiar el input y la imagen ANTES de addMsg
         input.value = '';
 
         input.style.height = "48px";
@@ -2127,10 +2159,10 @@ REGLAS DEL MODO AMIGO:
 
         autoResizeTextarea();
 
-        // CORREGIDO: Llamar clearImage() ANTES de addMsg, y pasar tempImage a addMsg
+        // Llamar clearImage() ANTES de addMsg, y pasar tempImage a addMsg
         clearImage();
 
-        // Ahora sí mostrar el mensaje del usuario con la imagen capturada
+        // Mostrar el mensaje del usuario con la imagen capturada
         addMsg(text, 'user', tempImage);
         addMessageToCurrentChat('user', text, tempImage);
 
@@ -2145,16 +2177,17 @@ REGLAS DEL MODO AMIGO:
 
         toggleLoad(true);
 
-        // NUEVO: Iniciar timer del loader
         startLoaderTimer();
 
         try {
 
             let userMessage = null;
+            let usedImageInRequest = false;
 
             if (tempImage) {
 
-                // MODIFICADO: Prompt de imagen mucho más detallado para mejorar la lectura
+                usedImageInRequest = true;
+
                 userMessage = {
                     role: "user",
                     content: [
@@ -2205,7 +2238,8 @@ ${text || "Analiza y resuelve todo el contenido de esta imagen completamente."}`
 
                 if (lastCompressedImageBase64 && isImageRelatedQuestion(text)) {
 
-                    // MODIFICADO: Prompt mejorado para referencia a imagen anterior
+                    usedImageInRequest = true;
+
                     userMessage = {
                         role: "user",
                         content: [
@@ -2239,6 +2273,8 @@ Nueva pregunta del usuario: ${text}`
 
                 } else {
 
+                    usedImageInRequest = false;
+
                     userMessage = {
                         role: "user",
                         content: text
@@ -2248,7 +2284,6 @@ Nueva pregunta del usuario: ${text}`
 
             }
 
-            // CORREGIDO: Validar que userMessage se construyó correctamente antes de continuar
             if (!userMessage) {
                 throw new Error("No se pudo construir el mensaje. Intenta de nuevo.");
             }
@@ -2266,9 +2301,57 @@ Nueva pregunta del usuario: ${text}`
                 max_tokens: 8192
             };
 
-            const r = await sendRequestWithRetry(requestBody, currentAbortController.signal);
+            let r = null;
+            let imageFallbackUsed = false;
 
-            // NUEVO: Capturar el tiempo total antes de quitar el loader
+            try {
+
+                r = await sendRequestWithRetry(requestBody, currentAbortController.signal);
+
+            } catch (imageErr) {
+
+                // Si fue abort del usuario, salir
+                if (responseStopRequested || (currentAbortController && currentAbortController.signal.aborted)) {
+                    throw imageErr;
+                }
+
+                // Si había imagen en la petición y falló, intentar fallback sin imagen
+                if (usedImageInRequest) {
+
+                    imageFallbackUsed = true;
+
+                    // Quitar el mensaje con imagen del historial
+                    conversationHistory.pop();
+
+                    // Crear mensaje de fallback solo con texto
+                    const fallbackText = text
+                        ? text
+                        : "El usuario envió una imagen pero no se pudo procesar. Indica que hubo un problema al leer la imagen y pide que la reenvíe.";
+
+                    const fallbackMessage = {
+                        role: "user",
+                        content: fallbackText + "\n\n[NOTA INTERNA: El usuario intentó enviar una imagen pero el sistema de visión no pudo procesarla en este momento. Responde lo mejor que puedas con el texto disponible e informa al usuario del problema.]"
+                    };
+
+                    conversationHistory.push(fallbackMessage);
+
+                    optimizeConversationHistory();
+
+                    const fallbackRequestBody = {
+                        model: "meta-llama/llama-4-scout-17b-16e-instruct",
+                        messages: conversationHistory,
+                        temperature: 0.3,
+                        max_tokens: 8192
+                    };
+
+                    r = await sendRequestWithRetry(fallbackRequestBody, currentAbortController.signal);
+
+                } else {
+                    throw imageErr;
+                }
+
+            }
+
             const totalSecondsElapsed = clearLoaderTimer();
 
             toggleLoad(false);
@@ -2292,11 +2375,22 @@ Nueva pregunta del usuario: ${text}`
 
                 updateCurrentChatStorage();
 
-                // NUEVO: addMsg devuelve el wrapper para agregarle el timer
                 const msgWrapper = addMsg(aiResponse, 'ai');
                 addMessageToCurrentChat('ai', aiResponse, null);
 
-                // NUEVO: Agregar el contador final debajo de la respuesta
+                // Si se usó fallback, mostrar aviso al usuario
+                if (imageFallbackUsed) {
+                    const fallbackWarning = document.createElement('div');
+                    fallbackWarning.className = 'response-timer';
+                    fallbackWarning.style.color = '#f97316';
+                    fallbackWarning.style.borderColor = 'rgba(249, 115, 22, 0.3)';
+                    fallbackWarning.style.background = 'rgba(249, 115, 22, 0.08)';
+                    fallbackWarning.textContent = '⚠️ La imagen no pudo procesarse correctamente. Intenta reenviarla.';
+                    if (msgWrapper) {
+                        msgWrapper.appendChild(fallbackWarning);
+                    }
+                }
+
                 if (msgWrapper && totalSecondsElapsed >= 0) {
                     const timerEl = document.createElement('div');
                     timerEl.className = 'response-timer';
@@ -2459,7 +2553,6 @@ Nueva pregunta del usuario: ${text}`
 
     }
 
-    // MODIFICADO: addMsg ahora devuelve el wrapper y tiene soporte para menú contextual en mensajes IA
     function addMsg(t, type, img = null, shouldSave = true) {
 
         const w = document.createElement('div');
@@ -2519,7 +2612,6 @@ Nueva pregunta del usuario: ${text}`
 
             w.appendChild(b);
 
-            // NUEVO: Menú contextual al mantener presionado en burbujas de IA
             if (type === 'ai') {
                 let longPressTimer = null;
 
@@ -2559,11 +2651,9 @@ Nueva pregunta del usuario: ${text}`
 
     }
 
-    // NUEVO: Variables para el menú contextual
     let contextMenuCurrentText = "";
     let contextMenuCurrentWrapper = null;
 
-    // NUEVO: Mostrar menú contextual
     function showContextMenu(x, y, text, wrapper) {
 
         contextMenuCurrentText = text;
@@ -2597,7 +2687,6 @@ Nueva pregunta del usuario: ${text}`
 
     }
 
-    // NUEVO: Ocultar menú contextual si se toca fuera
     function hideContextMenuOnClickOutside(e) {
 
         const menu = document.getElementById('msgContextMenu');
@@ -2608,7 +2697,6 @@ Nueva pregunta del usuario: ${text}`
 
     }
 
-    // NUEVO: Copiar texto del menú contextual
     async function contextMenuCopy() {
 
         const menu = document.getElementById('msgContextMenu');
@@ -2631,7 +2719,6 @@ Nueva pregunta del usuario: ${text}`
 
     }
 
-    // NUEVO: Reenviar / pensar de nuevo desde menú contextual
     async function contextMenuRetry() {
 
         const menu = document.getElementById('msgContextMenu');
@@ -2641,12 +2728,10 @@ Nueva pregunta del usuario: ${text}`
             return;
         }
 
-        // Quitar el último mensaje de IA del historial para que regenere
         if (conversationHistory.length > 1 && conversationHistory[conversationHistory.length - 1].role === "assistant") {
             conversationHistory.pop();
         }
 
-        // Quitar visualmente el wrapper de ese mensaje
         if (contextMenuCurrentWrapper) {
             contextMenuCurrentWrapper.remove();
         }
@@ -2756,7 +2841,6 @@ Nueva pregunta del usuario: ${text}`
 
     }
 
-    // MODIFICADO: toggleLoad ahora incluye el timer element dentro del loader
     function toggleLoad(s) {
 
         if(s) {
