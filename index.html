@@ -700,6 +700,42 @@
             height: 14px;
         }
 
+        .user-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
+            padding-right: 4px;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .user-action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: rgba(196, 181, 253, 0.4);
+            padding: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s ease, transform 0.2s ease;
+            line-height: 1;
+        }
+
+        .user-action-btn:hover {
+            color: rgba(196, 181, 253, 0.9);
+            transform: scale(1.2);
+        }
+
+        .user-action-btn:active {
+            transform: scale(0.9);
+        }
+
+        .user-action-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
         .stop-btn-icon {
             background: #7c3aed;
             box-shadow: 0 0 12px rgba(124, 58, 237, 0.4);
@@ -709,6 +745,95 @@
             background: #ef4444;
             box-shadow: 0 0 18px rgba(239, 68, 68, 0.7);
             transform: scale(1.1);
+        }
+
+        .edit-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 9000;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            animation: fadeIn 0.2s ease-out forwards;
+        }
+
+        .edit-modal {
+            background: #1a0c2a;
+            border: 1px solid rgba(168, 85, 247, 0.35);
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            animation: slideUp 0.3s ease-out forwards;
+        }
+
+        .edit-modal-title {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #a855f7;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .edit-modal-textarea {
+            background: #14081f;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 14px;
+            padding: 12px 16px;
+            color: white;
+            font-size: 0.95rem;
+            resize: none;
+            min-height: 80px;
+            max-height: 200px;
+            outline: none;
+            line-height: 1.5;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .edit-modal-textarea:focus {
+            border-color: #a855f7;
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
+        }
+
+        .edit-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .edit-modal-cancel {
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.25);
+            color: #c4b5fd;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .edit-modal-cancel:hover {
+            background: rgba(168, 85, 247, 0.2);
+        }
+
+        .edit-modal-send {
+            background: #7c3aed;
+            border: none;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .edit-modal-send:hover {
+            background: #a855f7;
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.5);
         }
     </style>
 </head>
@@ -786,11 +911,15 @@
     let isMobileEnterPressed = false;
     let abortController = null;
 
+    // FIX COOLDOWN: el contador solo arranca al enviar el mensaje, no al subir la imagen
+    // Para eso usamos una variable separada que guarda si la imagen fue "enviada" ya
+    let imageSentTimestamp = null;
+
     const IMAGE_COOLDOWN_TIME = 120000;
 
     const systemPrompt = {
         role: "system",
-        content: `Eres DarkMatter Pro AI. Responde siempre en español. Cuando el usuario te haga una pregunta, responde de forma completa, detallada y bien explicada. No des resúmenes a menos que el usuario lo pida explícitamente. Explica cada concepto con claridad, da ejemplos cuando sea útil, desarrolla los temas paso a paso y asegúrate de que el usuario entienda bien el tema. Si el usuario te pide que seas más corto, más resumido o más conciso, entonces adáptate a eso. Si recibes una imagen, analízala detalladamente. Siempre sé exhaustivo en tus explicaciones por defecto. Cuando uses fórmulas o expresiones matemáticas, escríbelas siempre en formato LaTeX: usa $...$ para fórmulas en línea y $$...$$ para fórmulas en bloque centradas. Por ejemplo: la raíz cúbica de x se escribe $\\sqrt[3]{x}$, una fracción se escribe $\\frac{a}{b}$, una potencia se escribe $x^{3}$. NUNCA escribas las ecuaciones como texto plano tipo "sqrt[3]{x}" o "x^3". Usa siempre LaTeX dentro de los delimitadores $ o $$.`
+        content: `Eres DarkMatter Pro AI. Responde siempre en español. Cuando el usuario te haga una pregunta, responde de forma completa, detallada y bien explicada — si necesitas escribir un libro entero para explicar algo correctamente, hazlo. No des resúmenes ni respuestas cortas a menos que el usuario lo pida explícitamente. Explica cada concepto con claridad, da ejemplos cuando sea útil, desarrolla los temas paso a paso y asegúrate de que el usuario entienda bien el tema. Si el usuario te pide que seas más corto, más resumido o más conciso, entonces adáptate a eso. Si recibes una imagen, analízala detalladamente. Siempre sé exhaustivo en tus explicaciones por defecto. REGLA CRÍTICA PARA MATEMÁTICAS: Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato LaTeX correcto. Usa $...$ para fórmulas en línea y $$...$$ para fórmulas en bloque centradas. NUNCA escribas fórmulas como texto plano. NUNCA uses notación como b_1, b_2, \\cdot fuera de LaTeX. Dentro de LaTeX siempre usa la sintaxis correcta: subíndices con _{}, superíndices con ^{}, fracciones con \\frac{}{}, raíces con \\sqrt{}, multiplicación con \\cdot, sumas con \\sum, integrales con \\int, etc. Por ejemplo: el perímetro se escribe $$P = b_1 + b_2 + 2 \\cdot \\sqrt{y^2 + \\left(\\frac{b_2 - b_1}{2}\\right)^2}$$ y nunca como texto plano. Todas las fórmulas sin excepción deben estar dentro de delimitadores $ o $$.`
     };
 
     let conversationHistory = [systemPrompt];
@@ -873,11 +1002,6 @@
 
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // FIX QUOTA: stripImagesFromMessages elimina todos los base64
-    // de imágenes antes de serializar a localStorage, reemplazándolos
-    // por un marcador de texto liviano. Así el quota nunca se supera.
-    // ═══════════════════════════════════════════════════════════════
     function stripImagesFromMessages(messages) {
         return messages.map(function(msg) {
             if (msg.image && typeof msg.image === 'string' && msg.image.startsWith('data:')) {
@@ -897,11 +1021,6 @@
         });
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // FIX QUOTA: stripImagesFromHistory elimina todos los base64
-    // del historial de conversación antes de guardarlo en localStorage.
-    // Los mensajes con imagen se convierten a solo texto para no ocupar espacio.
-    // ═══════════════════════════════════════════════════════════════
     function stripImagesFromHistory(history) {
         return history.map(function(msg) {
             if (Array.isArray(msg.content)) {
@@ -918,11 +1037,6 @@
         });
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // FIX QUOTA: safeLocalStorageSet intenta guardar en localStorage
-    // y si el quota se supera, limpia los chats más antiguos hasta que
-    // haya espacio, o en último caso descarta el guardado sin lanzar error.
-    // ═══════════════════════════════════════════════════════════════
     function safeLocalStorageSet(key, value) {
         let attempts = 0;
         const MAX_ATTEMPTS = 5;
@@ -934,21 +1048,17 @@
             } catch (e) {
                 attempts++;
 
-                // Si el error es de quota, intentar liberar espacio eliminando chats más antiguos
                 if (e.name === 'QuotaExceededError' || (e.message && e.message.toLowerCase().includes('quota'))) {
 
-                    // Buscar la clave de chats guardados para intentar reducirla
                     if (key === 'darkmatter_saved_chats') {
                         try {
                             const existingRaw = localStorage.getItem('darkmatter_saved_chats');
                             if (existingRaw) {
                                 const existingChats = JSON.parse(existingRaw);
                                 if (existingChats.length > 1) {
-                                    // Eliminar el chat más antiguo (último en el array)
                                     existingChats.pop();
                                     localStorage.setItem('darkmatter_saved_chats', JSON.stringify(existingChats));
                                 } else if (existingChats.length === 1) {
-                                    // Solo queda uno, vaciarlo
                                     localStorage.removeItem('darkmatter_saved_chats');
                                     break;
                                 } else {
@@ -961,7 +1071,6 @@
                             break;
                         }
                     } else {
-                        // Para otras claves, simplemente limpiar otras claves no esenciales
                         try {
                             const keysToTry = [];
                             for (let i = 0; i < localStorage.length; i++) {
@@ -981,7 +1090,6 @@
                     }
 
                 } else {
-                    // Error distinto al de quota, salir
                     break;
                 }
             }
@@ -994,8 +1102,6 @@
 
         const chatsToSave = chats.filter(c => c.hasRealConversation === true);
 
-        // FIX QUOTA: antes de serializar, eliminar todas las imágenes base64
-        // tanto de los mensajes como del historial de conversación
         const chatsStripped = chatsToSave.map(function(c) {
             return {
                 id: c.id,
@@ -1006,7 +1112,6 @@
             };
         });
 
-        // FIX QUOTA: usar safeLocalStorageSet en lugar de localStorage.setItem directo
         safeLocalStorageSet("darkmatter_saved_chats", JSON.stringify(chatsStripped));
 
     }
@@ -1278,8 +1383,25 @@
 
     });
 
+    // FIX COOLDOWN: getImageCooldownRemaining ahora usa imageSentTimestamp
+    // en lugar de localStorage para el cooldown del botón.
+    // El localStorage se sigue usando para persistencia entre sesiones,
+    // pero el contador visual solo empieza cuando se envía el mensaje.
     function getImageCooldownRemaining() {
 
+        // Primero revisar si hay un timestamp de envío en esta sesión
+        if (imageSentTimestamp !== null) {
+            const elapsed = Date.now() - imageSentTimestamp;
+            const remaining = IMAGE_COOLDOWN_TIME - elapsed;
+            if (remaining > 0) {
+                return remaining;
+            } else {
+                imageSentTimestamp = null;
+                return 0;
+            }
+        }
+
+        // Si no hay timestamp en sesión, revisar localStorage (sesión anterior)
         const savedTime = localStorage.getItem("darkmatter_last_image_time");
 
         if (!savedTime) {
@@ -1493,6 +1615,9 @@
 
     }
 
+    // FIX COOLDOWN: handleFile ya NO guarda el timestamp en localStorage
+    // ni llama a updateImageCooldownUI para activar el contador.
+    // El timestamp solo se guarda cuando el usuario envía el mensaje (en send()).
     async function handleFile(input) {
 
         const remainingCooldown = getImageCooldownRemaining();
@@ -1521,9 +1646,7 @@
             return;
         }
 
-        localStorage.setItem("darkmatter_last_image_time", Date.now().toString());
-
-        updateImageCooldownUI();
+        // NO se guarda el timestamp aquí — el contador NO arranca hasta enviar
 
         const reader = new FileReader();
 
@@ -1687,6 +1810,56 @@
 
     }
 
+    // FIX LATEX: preprocessLatex convierte notación LaTeX cruda que la IA
+    // a veces escribe fuera de delimitadores $ en fórmulas correctamente
+    // envueltas en delimitadores para que KaTeX las renderice siempre bien.
+    function preprocessLatex(text) {
+
+        if (!text) {
+            return "";
+        }
+
+        let result = text;
+
+        // Convertir bloques \[ ... \] que no estén dentro de $ a $$
+        result = result.replace(/\\\[([\s\S]*?)\\\]/g, function(match, inner) {
+            return '$$' + inner + '$$';
+        });
+
+        // Convertir inline \( ... \) que no estén dentro de $ a $
+        result = result.replace(/\\\(([\s\S]*?)\\\)/g, function(match, inner) {
+            return '$' + inner + '$';
+        });
+
+        // Detectar texto plano con notación LaTeX sin delimitadores y envolverlo.
+        // Patrón: secuencias que contienen comandos LaTeX típicos fuera de $ o $$
+        // como \frac, \sqrt, \cdot, \sum, \int, \left, \right, _{}, ^{} etc.
+        // Solo actuar si la línea parece ser una fórmula pura (no texto mezclado)
+        result = result.split('\n').map(function(line) {
+
+            // Si la línea ya tiene delimitadores LaTeX, no tocar
+            if (/\$/.test(line)) {
+                return line;
+            }
+
+            // Si la línea contiene comandos LaTeX sin delimitadores, envolverla
+            const hasLatexCommands = /\\(frac|sqrt|cdot|sum|int|left|right|times|div|pm|mp|leq|geq|neq|approx|infty|partial|nabla|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|phi|omega|forall|exists|in|notin|subset|supset|cup|cap|wedge|vee|neg|Rightarrow|Leftarrow|Leftrightarrow|rightarrow|leftarrow|uparrow|downarrow|overline|underline|hat|bar|vec|dot|ddot|tilde|mathbf|mathrm|mathit|text|begin|end|pmatrix|bmatrix|vmatrix)\b/.test(line);
+
+            const hasSubSuperScript = /[a-zA-Z0-9]_\{|[a-zA-Z0-9]\^\{/.test(line);
+
+            if (hasLatexCommands || hasSubSuperScript) {
+                // Verificar que no sea ya texto dentro de un bloque de código
+                return '$$' + line + '$$';
+            }
+
+            return line;
+
+        }).join('\n');
+
+        return result;
+
+    }
+
     async function send() {
 
         if (isGeneratingResponse) {
@@ -1713,6 +1886,10 @@
         if (tempImage) {
             lastImageBase64 = tempImage;
             lastCompressedImageBase64 = tempImage;
+            // FIX COOLDOWN: el timestamp y el contador arrancan AQUÍ, al enviar
+            imageSentTimestamp = Date.now();
+            localStorage.setItem("darkmatter_last_image_time", imageSentTimestamp.toString());
+            updateImageCooldownUI();
         }
 
         if (text) {
@@ -1743,7 +1920,7 @@
                     content: [
                         {
                             type: "text",
-                            text: `Analiza esta imagen detalladamente. Lee todo el texto visible. Si es un ejercicio o guía, resuelve cada punto con claridad. Explica procedimientos paso a paso. Escribe todas las fórmulas y expresiones matemáticas en formato LaTeX usando $...$ para fórmulas en línea y $$...$$ para fórmulas en bloque. ${text ? "Pregunta: " + text : ""}`
+                            text: `Analiza esta imagen detalladamente. Lee todo el texto visible. Si es un ejercicio o guía, resuelve cada punto con claridad y de forma completa y extensa. Explica procedimientos paso a paso sin omitir nada. Si necesitas explicar muchas cosas, hazlo todas. Escribe TODAS las fórmulas y expresiones matemáticas en formato LaTeX usando $...$ para fórmulas en línea y $$...$$ para fórmulas en bloque. NUNCA escribas fórmulas como texto plano. ${text ? "Pregunta adicional del usuario: " + text : ""}`
                         },
                         {
                             type: "image_url",
@@ -1795,7 +1972,7 @@
                 model: "meta-llama/llama-4-scout-17b-16e-instruct",
                 messages: conversationHistory,
                 temperature: 0.3,
-                max_tokens: 2048
+                max_tokens: 8192
             };
 
             const r = await sendRequestWithRetry(requestBody, abortController.signal);
@@ -1869,6 +2046,9 @@
 
     }
 
+    // FIX REGENERAR: regenerateLastResponse ahora analiza la respuesta anterior
+    // y le pide a la IA que reflexione sobre qué pudo estar mal o incompleto,
+    // para que el reintento sea más inteligente y completo.
     async function regenerateLastResponse() {
 
         if (isGeneratingResponse) {
@@ -1898,9 +2078,12 @@
 
         const lastUserMsg = messages[lastUserMsgIndex];
 
+        // Capturar la última respuesta de la IA antes de eliminarla del historial
+        let lastAiResponseText = "";
         if (conversationHistory.length > 1) {
             const lastHistoryMsg = conversationHistory[conversationHistory.length - 1];
             if (lastHistoryMsg.role === 'assistant') {
+                lastAiResponseText = typeof lastHistoryMsg.content === 'string' ? lastHistoryMsg.content : '';
                 conversationHistory.pop();
             }
         }
@@ -1915,11 +2098,26 @@
 
         try {
 
+            // FIX REGENERAR: construir un historial de reintento que incluye
+            // la respuesta anterior como referencia para que la IA mejore.
+            let historyForRetry = [...conversationHistory];
+
+            if (lastAiResponseText.length > 0) {
+
+                // Agregar un mensaje de sistema temporal que le pide a la IA
+                // analizar su respuesta anterior e identificar qué mejorar.
+                historyForRetry.push({
+                    role: "user",
+                    content: `Analiza tu respuesta anterior cuidadosamente. Tu respuesta anterior fue:\n\n${lastAiResponseText.substring(0, 1500)}\n\nAhora responde de nuevo la misma pregunta/solicitud pero de forma MEJOR, MÁS COMPLETA y MÁS DETALLADA. Considera: ¿Faltó algún paso? ¿Estuvo demasiado corta? ¿Hay conceptos sin explicar? ¿Las fórmulas matemáticas están bien en formato LaTeX con delimitadores $ o $$? Regenera la respuesta corrigiendo todo lo que puedas mejorar. Si la respuesta anterior estuvo bien, mejórala aún más en profundidad y detalle.`
+                });
+
+            }
+
             const requestBody = {
                 model: "meta-llama/llama-4-scout-17b-16e-instruct",
-                messages: conversationHistory,
+                messages: historyForRetry,
                 temperature: 0.5,
-                max_tokens: 2048
+                max_tokens: 8192
             };
 
             const r = await sendRequestWithRetry(requestBody, abortController.signal);
@@ -2019,6 +2217,177 @@
 
     }
 
+    // FIX EDITAR: función para abrir el modal de edición de mensaje de usuario
+    function openEditModal(originalText, onSend) {
+
+        const overlay = document.createElement('div');
+        overlay.className = 'edit-modal-overlay';
+
+        const modal = document.createElement('div');
+        modal.className = 'edit-modal';
+
+        const title = document.createElement('div');
+        title.className = 'edit-modal-title';
+        title.textContent = '✏️ Editar y reenviar mensaje';
+
+        const textarea = document.createElement('textarea');
+        textarea.className = 'edit-modal-textarea';
+        textarea.value = originalText || '';
+
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'edit-modal-actions';
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'edit-modal-cancel';
+        cancelBtn.textContent = 'Cancelar';
+        cancelBtn.onclick = function() {
+            document.body.removeChild(overlay);
+        };
+
+        const sendBtn = document.createElement('button');
+        sendBtn.className = 'edit-modal-send';
+        sendBtn.textContent = 'Enviar';
+        sendBtn.onclick = function() {
+            const newText = textarea.value.trim();
+            document.body.removeChild(overlay);
+            if (newText) {
+                onSend(newText);
+            }
+        };
+
+        actionsDiv.appendChild(cancelBtn);
+        actionsDiv.appendChild(sendBtn);
+
+        modal.appendChild(title);
+        modal.appendChild(textarea);
+        modal.appendChild(actionsDiv);
+
+        overlay.appendChild(modal);
+
+        document.body.appendChild(overlay);
+
+        setTimeout(function() {
+            textarea.focus();
+            textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+        }, 100);
+
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                document.body.removeChild(overlay);
+            }
+        });
+
+    }
+
+    // FIX EDITAR: función para reenviar el mensaje editado del usuario
+    async function sendEditedUserMessage(newText) {
+
+        if (isGeneratingResponse) {
+            return;
+        }
+
+        if (!newText || newText.trim() === '') {
+            return;
+        }
+
+        abortController = new AbortController();
+
+        saveGeneratingState();
+
+        setGeneratingState(true);
+
+        addMsg(newText, 'user', null);
+        addMessageToCurrentChat('user', newText, null, false);
+
+        if (newText) {
+            lastUserText = newText;
+        }
+
+        toggleLoad(true);
+
+        try {
+
+            const userMessage = {
+                role: "user",
+                content: newText
+            };
+
+            conversationHistory.push(userMessage);
+
+            optimizeConversationHistory();
+
+            updateCurrentChatStorage();
+
+            const requestBody = {
+                model: "meta-llama/llama-4-scout-17b-16e-instruct",
+                messages: conversationHistory,
+                temperature: 0.3,
+                max_tokens: 8192
+            };
+
+            const r = await sendRequestWithRetry(requestBody, abortController.signal);
+
+            toggleLoad(false);
+
+            const d = await r.json();
+
+            if(d.choices && d.choices[0] && d.choices[0].message) {
+
+                const aiResponse = cleanResponse(d.choices[0].message.content);
+
+                conversationHistory.push({
+                    role: "assistant",
+                    content: aiResponse
+                });
+
+                optimizeConversationHistory();
+
+                updateCurrentChatStorage();
+
+                addMsg(aiResponse, 'ai');
+                await addMessageToCurrentChat('ai', aiResponse, null, true);
+
+            } else if (d.error) {
+
+                if (d.error.code === "rate_limit_exceeded") {
+                    addMsg("Motor saturado (Rate Limit). Por favor, espera un momento.", 'ai');
+                } else {
+                    addMsg("Error de la IA: " + d.error.message, 'ai');
+                }
+
+            } else {
+
+                addMsg("Respuesta inesperada del servidor.", 'ai');
+
+            }
+
+        } catch(e) {
+
+            toggleLoad(false);
+
+            if (e.name === 'AbortError') {
+                addMsg("Generación detenida.", 'ai');
+            } else {
+                addMsg("Error de conexión al núcleo: " + e.message, 'ai');
+            }
+
+        } finally {
+
+            toggleLoad(false);
+
+            setGeneratingState(false);
+
+            clearGeneratingState();
+
+            input.style.height = "48px";
+            input.scrollTop = 0;
+
+            autoResizeTextarea();
+
+        }
+
+    }
+
     function cleanResponse(text) {
 
         if (!text) {
@@ -2070,7 +2439,29 @@
             return "";
         }
 
-        let parsed = escapeHtml(text);
+        // FIX LATEX: antes de escapar HTML, extraer y proteger los bloques LaTeX
+        // para que escapeHtml no rompa los delimitadores $ y las expresiones LaTeX.
+        // Usamos placeholders únicos para protegerlos durante el procesamiento.
+
+        const latexBlocks = [];
+
+        // Primero aplicar el preprocesador de LaTeX crudo
+        let processed = preprocessLatex(text);
+
+        // Proteger bloques $$ ... $$ (display)
+        processed = processed.replace(/\$\$([\s\S]*?)\$\$/g, function(match, inner) {
+            latexBlocks.push({ type: 'display', content: match });
+            return '___LATEX_BLOCK_' + (latexBlocks.length - 1) + '___';
+        });
+
+        // Proteger bloques $ ... $ (inline)
+        processed = processed.replace(/\$([^\$\n]+?)\$/g, function(match, inner) {
+            latexBlocks.push({ type: 'inline', content: match });
+            return '___LATEX_INLINE_' + (latexBlocks.length - 1) + '___';
+        });
+
+        // Ahora escapar HTML del texto restante (sin LaTeX)
+        let parsed = escapeHtml(processed);
 
         parsed = parsed.replace(/^### (.*$)/gim, '<h3>$1</h3>');
         parsed = parsed.replace(/^## (.*$)/gim, '<h2>$1</h2>');
@@ -2086,6 +2477,15 @@
         parsed = parsed.replace(/\n/g, '<br>');
 
         parsed = parsed.replace(/<\/ul><br><ul>/g, '');
+
+        // Restaurar los bloques LaTeX sin escapar para que KaTeX los procese
+        parsed = parsed.replace(/___LATEX_BLOCK_(\d+)___/g, function(match, idx) {
+            return latexBlocks[parseInt(idx)].content;
+        });
+
+        parsed = parsed.replace(/___LATEX_INLINE_(\d+)___/g, function(match, idx) {
+            return latexBlocks[parseInt(idx)].content;
+        });
 
         return parsed;
 
@@ -2219,6 +2619,41 @@
                 actionsDiv.appendChild(copyBtn);
                 actionsDiv.appendChild(regenBtn);
                 w.appendChild(actionsDiv);
+
+            }
+
+            // FIX BOTONES USUARIO: agregar botón copiar y botón editar (lápiz)
+            // debajo de cada mensaje del usuario
+            if (type === 'user') {
+
+                const userActionsDiv = document.createElement('div');
+                userActionsDiv.className = 'user-actions';
+
+                const userCopyBtn = document.createElement('button');
+                userCopyBtn.className = 'user-action-btn';
+                userCopyBtn.title = 'Copiar mensaje';
+                userCopyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+                userCopyBtn.onclick = async () => {
+                    await copyAiMessage(t || "");
+                    userCopyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+                    setTimeout(() => {
+                        userCopyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+                    }, 2000);
+                };
+
+                const userEditBtn = document.createElement('button');
+                userEditBtn.className = 'user-action-btn';
+                userEditBtn.title = 'Editar y reenviar';
+                userEditBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+                userEditBtn.onclick = () => {
+                    openEditModal(t || "", function(newText) {
+                        sendEditedUserMessage(newText);
+                    });
+                };
+
+                userActionsDiv.appendChild(userCopyBtn);
+                userActionsDiv.appendChild(userEditBtn);
+                w.appendChild(userActionsDiv);
 
             }
 
