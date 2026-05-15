@@ -336,18 +336,25 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 14px;
+            padding: 8px 12px;
             background: #1e1030;
             border-bottom: 1px solid rgba(168, 85, 247, 0.25);
             animation: slideDown 0.4s ease-out forwards;
+            position: sticky;
+            top: 0;
+            z-index: 2;
         }
 
         .code-language {
             color: var(--accent-color);
-            font-size: 0.75rem;
-            font-weight: bold;
+            font-size: 0.7rem;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
+            background: rgba(168, 85, 247, 0.12);
+            padding: 3px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(168, 85, 247, 0.22);
             animation: fadeIn 0.5s ease-out forwards;
         }
 
@@ -355,6 +362,32 @@
             color: #d8b4fe;
             font-size: 0.7rem;
             animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        .code-copy-btn {
+            background: rgba(168, 85, 247, 0.1);
+            color: #c4b5fd;
+            border: 1px solid rgba(168, 85, 247, 0.28);
+            padding: 4px 13px;
+            border-radius: 6px;
+            font-size: 0.67rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.4px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            text-transform: uppercase;
+        }
+
+        .code-copy-btn:hover {
+            background: rgba(168, 85, 247, 0.28);
+            color: white;
+            box-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
+        }
+
+        .code-copy-btn:active {
+            transform: scale(0.94);
         }
 
         pre {
@@ -520,6 +553,78 @@
 
         .image-cooldown-text {
             display: none;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 6px;
+            padding: 6px 2px 8px 2px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .mode-selector::-webkit-scrollbar {
+            display: none;
+        }
+
+        .mode-btn {
+            background: rgba(168, 85, 247, 0.06);
+            border: 1px solid rgba(168, 85, 247, 0.18);
+            color: rgba(196, 181, 253, 0.6);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.69rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-shrink: 0;
+            text-transform: uppercase;
+        }
+
+        .mode-btn:hover:not(:disabled) {
+            background: rgba(168, 85, 247, 0.16);
+            border-color: rgba(168, 85, 247, 0.42);
+            color: white;
+        }
+
+        .mode-btn.active {
+            background: rgba(168, 85, 247, 0.22);
+            border-color: #a855f7;
+            color: white;
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.25);
+        }
+
+        .mode-btn.mode-locked {
+            opacity: 0.42;
+            cursor: not-allowed;
+        }
+
+        .mode-lock-icon {
+            width: 10px;
+            height: 10px;
+            opacity: 0.75;
+            flex-shrink: 0;
+        }
+
+        .mode-premium-tag {
+            font-size: 0.56rem;
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            padding: 1px 5px;
+            border-radius: 6px;
+            background: rgba(245, 158, 11, 0.08);
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            text-transform: none;
         }
 
         .input-area {
@@ -875,6 +980,17 @@
 <div class="input-area-wrapper">
     <div class="image-cooldown-text" id="imageCooldownText"></div>
 
+    <div class="mode-selector">
+        <button class="mode-btn" id="mode-rapido" onclick="setMode('rapido')">Rápido</button>
+        <button class="mode-btn active" id="mode-normal" onclick="setMode('normal')">Normal</button>
+        <button class="mode-btn" id="mode-preciso" onclick="setMode('preciso')">Preciso</button>
+        <button class="mode-btn mode-locked" disabled>
+            <svg class="mode-lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>Elite</span>
+            <span class="mode-premium-tag">Version Premium</span>
+        </button>
+    </div>
+
     <div class="input-area">
         <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFile(this)">
         <div class="attach-btn-wrapper">
@@ -911,11 +1027,29 @@
     let isMobileEnterPressed = false;
     let abortController = null;
 
-    // FIX COOLDOWN: el contador solo arranca al enviar el mensaje, no al subir la imagen
-    // Para eso usamos una variable separada que guarda si la imagen fue "enviada" ya
     let imageSentTimestamp = null;
 
     const IMAGE_COOLDOWN_TIME = 120000;
+
+    let currentMode = 'normal';
+
+    const MODE_CONFIGS = {
+        rapido: {
+            temperature: 0.65,
+            max_tokens: 400,
+            systemSuffix: ' MODO RAPIDO ACTIVO: PRIORIDAD MAXIMA — responde en 2 a 4 oraciones directas y concretas. Ve al punto esencial sin ningún rodeo ni extensión. Brevedad absoluta.'
+        },
+        normal: {
+            temperature: 0.3,
+            max_tokens: 8192,
+            systemSuffix: ''
+        },
+        preciso: {
+            temperature: 0.15,
+            max_tokens: 8192,
+            systemSuffix: ' MODO PRECISO ACTIVO: Cubre absolutamente cada aspecto del tema con el maximo nivel de detalle y profundidad. No omitas ningun paso, caso especial ni concepto. Se completamente exhaustivo, meticuloso y riguroso en cada punto de tu respuesta.'
+        }
+    };
 
     const systemPrompt = {
         role: "system",
@@ -1140,7 +1274,7 @@
             messages: [
                 {
                     type: "ai",
-                    text: "Núcleo DarkMatter iniciado. Ahora puedo procesar imágenes y guías. Esperando instrucciones...",
+                    text: "Nucleo DarkMatter iniciado. Ahora puedo procesar imagenes y guias. Esperando instrucciones...",
                     image: null
                 }
             ],
@@ -1296,6 +1430,36 @@
 
     }
 
+    function setMode(mode) {
+
+        currentMode = mode;
+
+        document.querySelectorAll('.mode-btn').forEach(function(btn) {
+            btn.classList.remove('active');
+        });
+
+        var activeBtn = document.getElementById('mode-' + mode);
+
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+        }
+
+    }
+
+    function buildRequestMessages() {
+
+        var config = MODE_CONFIGS[currentMode] || MODE_CONFIGS.normal;
+
+        var messages = conversationHistory.slice();
+
+        if (config.systemSuffix && config.systemSuffix.length > 0 && messages.length > 0 && messages[0].role === 'system') {
+            messages = [{ role: 'system', content: messages[0].content + config.systemSuffix }].concat(messages.slice(1));
+        }
+
+        return messages;
+
+    }
+
     function autoResizeTextarea() {
 
         input.style.height = "48px";
@@ -1383,13 +1547,8 @@
 
     });
 
-    // FIX COOLDOWN: getImageCooldownRemaining ahora usa imageSentTimestamp
-    // en lugar de localStorage para el cooldown del botón.
-    // El localStorage se sigue usando para persistencia entre sesiones,
-    // pero el contador visual solo empieza cuando se envía el mensaje.
     function getImageCooldownRemaining() {
 
-        // Primero revisar si hay un timestamp de envío en esta sesión
         if (imageSentTimestamp !== null) {
             const elapsed = Date.now() - imageSentTimestamp;
             const remaining = IMAGE_COOLDOWN_TIME - elapsed;
@@ -1401,7 +1560,6 @@
             }
         }
 
-        // Si no hay timestamp en sesión, revisar localStorage (sesión anterior)
         const savedTime = localStorage.getItem("darkmatter_last_image_time");
 
         if (!savedTime) {
@@ -1492,7 +1650,7 @@
 
             sendButton.classList.add("active");
 
-            addMsg("Respuesta generada en la sesión anterior. Espera a que finalice el proceso anterior.", 'ai');
+            addMsg("Respuesta generada en la sesion anterior. Espera a que finalice el proceso anterior.", 'ai');
 
             setTimeout(() => {
 
@@ -1615,9 +1773,6 @@
 
     }
 
-    // FIX COOLDOWN: handleFile ya NO guarda el timestamp en localStorage
-    // ni llama a updateImageCooldownUI para activar el contador.
-    // El timestamp solo se guarda cuando el usuario envía el mensaje (en send()).
     async function handleFile(input) {
 
         const remainingCooldown = getImageCooldownRemaining();
@@ -1642,11 +1797,9 @@
         }
 
         if (file.size > 20000000) {
-            addMsg("La imagen supera el límite permitido de 20MB.", 'ai');
+            addMsg("La imagen supera el limite permitido de 20MB.", 'ai');
             return;
         }
-
-        // NO se guarda el timestamp aquí — el contador NO arranca hasta enviar
 
         const reader = new FileReader();
 
@@ -1810,9 +1963,6 @@
 
     }
 
-    // FIX LATEX: preprocessLatex convierte notación LaTeX cruda que la IA
-    // a veces escribe fuera de delimitadores $ en fórmulas correctamente
-    // envueltas en delimitadores para que KaTeX las renderice siempre bien.
     function preprocessLatex(text) {
 
         if (!text) {
@@ -1821,34 +1971,25 @@
 
         let result = text;
 
-        // Convertir bloques \[ ... \] que no estén dentro de $ a $$
         result = result.replace(/\\\[([\s\S]*?)\\\]/g, function(match, inner) {
             return '$$' + inner + '$$';
         });
 
-        // Convertir inline \( ... \) que no estén dentro de $ a $
         result = result.replace(/\\\(([\s\S]*?)\\\)/g, function(match, inner) {
             return '$' + inner + '$';
         });
 
-        // Detectar texto plano con notación LaTeX sin delimitadores y envolverlo.
-        // Patrón: secuencias que contienen comandos LaTeX típicos fuera de $ o $$
-        // como \frac, \sqrt, \cdot, \sum, \int, \left, \right, _{}, ^{} etc.
-        // Solo actuar si la línea parece ser una fórmula pura (no texto mezclado)
         result = result.split('\n').map(function(line) {
 
-            // Si la línea ya tiene delimitadores LaTeX, no tocar
             if (/\$/.test(line)) {
                 return line;
             }
 
-            // Si la línea contiene comandos LaTeX sin delimitadores, envolverla
             const hasLatexCommands = /\\(frac|sqrt|cdot|sum|int|left|right|times|div|pm|mp|leq|geq|neq|approx|infty|partial|nabla|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|phi|omega|forall|exists|in|notin|subset|supset|cup|cap|wedge|vee|neg|Rightarrow|Leftarrow|Leftrightarrow|rightarrow|leftarrow|uparrow|downarrow|overline|underline|hat|bar|vec|dot|ddot|tilde|mathbf|mathrm|mathit|text|begin|end|pmatrix|bmatrix|vmatrix)\b/.test(line);
 
             const hasSubSuperScript = /[a-zA-Z0-9]_\{|[a-zA-Z0-9]\^\{/.test(line);
 
             if (hasLatexCommands || hasSubSuperScript) {
-                // Verificar que no sea ya texto dentro de un bloque de código
                 return '$$' + line + '$$';
             }
 
@@ -1886,7 +2027,6 @@
         if (tempImage) {
             lastImageBase64 = tempImage;
             lastCompressedImageBase64 = tempImage;
-            // FIX COOLDOWN: el timestamp y el contador arrancan AQUÍ, al enviar
             imageSentTimestamp = Date.now();
             localStorage.setItem("darkmatter_last_image_time", imageSentTimestamp.toString());
             updateImageCooldownUI();
@@ -1968,11 +2108,13 @@
 
             updateCurrentChatStorage();
 
+            const modeConfig = MODE_CONFIGS[currentMode] || MODE_CONFIGS.normal;
+
             const requestBody = {
                 model: "meta-llama/llama-4-scout-17b-16e-instruct",
-                messages: conversationHistory,
-                temperature: 0.3,
-                max_tokens: 8192
+                messages: buildRequestMessages(),
+                temperature: modeConfig.temperature,
+                max_tokens: modeConfig.max_tokens
             };
 
             const r = await sendRequestWithRetry(requestBody, abortController.signal);
@@ -2021,11 +2163,11 @@
 
             if (e.name === 'AbortError') {
 
-                addMsg("Generación detenida.", 'ai');
+                addMsg("Generacion detenida.", 'ai');
 
             } else {
 
-                addMsg("Error de conexión al núcleo: " + e.message, 'ai');
+                addMsg("Error de conexion al nucleo: " + e.message, 'ai');
 
             }
 
@@ -2046,9 +2188,6 @@
 
     }
 
-    // FIX REGENERAR: regenerateLastResponse ahora analiza la respuesta anterior
-    // y le pide a la IA que reflexione sobre qué pudo estar mal o incompleto,
-    // para que el reintento sea más inteligente y completo.
     async function regenerateLastResponse() {
 
         if (isGeneratingResponse) {
@@ -2078,7 +2217,6 @@
 
         const lastUserMsg = messages[lastUserMsgIndex];
 
-        // Capturar la última respuesta de la IA antes de eliminarla del historial
         let lastAiResponseText = "";
         if (conversationHistory.length > 1) {
             const lastHistoryMsg = conversationHistory[conversationHistory.length - 1];
@@ -2098,26 +2236,24 @@
 
         try {
 
-            // FIX REGENERAR: construir un historial de reintento que incluye
-            // la respuesta anterior como referencia para que la IA mejore.
             let historyForRetry = [...conversationHistory];
 
             if (lastAiResponseText.length > 0) {
 
-                // Agregar un mensaje de sistema temporal que le pide a la IA
-                // analizar su respuesta anterior e identificar qué mejorar.
                 historyForRetry.push({
                     role: "user",
-                    content: `Analiza tu respuesta anterior cuidadosamente. Tu respuesta anterior fue:\n\n${lastAiResponseText.substring(0, 1500)}\n\nAhora responde de nuevo la misma pregunta/solicitud pero de forma MEJOR, MÁS COMPLETA y MÁS DETALLADA. Considera: ¿Faltó algún paso? ¿Estuvo demasiado corta? ¿Hay conceptos sin explicar? ¿Las fórmulas matemáticas están bien en formato LaTeX con delimitadores $ o $$? Regenera la respuesta corrigiendo todo lo que puedas mejorar. Si la respuesta anterior estuvo bien, mejórala aún más en profundidad y detalle.`
+                    content: `Analiza tu respuesta anterior cuidadosamente. Tu respuesta anterior fue:\n\n${lastAiResponseText.substring(0, 1500)}\n\nAhora responde de nuevo la misma pregunta/solicitud pero de forma MEJOR, MAS COMPLETA y MAS DETALLADA. Considera: Falto algun paso? Estuvo demasiado corta? Hay conceptos sin explicar? Las formulas matematicas estan bien en formato LaTeX con delimitadores $ o $$? Regenera la respuesta corrigiendo todo lo que puedas mejorar. Si la respuesta anterior estuvo bien, mejorala aun mas en profundidad y detalle.`
                 });
 
             }
 
+            const modeConfig = MODE_CONFIGS[currentMode] || MODE_CONFIGS.normal;
+
             const requestBody = {
                 model: "meta-llama/llama-4-scout-17b-16e-instruct",
                 messages: historyForRetry,
-                temperature: 0.5,
-                max_tokens: 8192
+                temperature: Math.min(modeConfig.temperature + 0.2, 0.9),
+                max_tokens: modeConfig.max_tokens
             };
 
             const r = await sendRequestWithRetry(requestBody, abortController.signal);
@@ -2171,9 +2307,9 @@
             toggleLoad(false);
 
             if (e.name === 'AbortError') {
-                addMsg("Generación detenida.", 'ai');
+                addMsg("Generacion detenida.", 'ai');
             } else {
-                addMsg("Error de conexión al núcleo: " + e.message, 'ai');
+                addMsg("Error de conexion al nucleo: " + e.message, 'ai');
             }
 
         } finally {
@@ -2217,7 +2353,6 @@
 
     }
 
-    // FIX EDITAR: función para abrir el modal de edición de mensaje de usuario
     function openEditModal(originalText, onSend) {
 
         const overlay = document.createElement('div');
@@ -2228,7 +2363,7 @@
 
         const title = document.createElement('div');
         title.className = 'edit-modal-title';
-        title.textContent = '✏️ Editar y reenviar mensaje';
+        title.textContent = 'EDITAR MENSAJE';
 
         const textarea = document.createElement('textarea');
         textarea.className = 'edit-modal-textarea';
@@ -2279,7 +2414,6 @@
 
     }
 
-    // FIX EDITAR: función para reenviar el mensaje editado del usuario
     async function sendEditedUserMessage(newText) {
 
         if (isGeneratingResponse) {
@@ -2318,11 +2452,13 @@
 
             updateCurrentChatStorage();
 
+            const modeConfig = MODE_CONFIGS[currentMode] || MODE_CONFIGS.normal;
+
             const requestBody = {
                 model: "meta-llama/llama-4-scout-17b-16e-instruct",
-                messages: conversationHistory,
-                temperature: 0.3,
-                max_tokens: 8192
+                messages: buildRequestMessages(),
+                temperature: modeConfig.temperature,
+                max_tokens: modeConfig.max_tokens
             };
 
             const r = await sendRequestWithRetry(requestBody, abortController.signal);
@@ -2366,9 +2502,9 @@
             toggleLoad(false);
 
             if (e.name === 'AbortError') {
-                addMsg("Generación detenida.", 'ai');
+                addMsg("Generacion detenida.", 'ai');
             } else {
-                addMsg("Error de conexión al núcleo: " + e.message, 'ai');
+                addMsg("Error de conexion al nucleo: " + e.message, 'ai');
             }
 
         } finally {
@@ -2439,28 +2575,20 @@
             return "";
         }
 
-        // FIX LATEX: antes de escapar HTML, extraer y proteger los bloques LaTeX
-        // para que escapeHtml no rompa los delimitadores $ y las expresiones LaTeX.
-        // Usamos placeholders únicos para protegerlos durante el procesamiento.
-
         const latexBlocks = [];
 
-        // Primero aplicar el preprocesador de LaTeX crudo
         let processed = preprocessLatex(text);
 
-        // Proteger bloques $$ ... $$ (display)
         processed = processed.replace(/\$\$([\s\S]*?)\$\$/g, function(match, inner) {
             latexBlocks.push({ type: 'display', content: match });
             return '___LATEX_BLOCK_' + (latexBlocks.length - 1) + '___';
         });
 
-        // Proteger bloques $ ... $ (inline)
         processed = processed.replace(/\$([^\$\n]+?)\$/g, function(match, inner) {
             latexBlocks.push({ type: 'inline', content: match });
             return '___LATEX_INLINE_' + (latexBlocks.length - 1) + '___';
         });
 
-        // Ahora escapar HTML del texto restante (sin LaTeX)
         let parsed = escapeHtml(processed);
 
         parsed = parsed.replace(/^### (.*$)/gim, '<h3>$1</h3>');
@@ -2478,7 +2606,6 @@
 
         parsed = parsed.replace(/<\/ul><br><ul>/g, '');
 
-        // Restaurar los bloques LaTeX sin escapar para que KaTeX los procese
         parsed = parsed.replace(/___LATEX_BLOCK_(\d+)___/g, function(match, idx) {
             return latexBlocks[parseInt(idx)].content;
         });
@@ -2507,10 +2634,36 @@
             "cpp",
             "csharp",
             "php",
-            "json"
+            "json",
+            "pseudocode",
+            "pseudo",
+            "bash",
+            "shell",
+            "sh",
+            "typescript",
+            "ts",
+            "sql",
+            "xml",
+            "yaml",
+            "yml",
+            "rust",
+            "go",
+            "swift",
+            "kotlin",
+            "ruby",
+            "c",
+            "text",
+            "plaintext",
+            "algorithmia",
+            "algorithm",
+            "algoritmo"
         ];
 
         if (languageList.includes(firstLine)) {
+            return firstLine;
+        }
+
+        if (/^[a-z][a-z0-9_-]*$/.test(firstLine) && firstLine.length >= 2 && firstLine.length <= 25) {
             return firstLine;
         }
 
@@ -2522,7 +2675,9 @@
 
         const lines = codeText.split('\n');
 
-        if (lines[0].trim().toLowerCase() === language.toLowerCase()) {
+        const firstLineLower = lines[0].trim().toLowerCase();
+
+        if (language !== "código" && firstLineLower === language.toLowerCase()) {
             lines.shift();
         }
 
@@ -2568,7 +2723,7 @@
 <div class="code-block-wrapper">
     <div class="code-header">
         <div class="code-language">${escapeHtml(detectedLanguage)}</div>
-        <div class="copy-indicator">Mantén presionado para copiar</div>
+        <button class="code-copy-btn" onclick="copyCodeBlock(this)">Copiar</button>
     </div>
     <pre oncontextmenu="copyCode(event, this)"><code>${escapeHtml(cleanCode)}</code></pre>
 </div>`;
@@ -2622,8 +2777,6 @@
 
             }
 
-            // FIX BOTONES USUARIO: agregar botón copiar y botón editar (lápiz)
-            // debajo de cada mensaje del usuario
             if (type === 'user') {
 
                 const userActionsDiv = document.createElement('div');
@@ -2720,7 +2873,7 @@
 
             await navigator.clipboard.writeText(codeElement.innerText);
 
-            btn.innerText = "¡Listo!";
+            btn.innerText = "Listo";
 
             setTimeout(() => {
 
@@ -2742,13 +2895,53 @@
 
             document.body.removeChild(tempTextArea);
 
-            btn.innerText = "¡Listo!";
+            btn.innerText = "Listo";
 
             setTimeout(() => {
 
                 btn.innerText = "Copiar";
 
             }, 2000);
+
+        }
+
+    }
+
+    async function copyCodeBlock(btn) {
+
+        var wrapper = btn.closest('.code-block-wrapper');
+
+        var codeElement = wrapper ? wrapper.querySelector('pre code') : null;
+
+        if (!codeElement) {
+            return;
+        }
+
+        try {
+
+            await navigator.clipboard.writeText(codeElement.innerText);
+
+            btn.textContent = 'Copiado';
+
+            setTimeout(function() { btn.textContent = 'Copiar'; }, 2000);
+
+        } catch (error) {
+
+            var tempTextArea = document.createElement("textarea");
+
+            tempTextArea.value = codeElement.innerText;
+
+            document.body.appendChild(tempTextArea);
+
+            tempTextArea.select();
+
+            document.execCommand("copy");
+
+            document.body.removeChild(tempTextArea);
+
+            btn.textContent = 'Copiado';
+
+            setTimeout(function() { btn.textContent = 'Copiar'; }, 2000);
 
         }
 
@@ -2764,17 +2957,13 @@
 
             await navigator.clipboard.writeText(codeElement.innerText);
 
-            const indicator = element.parentElement.querySelector(".copy-indicator");
+            const btn = element.parentElement.querySelector(".code-copy-btn");
 
-            const originalText = indicator.innerText;
-
-            indicator.innerText = "¡Código copiado!";
-
-            setTimeout(() => {
-
-                indicator.innerText = originalText;
-
-            }, 2000);
+            if (btn) {
+                const originalText = btn.textContent;
+                btn.textContent = 'Copiado';
+                setTimeout(function() { btn.textContent = originalText; }, 2000);
+            }
 
         } catch (error) {
 
@@ -2790,17 +2979,13 @@
 
             document.body.removeChild(tempTextArea);
 
-            const indicator = element.parentElement.querySelector(".copy-indicator");
+            const btn = element.parentElement.querySelector(".code-copy-btn");
 
-            const originalText = indicator.innerText;
-
-            indicator.innerText = "¡Código copiado!";
-
-            setTimeout(() => {
-
-                indicator.innerText = originalText;
-
-            }, 2000);
+            if (btn) {
+                const originalText = btn.textContent;
+                btn.textContent = 'Copiado';
+                setTimeout(function() { btn.textContent = originalText; }, 2000);
+            }
 
         }
 
