@@ -287,10 +287,11 @@
             padding: 14px 18px;
             border-radius: 22px;
             font-size: 0.9rem;
-            line-height: 1.5;
+            line-height: 1.6;
             box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-            white-space: pre-wrap;
+            white-space: normal;
             word-wrap: break-word;
+            overflow-wrap: break-word;
             transition: all 0.3s ease;
         }
 
@@ -315,6 +316,40 @@
 
         .katex-display > .katex {
             font-size: 1.1em;
+        }
+
+        .ai-bubble table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 10px 0;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            display: block;
+        }
+
+        .ai-bubble table th {
+            background: rgba(168, 85, 247, 0.25);
+            color: #e9d5ff;
+            padding: 8px 12px;
+            text-align: left;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .ai-bubble table td {
+            padding: 7px 12px;
+            border: 1px solid rgba(168, 85, 247, 0.18);
+            color: #f0e6ff;
+            vertical-align: top;
+        }
+
+        .ai-bubble table tr:nth-child(even) td {
+            background: rgba(168, 85, 247, 0.06);
+        }
+
+        .ai-bubble table tr:hover td {
+            background: rgba(168, 85, 247, 0.12);
         }
 
         .code-block-wrapper {
@@ -486,6 +521,9 @@
             border: 1px solid rgba(255,255,255,0.1);
             animation: slideUp 0.4s ease-out forwards;
             transition: all 0.3s ease;
+            display: block;
+            margin-left: auto;
+            margin-right: 0;
         }
 
         .chat-img:hover {
@@ -1033,168 +1071,127 @@
 
     let imageSentTimestamp = null;
 
-    const IMAGE_COOLDOWN_TIME = 120000;
+    const IMAGE_COOLDOWN_TIME = 300000;
+    const IMAGE_COOLDOWN_THRESHOLD = 3;
 
     let currentMode = 'normal';
-
-    const NRS10_KNOWLEDGE = `CONOCIMIENTO ESPECIALIZADO — NORMA NRS-10 (Reglamento Colombiano de Construcción Sismo Resistente):
-La NRS-10 es el reglamento técnico colombiano que establece los criterios y requisitos mínimos para el diseño, construcción y supervisión técnica de edificaciones nuevas, así como para la evaluación y reforzamiento de construcciones existentes, con el objetivo de que sean resistentes a los sismos. Fue adoptada mediante el Decreto 926 de 2010 y actualizada por los Decretos 2525 de 2010, 092 de 2011 y 340 de 2012.
-
-ESTRUCTURA DE LA NRS-10:
-La norma está organizada en títulos que cubren diferentes aspectos del diseño sismo resistente:
-- Título A: Requisitos Generales de Diseño y Construcción Sismo Resistente.
-- Título B: Cargas.
-- Título C: Concreto Estructural.
-- Título D: Mampostería Estructural.
-- Título E: Casas de Uno y Dos Pisos.
-- Título F: Estructuras Metálicas.
-- Título G: Madera.
-- Título H: Estudios Geotécnicos.
-- Título I: Supervisión Técnica.
-- Título J: Requisitos de Protección contra el Fuego.
-- Título K: Requisitos Complementarios.
-
-CONCEPTOS CLAVE Y FÓRMULAS PRINCIPALES:
-
-1. AMENAZA SÍSMICA Y ZONAS:
-Colombia está dividida en zonas de amenaza sísmica: Alta, Intermedia y Baja. El parámetro fundamental es la aceleración pico efectiva Aa y la velocidad pico efectiva Av. La aceleración espectral de diseño se determina mediante los espectros de diseño.
-
-2. ESPECTRO DE DISEÑO (Título A, NSR-10):
-El espectro de aceleraciones de diseño Sa se construye con los parámetros Fa, Fv, Aa y Av:
-$$S_{aD} = \frac{2.5 \cdot F_a \cdot A_a \cdot T_0}{T} \quad \text{para } T < T_0$$
-$$S_{aD} = 2.5 \cdot F_a \cdot A_a \quad \text{para } T_0 \leq T \leq T_c$$
-$$S_{aD} = \frac{1.2 \cdot F_v \cdot A_v}{T} \quad \text{para } T > T_c$$
-Donde:
-- $T$ = período fundamental de vibración de la estructura [s]
-- $T_0 = 0.1 \cdot \frac{F_v \cdot A_v}{F_a \cdot A_a}$
-- $T_c = 0.48 \cdot \frac{F_v \cdot A_v}{F_a \cdot A_a}$
-- $F_a$ = coeficiente de amplificación para períodos cortos (función del perfil de suelo y Aa)
-- $F_v$ = coeficiente de amplificación para períodos largos (función del perfil de suelo y Av)
-- $A_a$ = aceleración pico efectiva
-- $A_v$ = velocidad pico efectiva
-
-3. FUERZA SÍSMICA EN LA BASE (Cortante Basal):
-$$V_s = \frac{S_a(T)}{R \cdot \Omega_0 \cdot \phi_E} \cdot W$$
-Donde:
-- $V_s$ = cortante sísmico en la base [kN]
-- $S_a(T)$ = aceleración espectral de diseño para el período T
-- $R$ = coeficiente de capacidad de disipación de energía (depende del sistema estructural)
-- $\Omega_0$ = factor de sobre-resistencia
-- $\phi_E$ = factor de redundancia
-- $W$ = peso sísmico de la edificación [kN]
-
-El cortante basal mínimo es:
-$$V_{s,min} = \frac{0.044 \cdot S_{DS} \cdot I_E}{R / \Omega_0} \cdot W$$
-
-4. DISTRIBUCIÓN VERTICAL DE FUERZAS SÍSMICAS:
-La fuerza lateral en el nivel x se calcula como:
-$$F_x = C_{vx} \cdot V_s$$
-$$C_{vx} = \frac{w_x \cdot h_x^k}{\sum_{i=1}^{n} w_i \cdot h_i^k}$$
-Donde:
-- $w_x$, $w_i$ = peso sísmico del nivel x o i [kN]
-- $h_x$, $h_i$ = altura del nivel x o i medida desde la base [m]
-- $k$ = exponente relacionado con el período: $k=1$ si $T \leq 0.5$ s; $k=2$ si $T \geq 2.5$ s; interpolación lineal para valores intermedios
-
-5. PERÍODO FUNDAMENTAL DE VIBRACIÓN (método aproximado):
-$$T_a = C_t \cdot h_n^x$$
-Donde:
-- $h_n$ = altura total de la edificación [m]
-- $C_t$ y $x$ dependen del sistema estructural:
-  - Pórticos de concreto resistentes a momentos: $C_t = 0.047$, $x = 0.9$
-  - Pórticos de acero resistentes a momentos: $C_t = 0.072$, $x = 0.8$
-  - Otros sistemas: $C_t = 0.049$, $x = 0.75$
-
-6. DERIVAS DE PISO (Desplazamientos laterales):
-La deriva de piso $\Delta$ no debe exceder los límites establecidos. La deriva inelástica se calcula como:
-$$\Delta_i = C_d \cdot \delta_{xe}$$
-Donde:
-- $C_d$ = factor de amplificación de la deflexión
-- $\delta_{xe}$ = desplazamiento elástico obtenido del análisis
-La deriva relativa entre pisos no debe superar:
-$$\frac{\Delta_i}{h_{sx}} \leq \Delta_a$$
-Donde $h_{sx}$ es la altura del entrepiso y $\Delta_a$ es la deriva admisible (típicamente 0.01 a 0.02 según el grupo de uso).
-
-7. PERFILES DE SUELO:
-La NRS-10 clasifica los perfiles de suelo en tipos A, B, C, D, E y F según la velocidad de onda de corte $\bar{V}_s$, el número de golpes SPT $\bar{N}$ y la resistencia al corte no drenado $\bar{S}_u$:
-$$\bar{V}_s = \frac{\sum_{i=1}^{n} d_i}{\sum_{i=1}^{n} \frac{d_i}{V_{si}}}$$
-Donde $d_i$ es el espesor de cada capa y $V_{si}$ su velocidad de onda de corte.
-
-8. GRUPOS DE USO E IMPORTANCIA:
-- Grupo I (Uso Normal): $I_E = 1.00$
-- Grupo II (Uso Especial): $I_E = 1.10$
-- Grupo III (Atención a la Comunidad): $I_E = 1.25$
-- Grupo IV (Instalaciones Indispensables): $I_E = 1.50$
-
-El coeficiente de importancia $I_E$ afecta directamente el cortante basal.
-
-9. DISEÑO DE ELEMENTOS DE CONCRETO (Título C):
-Resistencia a la flexión de vigas:
-$$M_n = A_s \cdot f_y \cdot \left(d - \frac{a}{2}\right)$$
-$$a = \frac{A_s \cdot f_y}{0.85 \cdot f'_c \cdot b}$$
-Donde:
-- $M_n$ = momento nominal resistente [kN·m]
-- $A_s$ = área de acero de refuerzo en tensión [mm²]
-- $f_y$ = resistencia a la fluencia del acero [MPa]
-- $d$ = peralte efectivo de la sección [mm]
-- $a$ = profundidad del bloque de compresión equivalente [mm]
-- $f'_c$ = resistencia a la compresión del concreto [MPa]
-- $b$ = ancho de la sección [mm]
-
-Resistencia al corte:
-$$V_n = V_c + V_s$$
-$$V_c = 0.17 \cdot \lambda \cdot \sqrt{f'_c} \cdot b_w \cdot d$$
-$$V_s = \frac{A_v \cdot f_{yt} \cdot d}{s}$$
-Donde:
-- $V_c$ = resistencia al corte del concreto [kN]
-- $V_s$ = resistencia al corte del acero transversal [kN]
-- $\lambda$ = factor de modificación del concreto liviano (1.0 para concreto normal)
-- $b_w$ = ancho del alma [mm]
-- $A_v$ = área de los estribos [mm²]
-- $f_{yt}$ = resistencia a la fluencia del acero transversal [MPa]
-- $s$ = espaciamiento de estribos [mm]
-
-10. MAMPOSTERÍA ESTRUCTURAL (Título D):
-Resistencia a compresión de la mampostería:
-$$f'_m = \frac{P_{max}}{A_{neta}}$$
-Resistencia al corte de muros de mampostería:
-$$V_m = v_m \cdot A_n + 0.45 \cdot N_u$$
-Donde $v_m$ es el esfuerzo de corte de la mampostería, $A_n$ es el área neta del muro y $N_u$ es la carga axial de diseño.
-
-11. SISTEMAS ESTRUCTURALES Y COEFICIENTES R:
-- Pórtico resistente a momentos de concreto especial (PRCE): $R = 7$
-- Pórtico resistente a momentos de acero especial (PRAE): $R = 8$
-- Muros estructurales de concreto especiales: $R = 5$
-- Mampostería estructural reforzada: $R = 4$
-- Dual (muros + pórticos): $R = 7$
-
-CONSIDERACIONES ADICIONALES:
-- Irregularidades en planta y en altura reducen el coeficiente R mediante el factor $\phi_a$ (planta) y $\phi_p$ (altura).
-- El análisis puede ser estático equivalente, dinámico modal espectral o dinámico paso a paso según la complejidad de la estructura.
-- Los estados límite de diseño son: resistencia ($U$), servicio y sismo de diseño.
-- Las combinaciones de carga incluyen: $U = 1.2D + 1.0E + 1.0L + 0.2S$ para cargas sísmicas, entre otras.`;
 
     const MODE_CONFIGS = {
         rapido: {
             temperature: 0.65,
             max_tokens: 400,
-            systemSuffix: ' MODO RAPIDO ACTIVO: PRIORIDAD MAXIMA — responde en 2 a 4 oraciones directas y concretas. Ve al punto esencial sin ningún rodeo ni extensión. Brevedad absoluta. Si alguien pregunta sobre la NRS-10, responde brevemente con los conceptos más esenciales solamente.'
+            systemSuffix: ' MODO RAPIDO ACTIVO: PRIORIDAD MAXIMA — responde en 2 a 4 oraciones directas y concretas. Ve al punto esencial sin ningún rodeo ni extensión. Brevedad absoluta.'
         },
         normal: {
             temperature: 0.3,
             max_tokens: 8192,
-            systemSuffix: ' Si alguien pregunta sobre la NRS-10 o norma NRS10, responde con una explicación clara y correcta usando tu conocimiento de la norma, incluyendo fórmulas en LaTeX cuando sea necesario, pero sin ser excesivamente largo.'
+            systemSuffix: ''
         },
         preciso: {
             temperature: 0.15,
             max_tokens: 8192,
-            systemSuffix: ' MODO PRECISO ACTIVO: Cubre absolutamente cada aspecto del tema con el maximo nivel de detalle y profundidad. No omitas ningun paso, caso especial ni concepto. Se completamente exhaustivo, meticuloso y riguroso en cada punto de tu respuesta. CONOCIMIENTO ESPECIALIZADO NRS-10: Tienes dominio completo y profundo de la Norma NRS-10 (Reglamento Colombiano de Construcción Sismo Resistente). Cuando alguien te pregunte sobre la NRS-10, sus títulos, fórmulas, procedimientos, zonas sísmicas, coeficientes, diseño sismo resistente, cortante basal, espectros de diseño, perfiles de suelo, grupos de uso, sistemas estructurales, diseño de concreto, mampostería u otros temas relacionados con esta norma, debes responder de forma COMPLETAMENTE EXHAUSTIVA, EXTENSA Y DETALLADA. Explica cada concepto a fondo, desarrolla cada fórmula paso a paso mostrando de dónde viene cada variable, da ejemplos de aplicación numérica cuando sea útil, explica los fundamentos físicos detrás de cada ecuación, menciona los artículos y títulos relevantes de la norma, y no omitas ningún detalle técnico. Todas las fórmulas deben estar en formato LaTeX correcto usando $...$ para fórmulas en línea y $$...$$ para fórmulas en bloque. ' + NRS10_KNOWLEDGE
+            systemSuffix: ' MODO PRECISO ACTIVO: Cubre absolutamente cada aspecto del tema con el maximo nivel de detalle y profundidad. No omitas ningun paso, caso especial ni concepto. Se completamente exhaustivo, meticuloso y riguroso en cada punto de tu respuesta.'
         }
     };
 
-    const systemPrompt = {
-        role: "system",
-        content: `Eres DarkMatter Pro AI. Responde siempre en español. Cuando el usuario te haga una pregunta, responde de forma completa, detallada y bien explicada — si necesitas escribir un libro entero para explicar algo correctamente, hazlo. No des resúmenes ni respuestas cortas a menos que el usuario lo pida explícitamente. Explica cada concepto con claridad, da ejemplos cuando sea útil, desarrolla los temas paso a paso y asegúrate de que el usuario entienda bien el tema. Si el usuario te pide que seas más corto, más resumido o más conciso, entonces adáptate a eso. Si recibes una imagen, analízala detalladamente. Siempre sé exhaustivo en tus explicaciones por defecto. REGLA CRÍTICA PARA MATEMÁTICAS: Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato LaTeX correcto. Usa $...$ para fórmulas en línea y $$...$$ para fórmulas en bloque centradas. NUNCA escribas fórmulas como texto plano. NUNCA uses notación como b_1, b_2, \\cdot fuera de LaTeX. Dentro de LaTeX siempre usa la sintaxis correcta: subíndices con _{}, superíndices con ^{}, fracciones con \\frac{}{}, raíces con \\sqrt{}, multiplicación con \\cdot, sumas con \\sum, integrales con \\int, etc. Por ejemplo: el perímetro se escribe $$P = b_1 + b_2 + 2 \\cdot \\sqrt{y^2 + \\left(\\frac{b_2 - b_1}{2}\\right)^2}$$ y nunca como texto plano. Todas las fórmulas sin excepción deben estar dentro de delimitadores $ o $$.`
-    };
+    function loadUserMemory() {
+        try {
+            const raw = localStorage.getItem('darkmatter_user_memory');
+            if (raw) {
+                return JSON.parse(raw);
+            }
+        } catch (e) {}
+        return {};
+    }
+
+    function saveUserMemory(memObj) {
+        try {
+            localStorage.setItem('darkmatter_user_memory', JSON.stringify(memObj));
+        } catch (e) {}
+    }
+
+    function getUserMemoryString() {
+        const mem = loadUserMemory();
+        const keys = Object.keys(mem);
+        if (keys.length === 0) return '';
+        let parts = [];
+        keys.forEach(function(k) {
+            parts.push(k + ': ' + mem[k]);
+        });
+        return parts.join('; ');
+    }
+
+    async function extractAndSaveUserInfo(userText, aiText) {
+        try {
+            const memStr = getUserMemoryString();
+            const contextNote = memStr.length > 0 ? ('Lo que ya sabes del usuario: ' + memStr + '. ') : '';
+            const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    model: "meta-llama/llama-4-scout-17b-16e-instruct",
+                    messages: [
+                        {
+                            role: "system",
+                            content: "Eres un extractor de información personal del usuario. " + contextNote + "Analiza el siguiente intercambio entre usuario e IA y extrae SOLO datos personales nuevos y relevantes del usuario: nombre, edad, ocupación, ciudad, país, gustos, hobbies, intereses, comportamiento, personalidad, idioma preferido, estilo de comunicación, estudios, trabajo, familia, mascotas, comidas favoritas, música, deportes, metas, problemas recurrentes, o cualquier otro dato personal. Si no hay nada nuevo relevante, responde exactamente con: NADA. Si hay datos, responde SOLO con un JSON plano de una sola línea como: {\"nombre\":\"Juan\",\"hobby\":\"programar\"}. Sin explicaciones, sin texto extra, solo el JSON o NADA."
+                        },
+                        {
+                            role: "user",
+                            content: "Mensaje del usuario: " + userText.substring(0, 600) + "\nRespuesta de la IA: " + aiText.substring(0, 600)
+                        }
+                    ],
+                    temperature: 0.1,
+                    max_tokens: 200
+                })
+            });
+            if (r.ok) {
+                const d = await r.json();
+                if (d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) {
+                    const raw = d.choices[0].message.content.trim();
+                    if (raw !== 'NADA' && raw.startsWith('{')) {
+                        try {
+                            const parsed = JSON.parse(raw);
+                            const existing = loadUserMemory();
+                            Object.keys(parsed).forEach(function(k) {
+                                existing[k] = parsed[k];
+                            });
+                            saveUserMemory(existing);
+                        } catch (parseErr) {}
+                    }
+                }
+            }
+        } catch (e) {}
+    }
+
+    function buildSystemPromptContent() {
+        const baseContent = `Eres DarkMatter Pro AI, una IA amigable, cercana y genuinamente interesada en el usuario — no eres una IA fría y plana, eres como un amigo inteligente que ayuda con todo. Responde siempre en español. Cuando el usuario te haga una pregunta, responde de forma completa, detallada y bien explicada — si necesitas escribir un libro entero para explicar algo correctamente, hazlo. No des resúmenes ni respuestas cortas a menos que el usuario lo pida explícitamente. Explica cada concepto con claridad, da ejemplos cuando sea útil, desarrolla los temas paso a paso y asegúrate de que el usuario entienda bien el tema. Si el usuario te pide que seas más corto, más resumido o más conciso, entonces adáptate a eso. Si recibes una imagen, analízala detalladamente. Siempre sé exhaustivo en tus explicaciones por defecto.
+
+FORMATO DE RESPUESTA — MUY IMPORTANTE:
+- Cuando el usuario pida una tabla, comparación, listado estructurado o cuadro comparativo, SIEMPRE responde con una tabla HTML usando las etiquetas <table><thead><tr><th>...</th></tr></thead><tbody><tr><td>...</td></tr></tbody></table>. NUNCA uses texto plano para tablas.
+- Cuando el usuario pida una lista, usa bullet points o listas numeradas con formato Markdown (- item o 1. item).
+- Cuando el usuario pida una comparación lado a lado, usa tabla HTML.
+- Para listas de pros y contras, características, pasos numerados, rankings — usa formato de lista estructurada.
+
+REGLA CRÍTICA PARA MATEMÁTICAS: Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato LaTeX correcto. Usa $...$ para fórmulas en línea y $$...$$ para fórmulas en bloque centradas. NUNCA escribas fórmulas como texto plano. NUNCA uses notación como b_1, b_2, \\cdot fuera de LaTeX. NUNCA escribas expresiones como \\text{Ratio}_6 = \\frac{6160}{125000} fuera de delimitadores LaTeX. Dentro de LaTeX siempre usa la sintaxis correcta: subíndices con _{}, superíndices con ^{}, fracciones con \\frac{}{}, raíces con \\sqrt{}, multiplicación con \\cdot, sumas con \\sum, integrales con \\int, texto dentro de fórmulas con \\text{}, etc. Por ejemplo: el ratio se escribe $$\\text{Ratio}_6 = \\frac{6160}{125000} \\approx 0.0493$$ y nunca como texto plano. Todas las fórmulas sin excepción deben estar dentro de delimitadores $ o $$.`;
+
+        const memStr = getUserMemoryString();
+        if (memStr.length > 0) {
+            return baseContent + '\n\nINFORMACIÓN PERSONAL DEL USUARIO QUE RECUERDAS (úsala para personalizar tu trato, hacer referencias naturales y ser un mejor amigo/asistente): ' + memStr;
+        }
+        return baseContent;
+    }
+
+    function getSystemPrompt() {
+        return {
+            role: "system",
+            content: buildSystemPromptContent()
+        };
+    }
+
+    const systemPrompt = getSystemPrompt();
 
     let conversationHistory = [systemPrompt];
 
@@ -1418,7 +1415,7 @@ CONSIDERACIONES ADICIONALES:
                     image: null
                 }
             ],
-            history: [systemPrompt]
+            history: [getSystemPrompt()]
         };
 
         chats.unshift(newChat);
@@ -1484,6 +1481,10 @@ CONSIDERACIONES ADICIONALES:
         currentChatId = chatId;
 
         conversationHistory = selectedChat.history;
+
+        if (conversationHistory.length > 0 && conversationHistory[0].role === 'system') {
+            conversationHistory[0] = getSystemPrompt();
+        }
 
         chat.innerHTML = "";
 
@@ -1592,6 +1593,10 @@ CONSIDERACIONES ADICIONALES:
 
         var messages = conversationHistory.slice();
 
+        if (messages.length > 0 && messages[0].role === 'system') {
+            messages[0] = getSystemPrompt();
+        }
+
         if (config.systemSuffix && config.systemSuffix.length > 0 && messages.length > 0 && messages[0].role === 'system') {
             messages = [{ role: 'system', content: messages[0].content + config.systemSuffix }].concat(messages.slice(1));
         }
@@ -1687,7 +1692,29 @@ CONSIDERACIONES ADICIONALES:
 
     });
 
+    function getImagesSentCount() {
+        try {
+            const val = localStorage.getItem('darkmatter_images_sent_count');
+            return val ? parseInt(val) : 0;
+        } catch (e) {
+            return 0;
+        }
+    }
+
+    function incrementImagesSentCount() {
+        try {
+            const current = getImagesSentCount();
+            localStorage.setItem('darkmatter_images_sent_count', String(current + 1));
+        } catch (e) {}
+    }
+
     function getImageCooldownRemaining() {
+
+        const imagesSent = getImagesSentCount();
+
+        if (imagesSent < IMAGE_COOLDOWN_THRESHOLD) {
+            return 0;
+        }
 
         if (imageSentTimestamp !== null) {
             const elapsed = Date.now() - imageSentTimestamp;
@@ -2167,6 +2194,7 @@ CONSIDERACIONES ADICIONALES:
         if (tempImage) {
             lastImageBase64 = tempImage;
             lastCompressedImageBase64 = tempImage;
+            incrementImagesSentCount();
             imageSentTimestamp = Date.now();
             localStorage.setItem("darkmatter_last_image_time", imageSentTimestamp.toString());
             updateImageCooldownUI();
@@ -2200,7 +2228,7 @@ CONSIDERACIONES ADICIONALES:
                     content: [
                         {
                             type: "text",
-                            text: `Analiza esta imagen detalladamente. Lee todo el texto visible. Si es un ejercicio o guía, resuelve cada punto con claridad y de forma completa y extensa. Explica procedimientos paso a paso sin omitir nada. Si necesitas explicar muchas cosas, hazlo todas. Escribe TODAS las fórmulas y expresiones matemáticas en formato LaTeX usando $...$ para fórmulas en línea y $$...$$ para fórmulas en bloque. NUNCA escribas fórmulas como texto plano. ${text ? "Pregunta adicional del usuario: " + text : ""}`
+                            text: `Analiza esta imagen detalladamente. Lee todo el texto visible. Si es un ejercicio o guía, resuelve cada punto con claridad y de forma completa y extensa. Explica procedimientos paso a paso sin omitir nada. Si necesitas explicar muchas cosas, hazlo todas. Escribe TODAS las fórmulas y expresiones matemáticas en formato LaTeX usando $...$ para fórmulas en línea y $$...$$ para fórmulas en bloque. NUNCA escribas fórmulas como texto plano. Si te piden tablas o comparaciones, usa HTML con etiquetas table. ${text ? "Pregunta adicional del usuario: " + text : ""}`
                         },
                         {
                             type: "image_url",
@@ -2278,6 +2306,8 @@ CONSIDERACIONES ADICIONALES:
 
                 addMsg(aiResponse, 'ai');
                 await addMessageToCurrentChat('ai', aiResponse, null, true);
+
+                extractAndSaveUserInfo(text || '', aiResponse);
 
             } else if (d.error) {
 
@@ -2392,7 +2422,7 @@ CONSIDERACIONES ADICIONALES:
 
                 historyForRetry.push({
                     role: "user",
-                    content: `Analiza tu respuesta anterior cuidadosamente. Tu respuesta anterior fue:\n\n${lastAiResponseText.substring(0, 1500)}\n\nAhora responde de nuevo la misma pregunta/solicitud pero de forma MEJOR, MAS COMPLETA y MAS DETALLADA. Considera: Falto algun paso? Estuvo demasiado corta? Hay conceptos sin explicar? Las formulas matematicas estan bien en formato LaTeX con delimitadores $ o $$? Regenera la respuesta corrigiendo todo lo que puedas mejorar. Si la respuesta anterior estuvo bien, mejorala aun mas en profundidad y detalle.`
+                    content: `Analiza tu respuesta anterior cuidadosamente. Tu respuesta anterior fue:\n\n${lastAiResponseText.substring(0, 1500)}\n\nAhora responde de nuevo la misma pregunta/solicitud pero de forma MEJOR, MAS COMPLETA y MAS DETALLADA. Considera: Falto algun paso? Estuvo demasiado corta? Hay conceptos sin explicar? Las formulas matematicas estan bien en formato LaTeX con delimitadores $ o $$? Si se pidieron tablas o comparaciones, usa HTML con etiquetas table. Regenera la respuesta corrigiendo todo lo que puedas mejorar. Si la respuesta anterior estuvo bien, mejorala aun mas en profundidad y detalle.`
                 });
 
             }
@@ -2623,6 +2653,8 @@ CONSIDERACIONES ADICIONALES:
                 addMsg(aiResponse, 'ai');
                 await addMessageToCurrentChat('ai', aiResponse, null, true);
 
+                extractAndSaveUserInfo(newText, aiResponse);
+
             } else if (d.error) {
 
                 if (d.error.code === "rate_limit_exceeded") {
@@ -2709,6 +2741,57 @@ CONSIDERACIONES ADICIONALES:
 
     }
 
+    function parseMarkdownTable(text) {
+
+        const lines = text.split('\n');
+        let result = '';
+        let i = 0;
+
+        while (i < lines.length) {
+            const line = lines[i];
+
+            if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
+
+                const nextLine = lines[i + 1] || '';
+                const isHeaderSep = /^\|[\s\-\|:]+\|$/.test(nextLine.trim());
+
+                if (isHeaderSep) {
+
+                    result += '<table><thead><tr>';
+                    const headers = line.trim().slice(1, -1).split('|').map(h => h.trim());
+                    headers.forEach(function(h) {
+                        result += '<th>' + h + '</th>';
+                    });
+                    result += '</tr></thead><tbody>';
+
+                    i += 2;
+
+                    while (i < lines.length && lines[i].trim().startsWith('|') && lines[i].trim().endsWith('|')) {
+                        result += '<tr>';
+                        const cells = lines[i].trim().slice(1, -1).split('|').map(c => c.trim());
+                        cells.forEach(function(c) {
+                            result += '<td>' + c + '</td>';
+                        });
+                        result += '</tr>';
+                        i++;
+                    }
+
+                    result += '</tbody></table>';
+                    continue;
+
+                }
+
+            }
+
+            result += lines[i] + '\n';
+            i++;
+
+        }
+
+        return result;
+
+    }
+
     function parseMarkdown(text) {
 
         if (!text) {
@@ -2727,6 +2810,21 @@ CONSIDERACIONES ADICIONALES:
         processed = processed.replace(/\$([^\$\n]+?)\$/g, function(match, inner) {
             latexBlocks.push({ type: 'inline', content: match });
             return '___LATEX_INLINE_' + (latexBlocks.length - 1) + '___';
+        });
+
+        const htmlTableBlocks = [];
+
+        processed = processed.replace(/<table[\s\S]*?<\/table>/gi, function(match) {
+            htmlTableBlocks.push(match);
+            return '___HTML_TABLE_' + (htmlTableBlocks.length - 1) + '___';
+        });
+
+        processed = parseMarkdownTable(processed);
+
+        const markdownTableBlocks = [];
+        processed = processed.replace(/<table[\s\S]*?<\/table>/gi, function(match) {
+            markdownTableBlocks.push(match);
+            return '___MD_TABLE_' + (markdownTableBlocks.length - 1) + '___';
         });
 
         let parsed = escapeHtml(processed);
@@ -2752,6 +2850,14 @@ CONSIDERACIONES ADICIONALES:
 
         parsed = parsed.replace(/___LATEX_INLINE_(\d+)___/g, function(match, idx) {
             return latexBlocks[parseInt(idx)].content;
+        });
+
+        parsed = parsed.replace(/___HTML_TABLE_(\d+)___/g, function(match, idx) {
+            return htmlTableBlocks[parseInt(idx)];
+        });
+
+        parsed = parsed.replace(/___MD_TABLE_(\d+)___/g, function(match, idx) {
+            return markdownTableBlocks[parseInt(idx)];
         });
 
         return parsed;
