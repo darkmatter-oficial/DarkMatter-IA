@@ -218,7 +218,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            padding-right: 24px;
+            padding-right: 28px;
         }
 
         .chat-item-preview {
@@ -235,7 +235,7 @@
             right: 10px;
             background: none;
             border: none;
-            color: rgba(196, 181, 253, 0.35);
+            color: rgba(196, 181, 253, 0.4);
             cursor: pointer;
             padding: 2px;
             display: flex;
@@ -243,92 +243,93 @@
             justify-content: center;
             border-radius: 6px;
             transition: all 0.2s ease;
-            line-height: 1;
         }
 
         .chat-delete-btn:hover {
             color: #ef4444;
             background: rgba(239, 68, 68, 0.12);
+            transform: scale(1.15);
         }
 
         .chat-delete-btn svg {
-            width: 13px;
-            height: 13px;
+            width: 14px;
+            height: 14px;
         }
 
-        .confirm-modal-overlay {
+        .confirm-delete-overlay {
             position: fixed;
             inset: 0;
             background: rgba(0,0,0,0.65);
-            z-index: 9100;
+            z-index: 9999;
             display: flex;
             align-items: center;
             justify-content: center;
             animation: fadeIn 0.2s ease-out forwards;
         }
 
-        .confirm-modal {
+        .confirm-delete-modal {
             background: #1a0c2a;
-            border: 1px solid rgba(168, 85, 247, 0.35);
+            border: 1px solid rgba(239, 68, 68, 0.35);
             border-radius: 20px;
-            padding: 24px 22px;
+            padding: 28px 24px 22px 24px;
             width: 88%;
             max-width: 340px;
             display: flex;
             flex-direction: column;
             gap: 16px;
-            animation: slideUp 0.3s ease-out forwards;
+            animation: slideUp 0.25s ease-out forwards;
+            text-align: center;
         }
 
-        .confirm-modal-title {
+        .confirm-delete-title {
             font-size: 0.85rem;
             font-weight: bold;
             color: #ef4444;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
             text-transform: uppercase;
         }
 
-        .confirm-modal-text {
-            font-size: 0.88rem;
-            color: #c4b5fd;
+        .confirm-delete-text {
+            font-size: 0.85rem;
+            color: #d8b4fe;
             line-height: 1.5;
         }
 
-        .confirm-modal-actions {
+        .confirm-delete-actions {
             display: flex;
             gap: 10px;
-            justify-content: flex-end;
+            justify-content: center;
         }
 
-        .confirm-modal-cancel {
+        .confirm-delete-cancel {
             background: rgba(168, 85, 247, 0.1);
             border: 1px solid rgba(168, 85, 247, 0.25);
             color: #c4b5fd;
-            padding: 10px 18px;
+            padding: 10px 20px;
             border-radius: 12px;
             font-size: 0.85rem;
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
-        .confirm-modal-cancel:hover {
+        .confirm-delete-cancel:hover {
             background: rgba(168, 85, 247, 0.2);
         }
 
-        .confirm-modal-delete {
+        .confirm-delete-confirm {
             background: #ef4444;
             border: none;
             color: white;
-            padding: 10px 18px;
+            padding: 10px 20px;
             border-radius: 12px;
             font-size: 0.85rem;
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
-        .confirm-modal-delete:hover {
+        .confirm-delete-confirm:hover {
             background: #dc2626;
-            box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
         }
 
         #chat-view {
@@ -341,7 +342,6 @@
             gap: 20px;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
-            align-items: center;
         }
 
         @keyframes slideUp {
@@ -384,16 +384,9 @@
             to { transform: rotate(360deg); }
         }
 
-        .msg-wrapper {
-            width: 100%;
-            max-width: 620px;
-            display: flex;
-            animation: slideUp 0.4s ease-out forwards;
-            flex-direction: column;
-        }
-
-        .user-wrapper { align-self: center; align-items: flex-end; }
-        .ai-wrapper { align-self: center; align-items: flex-start; }
+        .msg-wrapper { max-width: 90%; display: flex; animation: slideUp 0.4s ease-out forwards; flex-direction: column; }
+        .user-wrapper { align-self: flex-end; }
+        .ai-wrapper { align-self: center; }
 
         .bubble {
             padding: 14px 18px;
@@ -405,7 +398,6 @@
             word-wrap: break-word;
             overflow-wrap: break-word;
             transition: all 0.3s ease;
-            max-width: 100%;
         }
 
         .bubble:hover {
@@ -413,30 +405,8 @@
             box-shadow: 0 15px 30px rgba(0,0,0,0.35);
         }
 
-        .user-bubble {
-            background: var(--user-bubble);
-            border-bottom-right-radius: 4px;
-            animation: slideUp 0.5s ease-out forwards;
-            align-self: flex-end;
-            max-width: 85%;
-        }
-
-        .ai-bubble {
-            background: var(--ai-bubble);
-            border: 1px solid rgba(168, 85, 247, 0.15);
-            border-bottom-left-radius: 4px;
-            animation: slideUp 0.5s ease-out forwards;
-            align-self: flex-start;
-            width: 100%;
-        }
-
-        .ai-bubble.loading-bubble {
-            width: auto;
-            min-width: unset;
-            display: inline-flex;
-            align-items: center;
-            padding: 14px 18px;
-        }
+        .user-bubble { background: var(--user-bubble); border-bottom-right-radius: 4px; animation: slideUp 0.5s ease-out forwards; }
+        .ai-bubble { background: var(--ai-bubble); border: 1px solid rgba(168, 85, 247, 0.15); border-bottom-left-radius: 4px; animation: slideUp 0.5s ease-out forwards; }
 
         .katex {
             color: #f0e6ff;
@@ -451,22 +421,6 @@
 
         .katex-display > .katex {
             font-size: 1.1em;
-        }
-
-        .formula-block {
-            display: block;
-            background: #0d0520;
-            border: 1px solid rgba(168, 85, 247, 0.35);
-            border-left: 3px solid var(--accent-color);
-            border-radius: 10px;
-            padding: 14px 16px;
-            margin: 10px 0;
-            overflow-x: auto;
-            text-align: center;
-        }
-
-        .formula-block .katex {
-            font-size: 1.15em;
         }
 
         .ai-bubble table {
@@ -636,18 +590,21 @@
             animation: slideUp 0.5s ease-out forwards;
         }
 
-        h1 { font-size: 1.5rem; }
-        h2 { font-size: 1.3rem; }
-        h3 { font-size: 1.1rem; }
+        h1 {
+            font-size: 1.5rem;
+        }
+
+        h2 {
+            font-size: 1.3rem;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+        }
 
         strong {
             color: #ffffff;
             font-weight: bold;
-        }
-
-        em {
-            font-style: italic;
-            color: #e0d0ff;
         }
 
         ul, ol {
@@ -995,40 +952,6 @@
             height: 14px;
         }
 
-        .star-rating {
-            display: flex;
-            gap: 3px;
-            align-items: center;
-        }
-
-        .star-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: rgba(196, 181, 253, 0.3);
-            font-size: 13px;
-            padding: 1px;
-            transition: color 0.15s ease, transform 0.15s ease;
-            line-height: 1;
-        }
-
-        .star-btn:hover {
-            transform: scale(1.25);
-        }
-
-        .star-btn.filled {
-            color: #f59e0b;
-        }
-
-        .ai-disclaimer {
-            font-size: 0.6rem;
-            color: rgba(196, 181, 253, 0.35);
-            margin-top: 7px;
-            padding-left: 4px;
-            line-height: 1.4;
-            letter-spacing: 0.2px;
-        }
-
         .user-actions {
             display: flex;
             gap: 10px;
@@ -1163,6 +1086,48 @@
         .edit-modal-send:hover {
             background: #a855f7;
             box-shadow: 0 0 12px rgba(168, 85, 247, 0.5);
+        }
+
+        .ai-disclaimer {
+            font-size: 0.62rem;
+            color: rgba(196, 181, 253, 0.45);
+            text-align: center;
+            margin-top: 5px;
+            padding: 0 4px;
+            font-style: italic;
+            letter-spacing: 0.2px;
+            line-height: 1.4;
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 3px;
+            margin-top: 4px;
+            padding-left: 4px;
+            align-items: center;
+        }
+
+        .star-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: rgba(196, 181, 253, 0.25);
+            padding: 1px;
+            transition: color 0.15s ease, transform 0.15s ease;
+            line-height: 1;
+        }
+
+        .star-btn:hover {
+            transform: scale(1.25);
+        }
+
+        .star-btn.filled {
+            color: #f59e0b;
+        }
+
+        .star-btn.hovered {
+            color: #fbbf24;
         }
     </style>
 </head>
@@ -1379,12 +1344,15 @@ REGLAS ESPECÍFICAS INNEGOCIABLES:
 
 REGLA 1 — NOMBRES COMPLETOS DE PERSONAS:
 Si no recuerdas el nombre completo y exacto de una persona con certeza absoluta del 100%, NO escribas el apellido ni ninguna parte que no estés seguro. Di solamente el nombre que sí recuerdas con certeza, y para la parte dudosa usa: "cuyo apellido no recuerdo con exactitud". 
+EJEMPLO DE ERROR GRAVE QUE JAMÁS DEBES REPETIR: Escribir "Emmanuel Gazol Rodríguez" cuando el nombre real es "Emmanuel Gazmey Santiago". Inventar un apellido falso es peor que no dar ninguno.
 
 REGLA 2 — FECHAS DE NACIMIENTO Y DATOS BIOGRÁFICOS:
 Si no recuerdas la fecha exacta con certeza del 100%, NUNCA la inventes. Usa: "nacido aproximadamente en [año]" o "no recuerdo la fecha exacta, te recomiendo verificarlo".
+EJEMPLO DE ERROR GRAVE: Decir "nacido el 14 de noviembre" cuando el dato real es "26 de noviembre".
 
 REGLA 3 — CANCIONES, ÁLBUMES Y COLABORACIONES MUSICALES:
-NUNCA atribuyas canciones, álbumes o colaboraciones a artistas si no estás completamente seguro.
+NUNCA atribuyas canciones, álbumes o colaboraciones a artistas si no estás completamente seguro. Verifica mentalmente: ¿estoy 100% seguro de quién hizo esta canción o de que esta colaboración existió?
+EJEMPLO DE ERROR GRAVE: Decir que "Gasolina" es de Anuel AA cuando es de Daddy Yankee. Atribuir colaboraciones que no existieron.
 
 REGLA 4 — DATOS NUMÉRICOS Y ESTADÍSTICAS:
 Precios, estadísticas, porcentajes, récords, versiones de software, números de leyes, resultados deportivos, poblaciones, fechas de eventos históricos exactas → Si no tienes certeza del 100%, SIEMPRE usa frases como: "aproximadamente", "si no recuerdo mal", "alrededor de", "te recomiendo verificar este dato exacto".
@@ -1393,7 +1361,7 @@ REGLA 5 — EVENTOS RECIENTES Y NOTICIAS:
 Para cualquier evento que pueda haber ocurrido después de tu entrenamiento, SIEMPRE aclara: "No tengo información actualizada sobre esto. Mi conocimiento tiene una fecha límite y este dato puede haber cambiado. Te recomiendo verificarlo en una fuente actual."
 
 REGLA 6 — CARGOS, PUESTOS Y POSICIONES ACTUALES:
-Presidentes, CEOs, campeones, líderes, directores, clasificaciones actuales → SIEMPRE advierte que esta información puede estar desactualizada.
+Presidentes, CEOs, campeones, líderes, directores, clasificaciones actuales → SIEMPRE advierte que esta información puede estar desactualizada: "Según mi última información disponible, [dato], pero esto puede haber cambiado. Verifica en una fuente actual."
 
 REGLA 7 — LEYES, NORMATIVAS Y REGULACIONES:
 NUNCA des información legal como si fuera un hecho absoluto y actual sin advertir que las leyes cambian y que el usuario debe consultar fuentes oficiales o un profesional legal.
@@ -1405,7 +1373,12 @@ Las fórmulas matemáticas y físicas bien establecidas puedes darlas con confia
 LA REGLA DE ORO (MÁS IMPORTANTE DE TODAS):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Es INFINITAMENTE MEJOR decir: "No recuerdo ese dato con exactitud, te recomiendo buscarlo en Google para tener la información correcta" ...que inventar un dato incorrecto.
+Es INFINITAMENTE MEJOR decir:
+"No recuerdo ese dato con exactitud, te recomiendo buscarlo en Google para tener la información correcta"
+
+...que inventar un dato incorrecto que el usuario va a verificar y encontrar falso.
+
+La honestidad sobre tus limitaciones NO es una debilidad. Es lo que hace que el usuario confíe en ti. Un dato falso destruye toda la credibilidad de tu respuesta completa.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 FRASES QUE DEBES USAR CUANDO TENGAS DUDA:
@@ -1427,12 +1400,9 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
 - NO uses tablas, NO uses listas con bullets, NO uses LaTeX matemático a menos que la situación lo requiera específicamente. La mayoría de las preguntas NO lo requieren.
 - USA tablas HTML SOLO cuando: el usuario pida explícitamente "tabla", "cuadro comparativo", "compara en tabla", o cuando estés comparando múltiples elementos con múltiples atributos y la tabla sea genuinamente más clara que el texto.
 - USA listas con bullets o numeradas SOLO cuando: el usuario pida "lista", "enumera", "pasos", o cuando estés describiendo pasos secuenciales donde el orden importa, o cuando son 5 o más elementos claramente enumerables sin conexión narrativa entre sí.
-- USA LaTeX matemático SOLO cuando: el usuario pida resolver una ecuación, una fórmula matemática, un ejercicio de cálculo, álgebra, física con fórmulas, etc. Para mencionar números en conversación normal, escribe el número directamente en texto, SIN LaTeX.
+- USA LaTeX matemático SOLO cuando: el usuario pida resolver una ecuación, una fórmula matemática, un ejercicio de cálculo, álgebra, física con fórmulas, etc. Para mencionar números en conversación normal (como "el precio es 50 dólares" o "tiene 3 características"), escribe el número directamente en texto, SIN LaTeX.
 - Una respuesta conversacional, una explicación de concepto, una opinión, una recomendación, una historia, una definición → SIEMPRE en prosa normal, sin tablas, sin listas forzadas, sin LaTeX.
-- Si la respuesta naturalmente fluye como texto corrido, escríbela como texto corrido. No fragmentes información que fluye bien en prosa en bullets artificiales.
-
-REGLA CRÍTICA PARA FÓRMULAS MATEMÁTICAS:
-Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato LaTeX correcto. Usa $...$ para fórmulas en línea y $$...$$ para fórmulas en bloque. NUNCA escribas fórmulas como texto plano. Dentro de LaTeX siempre usa la sintaxis correcta: subíndices con _{}, superíndices con ^{}, fracciones con \\frac{}{}, raíces con \\sqrt{}, etc.`;
+- Si la respuesta naturalmente fluye como texto corrido, escríbela como texto corrido. No fragmentes información que fluye bien en prosa en bullets artificiales.`;
 
         const memStr = getUserMemoryString();
         if (memStr.length > 0) {
@@ -1460,18 +1430,25 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
     }
 
     function generateChatTitle(text) {
+
         if (!text || text.trim() === "") {
             return "Nuevo chat";
         }
+
         let clean = text.trim();
+
         if (clean.length > 32) {
             clean = clean.substring(0, 32) + "...";
         }
+
         return clean;
+
     }
 
     async function generateAiChatTitle(userText) {
+
         try {
+
             const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -1494,19 +1471,33 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
                     max_tokens: 20
                 })
             });
+
             if (r.ok) {
+
                 const d = await r.json();
+
                 if (d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) {
+
                     let title = d.choices[0].message.content.trim();
+
                     title = title.replace(/^["']|["']$/g, '');
+
                     if (title.length > 40) {
                         title = title.substring(0, 40) + "...";
                     }
+
                     return title;
+
                 }
+
             }
-        } catch (e) {}
+
+        } catch (e) {
+
+        }
+
         return generateChatTitle(userText);
+
     }
 
     function stripImagesFromMessages(messages) {
@@ -1547,13 +1538,16 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
     function safeLocalStorageSet(key, value) {
         let attempts = 0;
         const MAX_ATTEMPTS = 5;
+
         while (attempts < MAX_ATTEMPTS) {
             try {
                 localStorage.setItem(key, value);
                 return true;
             } catch (e) {
                 attempts++;
+
                 if (e.name === 'QuotaExceededError' || (e.message && e.message.toLowerCase().includes('quota'))) {
+
                     if (key === 'darkmatter_saved_chats') {
                         try {
                             const existingRaw = localStorage.getItem('darkmatter_saved_chats');
@@ -1592,39 +1586,52 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
                             break;
                         }
                     }
+
                 } else {
                     break;
                 }
             }
         }
+
         return false;
     }
 
     function saveChats() {
+
         const chatsToSave = chats.filter(c => c.hasRealConversation === true);
+
         const chatsStripped = chatsToSave.map(function(c) {
             return {
                 id: c.id,
                 title: c.title,
                 hasRealConversation: c.hasRealConversation,
                 messages: stripImagesFromMessages(c.messages),
-                history: stripImagesFromHistory(c.history)
+                history: stripImagesFromHistory(c.history),
+                ratings: c.ratings || {}
             };
         });
+
         safeLocalStorageSet("darkmatter_saved_chats", JSON.stringify(chatsStripped));
+
     }
 
     function loadChats() {
+
         const savedChats = localStorage.getItem("darkmatter_saved_chats");
+
         if (savedChats) {
             const parsed = JSON.parse(savedChats);
-            chats = parsed.map(c => ({ ...c, hasRealConversation: true }));
+            chats = parsed.map(c => ({ ...c, hasRealConversation: true, ratings: c.ratings || {} }));
         }
+
         createNewChat();
+
         renderChatList();
+
     }
 
     function createNewChat() {
+
         const newChat = {
             id: generateChatId(),
             title: "Nuevo chat",
@@ -1633,58 +1640,70 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
                 {
                     type: "ai",
                     text: "Nucleo DarkMatter iniciado. Ahora puedo procesar imagenes y guias. Esperando instrucciones...",
-                    image: null,
-                    isWelcome: true
+                    image: null
                 }
             ],
-            history: [getSystemPrompt()]
+            history: [getSystemPrompt()],
+            ratings: {}
         };
+
         chats.unshift(newChat);
+
         currentChatId = newChat.id;
+
         saveChats();
+
         openChat(newChat.id);
+
         renderChatList();
+
     }
 
-    function openDeleteConfirm(chatId, chatTitle) {
+    function confirmDeleteChat(chatId, event) {
+
+        event.stopPropagation();
+
         const overlay = document.createElement('div');
-        overlay.className = 'confirm-modal-overlay';
+        overlay.className = 'confirm-delete-overlay';
 
         const modal = document.createElement('div');
-        modal.className = 'confirm-modal';
+        modal.className = 'confirm-delete-modal';
 
-        const titleEl = document.createElement('div');
-        titleEl.className = 'confirm-modal-title';
-        titleEl.textContent = 'Eliminar chat';
+        const title = document.createElement('div');
+        title.className = 'confirm-delete-title';
+        title.textContent = '¿Eliminar chat?';
 
-        const textEl = document.createElement('div');
-        textEl.className = 'confirm-modal-text';
-        textEl.textContent = '¿Seguro que quieres eliminar "' + chatTitle + '"? Esta acción no se puede deshacer.';
+        const text = document.createElement('div');
+        text.className = 'confirm-delete-text';
+        text.textContent = 'Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar este chat?';
 
         const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'confirm-modal-actions';
+        actionsDiv.className = 'confirm-delete-actions';
 
         const cancelBtn = document.createElement('button');
-        cancelBtn.className = 'confirm-modal-cancel';
+        cancelBtn.className = 'confirm-delete-cancel';
         cancelBtn.textContent = 'Cancelar';
         cancelBtn.onclick = function() {
             document.body.removeChild(overlay);
         };
 
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'confirm-modal-delete';
-        deleteBtn.textContent = 'Eliminar';
-        deleteBtn.onclick = function() {
+        const confirmBtn = document.createElement('button');
+        confirmBtn.className = 'confirm-delete-confirm';
+        confirmBtn.textContent = 'Eliminar';
+        confirmBtn.onclick = function() {
             document.body.removeChild(overlay);
             deleteChat(chatId);
         };
 
         actionsDiv.appendChild(cancelBtn);
-        actionsDiv.appendChild(deleteBtn);
-        modal.appendChild(titleEl);
-        modal.appendChild(textEl);
+        actionsDiv.appendChild(confirmBtn);
+
+        modal.appendChild(title);
+        modal.appendChild(text);
         modal.appendChild(actionsDiv);
+
         overlay.appendChild(modal);
+
         document.body.appendChild(overlay);
 
         overlay.addEventListener('click', function(e) {
@@ -1692,11 +1711,17 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
                 document.body.removeChild(overlay);
             }
         });
+
     }
 
     function deleteChat(chatId) {
+
         const idx = chats.findIndex(c => c.id === chatId);
-        if (idx === -1) return;
+
+        if (idx === -1) {
+            return;
+        }
+
         chats.splice(idx, 1);
 
         if (currentChatId === chatId) {
@@ -1710,26 +1735,32 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
         }
 
         saveChats();
+
         renderChatList();
+
     }
 
     function renderChatList() {
+
         const chatList = document.getElementById("chat-list");
+
         chatList.innerHTML = "";
 
         chats.forEach(chatData => {
+
             if (!chatData.hasRealConversation && chatData.id !== currentChatId) {
                 return;
             }
 
             const item = document.createElement("div");
+
             item.className = "chat-item";
+
             if (chatData.id === currentChatId) {
                 item.classList.add("active");
             }
 
-            item.onclick = function(e) {
-                if (e.target.closest('.chat-delete-btn')) return;
+            item.onclick = () => {
                 openChat(chatData.id);
                 toggleSidebar(false);
             };
@@ -1738,88 +1769,123 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
                 ? chatData.messages[chatData.messages.length - 1].text
                 : "Sin mensajes";
 
-            const titleEl = document.createElement('div');
-            titleEl.className = 'chat-item-title';
-            titleEl.textContent = chatData.title;
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'chat-item-title';
+            titleDiv.textContent = chatData.title;
 
-            const previewEl = document.createElement('div');
-            previewEl.className = 'chat-item-preview';
-            previewEl.textContent = previewText || "Sin mensajes";
+            const previewDiv = document.createElement('div');
+            previewDiv.className = 'chat-item-preview';
+            previewDiv.textContent = previewText || "Sin mensajes";
 
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'chat-delete-btn';
             deleteBtn.title = 'Eliminar chat';
             deleteBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
             deleteBtn.onclick = function(e) {
-                e.stopPropagation();
-                openDeleteConfirm(chatData.id, chatData.title);
+                confirmDeleteChat(chatData.id, e);
             };
 
-            item.appendChild(titleEl);
-            item.appendChild(previewEl);
+            item.appendChild(titleDiv);
+            item.appendChild(previewDiv);
             item.appendChild(deleteBtn);
+
             chatList.appendChild(item);
+
         });
+
     }
 
     function openChat(chatId) {
+
         const selectedChat = chats.find(c => c.id === chatId);
+
         if (!selectedChat) {
             return;
         }
+
         currentChatId = chatId;
+
         conversationHistory = selectedChat.history;
+
         if (conversationHistory.length > 0 && conversationHistory[0].role === 'system') {
             conversationHistory[0] = getSystemPrompt();
         }
+
         chat.innerHTML = "";
-        selectedChat.messages.forEach(message => {
-            addMsg(message.text, message.type, message.image, false, message.isWelcome || false);
+
+        selectedChat.messages.forEach((message, msgIndex) => {
+            addMsg(message.text, message.type, message.image, false, msgIndex);
         });
+
         renderChatList();
+
         saveChats();
+
     }
 
     function updateCurrentChatStorage() {
+
         const currentChat = chats.find(c => c.id === currentChatId);
+
         if (!currentChat) {
             return;
         }
+
         currentChat.history = conversationHistory;
+
         saveChats();
+
         renderChatList();
+
     }
 
     async function addMessageToCurrentChat(type, text, image = null, aiResponseReceived = false) {
+
         const currentChat = chats.find(c => c.id === currentChatId);
+
         if (!currentChat) {
             return;
         }
+
         currentChat.messages.push({
             type: type,
             text: text,
             image: image
         });
+
         if (aiResponseReceived && type === 'ai') {
             currentChat.hasRealConversation = true;
         }
+
         if (currentChat.hasRealConversation && currentChat.title === "Nuevo chat") {
+
             const firstUserMsg = currentChat.messages.find(m => m.type === 'user' && m.text);
+
             if (firstUserMsg) {
+
                 const aiTitle = await generateAiChatTitle(firstUserMsg.text);
+
                 currentChat.title = aiTitle;
+
             }
+
         }
+
         updateCurrentChatStorage();
+
     }
 
     function toggleSidebar(force = null) {
+
         const sidebar = document.getElementById("sidebar");
         const overlay = document.getElementById("sidebar-overlay");
+
         let shouldOpen = force;
+
         if (force === null) {
             shouldOpen = !sidebar.classList.contains("active");
         }
+
         if (shouldOpen) {
             sidebar.classList.add("active");
             overlay.classList.add("active");
@@ -1827,80 +1893,128 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
             sidebar.classList.remove("active");
             overlay.classList.remove("active");
         }
+
     }
 
     function setMode(mode) {
+
         currentMode = mode;
+
         document.querySelectorAll('.mode-btn').forEach(function(btn) {
             btn.classList.remove('active');
         });
+
         var activeBtn = document.getElementById('mode-' + mode);
+
         if (activeBtn) {
             activeBtn.classList.add('active');
         }
+
     }
 
     function buildRequestMessages() {
+
         var config = MODE_CONFIGS[currentMode] || MODE_CONFIGS.normal;
+
         var messages = conversationHistory.slice();
+
         if (messages.length > 0 && messages[0].role === 'system') {
             messages[0] = getSystemPrompt();
         }
+
         if (config.systemSuffix && config.systemSuffix.length > 0 && messages.length > 0 && messages[0].role === 'system') {
             messages = [{ role: 'system', content: messages[0].content + config.systemSuffix }].concat(messages.slice(1));
         }
+
         return messages;
+
     }
 
     function autoResizeTextarea() {
+
         input.style.height = "48px";
+
         input.style.height = input.scrollHeight + "px";
+
         if (input.value.trim() === "") {
             input.style.height = "48px";
             input.scrollTop = 0;
         }
+
     }
 
     input.addEventListener('input', () => {
+
         autoResizeTextarea();
+
         if (input.value.trim().length > 0) {
+
             sendButton.classList.add("active");
+
         } else {
+
             if (!isGeneratingResponse) {
                 sendButton.classList.remove("active");
             }
+
         }
+
     });
 
     input.addEventListener('keydown', (e) => {
+
         if (e.key === 'Enter') {
+
             if (e.shiftKey) {
+
                 return;
+
             }
+
             if (window.innerWidth <= 1024) {
+
                 isMobileEnterPressed = true;
+
                 return;
+
             }
+
             e.preventDefault();
+
             send();
+
         }
+
     });
 
     input.addEventListener('keyup', (e) => {
+
         if (e.key === 'Enter') {
+
             setTimeout(() => {
+
                 autoResizeTextarea();
+
             }, 0);
+
         }
+
     });
 
     input.addEventListener('beforeinput', (e) => {
+
         if (e.inputType === "insertLineBreak") {
+
             isMobileEnterPressed = true;
+
             setTimeout(() => {
+
                 autoResizeTextarea();
+
             }, 0);
+
         }
+
     });
 
     function getImagesSentCount() {
@@ -1920,10 +2034,13 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
     }
 
     function getImageCooldownRemaining() {
+
         const imagesSent = getImagesSentCount();
+
         if (imagesSent < IMAGE_COOLDOWN_THRESHOLD) {
             return 0;
         }
+
         if (imageSentTimestamp !== null) {
             const elapsed = Date.now() - imageSentTimestamp;
             const remaining = IMAGE_COOLDOWN_TIME - elapsed;
@@ -1934,16 +2051,23 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
                 return 0;
             }
         }
+
         const savedTime = localStorage.getItem("darkmatter_last_image_time");
+
         if (!savedTime) {
             return 0;
         }
+
         const elapsed = Date.now() - parseInt(savedTime);
+
         const remaining = IMAGE_COOLDOWN_TIME - elapsed;
+
         if (remaining < 0) {
             return 0;
         }
+
         return remaining;
+
     }
 
     function formatCooldownTime(ms) {
@@ -1954,169 +2078,264 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
     }
 
     function updateImageCooldownUI() {
+
         const remainingCooldown = getImageCooldownRemaining();
         const attachIcon = document.getElementById('attachIcon');
+
         if (remainingCooldown > 0) {
+
             cooldownBadge.innerText = formatCooldownTime(remainingCooldown);
             cooldownBadge.classList.add('visible');
+
             if (attachIcon) {
                 attachIcon.style.opacity = '0';
             }
+
             attachButton.disabled = true;
+
         } else {
+
             cooldownBadge.innerText = '';
             cooldownBadge.classList.remove('visible');
+
             if (attachIcon) {
                 attachIcon.style.opacity = '1';
             }
+
             attachButton.disabled = false;
+
         }
+
     }
 
     setInterval(() => {
+
         updateImageCooldownUI();
+
     }, 1000);
 
     updateImageCooldownUI();
 
     function saveGeneratingState() {
+
         localStorage.setItem("darkmatter_generating_response", "true");
+
     }
 
     function clearGeneratingState() {
+
         localStorage.removeItem("darkmatter_generating_response");
+
     }
 
     function checkPreviousSessionGeneration() {
+
         const previousGenerating = localStorage.getItem("darkmatter_generating_response");
+
         if (previousGenerating === "true") {
+
             isGeneratingResponse = true;
+
             toggleLoad(true);
+
             sendButton.disabled = true;
+
             sendButton.classList.add("active");
+
             addMsg("Respuesta generada en la sesion anterior. Espera a que finalice el proceso anterior.", 'ai');
+
             setTimeout(() => {
+
                 toggleLoad(false);
+
                 isGeneratingResponse = false;
+
                 sendButton.disabled = false;
+
                 sendButton.classList.remove("active");
+
                 clearGeneratingState();
+
                 input.placeholder = "Escribe un comando...";
                 input.style.height = "48px";
                 input.scrollTop = 0;
                 autoResizeTextarea();
+
             }, 15000);
+
         }
+
     }
 
     checkPreviousSessionGeneration();
 
     function setGeneratingState(state) {
+
         isGeneratingResponse = state;
+
         if (state) {
+
             sendButton.disabled = false;
             sendButton.classList.add("active");
             sendIcon.style.display = 'none';
             stopIcon.style.display = 'block';
+
         } else {
+
             sendIcon.style.display = 'block';
             stopIcon.style.display = 'none';
+
             input.placeholder = "Escribe un comando...";
+
             input.style.height = "48px";
             input.scrollTop = 0;
+
             autoResizeTextarea();
+
             if (input.value.trim().length > 0) {
                 sendButton.classList.add("active");
             } else {
                 sendButton.classList.remove("active");
             }
+
         }
+
     }
 
     function handleSendOrStop() {
+
         if (isGeneratingResponse) {
             stopGeneration();
         } else {
             send();
         }
+
     }
 
     function stopGeneration() {
+
         if (abortController) {
             abortController.abort();
         }
+
         toggleLoad(false);
+
         setGeneratingState(false);
+
         clearGeneratingState();
+
         isGeneratingResponse = false;
+
     }
 
     async function compressImage(base64, quality = 0.75, maxWidth = 1024) {
+
         return new Promise((resolve) => {
+
             const img = new Image();
+
             img.onload = function() {
+
                 let width = img.width;
                 let height = img.height;
+
                 if (width > maxWidth) {
                     height = Math.round((height * maxWidth) / width);
                     width = maxWidth;
                 }
+
                 const canvas = document.createElement("canvas");
+
                 canvas.width = width;
                 canvas.height = height;
+
                 const ctx = canvas.getContext("2d");
+
                 ctx.drawImage(img, 0, 0, width, height);
+
                 const compressed = canvas.toDataURL("image/jpeg", quality);
+
                 resolve(compressed);
+
             };
+
             img.src = base64;
+
         });
+
     }
 
     async function handleFile(input) {
+
         const remainingCooldown = getImageCooldownRemaining();
+
         if (remainingCooldown > 0) {
+
             document.getElementById('fileInput').value = '';
+
             return;
+
         }
+
         const file = input.files[0];
+
         if (!file) {
             return;
         }
+
         if (!file.type.startsWith("image/")) {
             addMsg("Solo se permiten archivos de imagen.", 'ai');
             return;
         }
+
         if (file.size > 20000000) {
             addMsg("La imagen supera el limite permitido de 20MB.", 'ai');
             return;
         }
+
         const reader = new FileReader();
+
         reader.onload = async function(e) {
+
             const originalBase64 = e.target.result;
+
             const compressedBase64 = await compressImage(originalBase64);
+
             currentBase64 = compressedBase64;
+
             document.getElementById('img-preview').src = currentBase64;
             document.getElementById('preview-container').style.display = 'block';
             attachButton.classList.add("active");
+
         };
+
         reader.onerror = function() {
             addMsg("No se pudo leer la imagen seleccionada.", 'ai');
         };
+
         reader.readAsDataURL(file);
+
     }
 
     function clearImage() {
+
         currentBase64 = null;
+
         document.getElementById('fileInput').value = '';
+
         document.getElementById('preview-container').style.display = 'none';
+
         attachButton.classList.remove("active");
+
     }
 
     function optimizeConversationHistory() {
+
         const systemMessage = conversationHistory[0];
         const messageCount = conversationHistory.length - 1;
+
         let recentMessages = [];
+
         if (messageCount > 20) {
             recentMessages = conversationHistory.slice(-8);
         } else if (messageCount > 12) {
@@ -2124,27 +2343,38 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
         } else {
             recentMessages = conversationHistory.slice(-4);
         }
+
         conversationHistory = [
             systemMessage,
             ...recentMessages
         ];
+
     }
 
     function extractRetrySeconds(errorMessage) {
+
         const regex = /try again in ([0-9.]+)s/i;
+
         const match = errorMessage.match(regex);
+
         if (match && match[1]) {
             return Math.ceil(parseFloat(match[1]));
         }
+
         return 5;
+
     }
 
     function wait(ms) {
+
         return new Promise(resolve => setTimeout(resolve, ms));
+
     }
 
     async function sendRequestWithRetry(requestBody, signal) {
+
         while (true) {
+
             const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -2154,30 +2384,51 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
                 body: JSON.stringify(requestBody),
                 signal: signal
             });
+
             if (r.ok) {
                 return r;
             }
+
             let errorText = await r.text();
+
             try {
+
                 const errorJson = JSON.parse(errorText);
+
                 if (errorJson.error && errorJson.error.message) {
+
                     const errorMessage = errorJson.error.message;
+
                     if (errorMessage.toLowerCase().includes("rate limit")) {
+
                         const seconds = extractRetrySeconds(errorMessage);
+
                         await wait(seconds * 1000);
+
                         continue;
+
                     }
+
                 }
-            } catch {}
+
+            } catch {
+
+            }
+
             throw new Error(errorText);
+
         }
+
     }
 
     function isImageRelatedQuestion(text) {
+
         if (!text) {
             return false;
         }
+
         const lowerText = text.toLowerCase();
+
         const imageKeywords = [
             "imagen",
             "foto",
@@ -2199,50 +2450,74 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
             "gráfico",
             "grafico"
         ];
+
         return imageKeywords.some(keyword => lowerText.includes(keyword));
+
     }
 
     function preprocessLatex(text) {
+
         if (!text) {
             return "";
         }
+
         let result = text;
+
         result = result.replace(/\\\[([\s\S]*?)\\\]/g, function(match, inner) {
             return '$$' + inner + '$$';
         });
+
         result = result.replace(/\\\(([\s\S]*?)\\\)/g, function(match, inner) {
             return '$' + inner + '$';
         });
+
         result = result.split('\n').map(function(line) {
+
             if (/\$/.test(line)) {
                 return line;
             }
+
             const hasLatexCommands = /\\(frac|sqrt|cdot|sum|int|left|right|times|div|pm|mp|leq|geq|neq|approx|infty|partial|nabla|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|phi|omega|forall|exists|in|notin|subset|supset|cup|cap|wedge|vee|neg|Rightarrow|Leftarrow|Leftrightarrow|rightarrow|leftarrow|uparrow|downarrow|overline|underline|hat|bar|vec|dot|ddot|tilde|mathbf|mathrm|mathit|text|begin|end|pmatrix|bmatrix|vmatrix)\b/.test(line);
+
             const hasSubSuperScript = /[a-zA-Z0-9]_\{|[a-zA-Z0-9]\^\{/.test(line);
+
             if (hasLatexCommands || hasSubSuperScript) {
                 return '$$' + line + '$$';
             }
+
             return line;
+
         }).join('\n');
+
         return result;
+
     }
 
     async function send() {
+
         if (isGeneratingResponse) {
             return;
         }
+
         const text = input.value.trim();
-        if (!text && !currentBase64) {
+
+        if(!text && !currentBase64) {
             return;
         }
+
         abortController = new AbortController();
+
         saveGeneratingState();
+
         setGeneratingState(true);
 
-        const tempImage = currentBase64;
+        const currentChat = chats.find(c => c.id === currentChatId);
+        const msgIndex = currentChat ? currentChat.messages.length : 0;
 
-        addMsg(text, 'user', tempImage);
-        addMessageToCurrentChat('user', text, tempImage, false);
+        addMsg(text, 'user', currentBase64, false, msgIndex);
+        addMessageToCurrentChat('user', text, currentBase64, false);
+
+        const tempImage = currentBase64;
 
         if (tempImage) {
             lastImageBase64 = tempImage;
@@ -2252,29 +2527,36 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
             localStorage.setItem("darkmatter_last_image_time", imageSentTimestamp.toString());
             updateImageCooldownUI();
         }
+
         if (text) {
             lastUserText = text;
         }
+
         input.value = '';
+
         input.style.height = "48px";
         input.scrollTop = 0;
+
         input.blur();
+
         autoResizeTextarea();
+
         clearImage();
+
         toggleLoad(true);
 
         try {
+
             let userMessage = null;
+
             if (tempImage) {
-                const textPart = text
-                    ? text
-                    : "Analiza esta imagen detalladamente. Si tiene relación con lo que veníamos hablando, tenlo en cuenta para dar una respuesta contextualmente apropiada. Lee todo el texto visible, resuelve ejercicios si los hay, y explica todo de forma completa.";
+
                 userMessage = {
                     role: "user",
                     content: [
                         {
                             type: "text",
-                            text: `${textPart} — Analiza esta imagen en detalle. Lee todo el texto visible. Si es un ejercicio o guía, resuelve cada punto. Explica procedimientos paso a paso. Usa fórmulas LaTeX SOLO si el contenido incluye matemáticas. Usa tablas HTML SOLO si la imagen muestra una tabla o comparación. Para el resto, responde en prosa normal. Aplica el protocolo anti-alucinación: si no puedes leer claramente algún dato, indícalo en lugar de asumir.`
+                            text: `Analiza esta imagen detalladamente. Lee todo el texto visible. Si es un ejercicio o guía, resuelve cada punto con claridad y de forma completa. Explica procedimientos paso a paso. Usa fórmulas LaTeX SOLO si el contenido de la imagen incluye matemáticas o fórmulas. Usa tablas HTML SOLO si la imagen muestra una tabla o comparación que lo requiera. Para el resto, responde en prosa normal. IMPORTANTE: Aplica el protocolo anti-alucinación estricto. Si no puedes leer claramente algún dato en la imagen, indícalo en lugar de asumir. ${text ? "Pregunta adicional del usuario: " + text : ""}`
                         },
                         {
                             type: "image_url",
@@ -2284,8 +2566,11 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
                         }
                     ]
                 };
+
             } else {
+
                 if (lastCompressedImageBase64 && isImageRelatedQuestion(text)) {
+
                     userMessage = {
                         role: "user",
                         content: [
@@ -2301,82 +2586,138 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
                             }
                         ]
                     };
+
                 } else {
+
                     userMessage = {
                         role: "user",
                         content: text
                     };
+
                 }
+
             }
+
             conversationHistory.push(userMessage);
+
             optimizeConversationHistory();
+
             updateCurrentChatStorage();
+
             const modeConfig = MODE_CONFIGS[currentMode] || MODE_CONFIGS.normal;
+
             const requestBody = {
                 model: "meta-llama/llama-4-scout-17b-16e-instruct",
                 messages: buildRequestMessages(),
                 temperature: modeConfig.temperature,
                 max_tokens: modeConfig.max_tokens
             };
+
             const r = await sendRequestWithRetry(requestBody, abortController.signal);
+
             toggleLoad(false);
+
             const d = await r.json();
-            if (d.choices && d.choices[0] && d.choices[0].message) {
+
+            if(d.choices && d.choices[0] && d.choices[0].message) {
+
                 const aiResponse = cleanResponse(d.choices[0].message.content);
+
                 conversationHistory.push({
                     role: "assistant",
                     content: aiResponse
                 });
+
                 optimizeConversationHistory();
+
                 updateCurrentChatStorage();
-                addMsg(aiResponse, 'ai');
+
+                const currentChatNow = chats.find(c => c.id === currentChatId);
+                const aiMsgIndex = currentChatNow ? currentChatNow.messages.length : 0;
+
+                addMsg(aiResponse, 'ai', null, false, aiMsgIndex);
                 await addMessageToCurrentChat('ai', aiResponse, null, true);
+
                 extractAndSaveUserInfo(text || '', aiResponse);
+
             } else if (d.error) {
+
                 if (d.error.code === "rate_limit_exceeded") {
+
                     addMsg("Motor saturado (Rate Limit). Por favor, espera un momento antes de volver a subir una imagen.", 'ai');
+
                 } else {
+
                     addMsg("Error de la IA: " + d.error.message, 'ai');
+
                 }
+
             } else {
+
                 addMsg("Respuesta inesperada del servidor.", 'ai');
+
             }
+
         } catch(e) {
+
             toggleLoad(false);
+
             if (e.name === 'AbortError') {
+
                 addMsg("Generacion detenida.", 'ai');
+
             } else {
+
                 addMsg("Error de conexion al nucleo: " + e.message, 'ai');
+
             }
+
         } finally {
+
             toggleLoad(false);
+
             setGeneratingState(false);
+
             clearGeneratingState();
+
             input.style.height = "48px";
             input.scrollTop = 0;
+
             autoResizeTextarea();
+
         }
+
     }
 
     async function regenerateLastResponse() {
+
         if (isGeneratingResponse) {
             return;
         }
+
         const currentChat = chats.find(c => c.id === currentChatId);
+
         if (!currentChat) {
             return;
         }
+
         const messages = currentChat.messages;
+
         let lastUserMsgIndex = -1;
+
         for (let i = messages.length - 1; i >= 0; i--) {
             if (messages[i].type === 'user') {
                 lastUserMsgIndex = i;
                 break;
             }
         }
+
         if (lastUserMsgIndex === -1) {
             return;
         }
+
+        const lastUserMsg = messages[lastUserMsgIndex];
+
         let lastAiResponseText = "";
         if (conversationHistory.length > 1) {
             const lastHistoryMsg = conversationHistory[conversationHistory.length - 1];
@@ -2385,104 +2726,163 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
                 conversationHistory.pop();
             }
         }
+
         const allWrappers = chat.querySelectorAll('.ai-wrapper');
         const lastAiWrapper = allWrappers[allWrappers.length - 1];
+
         if (lastAiWrapper) {
             lastAiWrapper.remove();
             if (currentChat.messages.length > 0 && currentChat.messages[currentChat.messages.length - 1].type === 'ai') {
                 currentChat.messages.pop();
             }
         }
+
         abortController = new AbortController();
+
         saveGeneratingState();
+
         setGeneratingState(true);
+
         toggleLoad(true);
+
         try {
+
             let historyForRetry = [...conversationHistory];
+
             if (lastAiResponseText.length > 0) {
+
                 historyForRetry.push({
                     role: "user",
                     content: `Analiza tu respuesta anterior cuidadosamente. Tu respuesta anterior fue:\n\n${lastAiResponseText.substring(0, 1500)}\n\nAhora responde de nuevo la misma pregunta/solicitud pero de forma MEJOR y MAS COMPLETA. PROTOCOLO ANTI-ALUCINACIÓN ACTIVO: Verifica internamente cada dato, nombre, fecha, estadística o cifra antes de escribirlo. Si no estás 100% seguro de algún dato específico, indica la incertidumbre o simplemente omítelo y di que el usuario lo verifique. Es MEJOR admitir incertidumbre que dar datos incorrectos. Usa prosa normal para explicar, tablas solo si la comparación genuinamente lo requiere, y LaTeX solo si hay fórmulas matemáticas reales. Regenera la respuesta siendo más preciso y honesto sobre lo que sabes con certeza.`
                 });
+
             }
+
             const modeConfig = MODE_CONFIGS[currentMode] || MODE_CONFIGS.normal;
+
             const requestBody = {
                 model: "meta-llama/llama-4-scout-17b-16e-instruct",
                 messages: historyForRetry,
                 temperature: Math.min(modeConfig.temperature + 0.2, 0.9),
                 max_tokens: modeConfig.max_tokens
             };
+
             const r = await sendRequestWithRetry(requestBody, abortController.signal);
+
             toggleLoad(false);
+
             const d = await r.json();
-            if (d.choices && d.choices[0] && d.choices[0].message) {
+
+            if(d.choices && d.choices[0] && d.choices[0].message) {
+
                 const aiResponse = cleanResponse(d.choices[0].message.content);
+
                 conversationHistory.push({
                     role: "assistant",
                     content: aiResponse
                 });
+
                 optimizeConversationHistory();
+
                 updateCurrentChatStorage();
-                addMsg(aiResponse, 'ai');
+
+                const currentChatNow = chats.find(c => c.id === currentChatId);
+                const aiMsgIndex = currentChatNow ? currentChatNow.messages.length : 0;
+
+                addMsg(aiResponse, 'ai', null, false, aiMsgIndex);
                 await addMessageToCurrentChat('ai', aiResponse, null, true);
+
             } else if (d.error) {
+
                 if (d.error.code === "rate_limit_exceeded") {
                     addMsg("Motor saturado (Rate Limit). Por favor, espera un momento.", 'ai');
                 } else {
                     addMsg("Error de la IA: " + d.error.message, 'ai');
                 }
+
             } else {
+
                 addMsg("Respuesta inesperada del servidor.", 'ai');
+
             }
+
         } catch(e) {
+
             toggleLoad(false);
+
             if (e.name === 'AbortError') {
                 addMsg("Generacion detenida.", 'ai');
             } else {
                 addMsg("Error de conexion al nucleo: " + e.message, 'ai');
             }
+
         } finally {
+
             toggleLoad(false);
+
             setGeneratingState(false);
+
             clearGeneratingState();
+
             input.style.height = "48px";
             input.scrollTop = 0;
+
             autoResizeTextarea();
+
         }
+
     }
 
     async function copyAiMessage(text) {
+
         try {
+
             await navigator.clipboard.writeText(text);
+
         } catch (error) {
+
             const tempTextArea = document.createElement("textarea");
+
             tempTextArea.value = text;
+
             document.body.appendChild(tempTextArea);
+
             tempTextArea.select();
+
             document.execCommand("copy");
+
             document.body.removeChild(tempTextArea);
+
         }
+
     }
 
     function openEditModal(originalText, onSend) {
+
         const overlay = document.createElement('div');
         overlay.className = 'edit-modal-overlay';
+
         const modal = document.createElement('div');
         modal.className = 'edit-modal';
+
         const title = document.createElement('div');
         title.className = 'edit-modal-title';
         title.textContent = 'EDITAR MENSAJE';
+
         const textarea = document.createElement('textarea');
         textarea.className = 'edit-modal-textarea';
         textarea.value = originalText || '';
+
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'edit-modal-actions';
+
         const cancelBtn = document.createElement('button');
         cancelBtn.className = 'edit-modal-cancel';
         cancelBtn.textContent = 'Cancelar';
         cancelBtn.onclick = function() {
             document.body.removeChild(overlay);
         };
+
         const sendBtn = document.createElement('button');
         sendBtn.className = 'edit-modal-send';
         sendBtn.textContent = 'Enviar';
@@ -2493,100 +2893,184 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
                 onSend(newText);
             }
         };
+
         actionsDiv.appendChild(cancelBtn);
         actionsDiv.appendChild(sendBtn);
+
         modal.appendChild(title);
         modal.appendChild(textarea);
         modal.appendChild(actionsDiv);
+
         overlay.appendChild(modal);
+
         document.body.appendChild(overlay);
+
         setTimeout(function() {
             textarea.focus();
             textarea.setSelectionRange(textarea.value.length, textarea.value.length);
         }, 100);
+
         overlay.addEventListener('click', function(e) {
             if (e.target === overlay) {
                 document.body.removeChild(overlay);
             }
         });
+
     }
 
-    async function sendEditedUserMessage(newText) {
+    async function sendEditedUserMessage(newText, editFromMsgIndex) {
+
         if (isGeneratingResponse) {
             return;
         }
+
         if (!newText || newText.trim() === '') {
             return;
         }
+
+        const currentChat = chats.find(c => c.id === currentChatId);
+
+        if (currentChat && typeof editFromMsgIndex === 'number') {
+
+            const totalMessages = currentChat.messages.length;
+            const messagesToRemove = totalMessages - editFromMsgIndex;
+
+            if (messagesToRemove > 0) {
+                currentChat.messages.splice(editFromMsgIndex, messagesToRemove);
+            }
+
+            const allWrappers = chat.querySelectorAll('.msg-wrapper');
+            for (let i = allWrappers.length - 1; i >= editFromMsgIndex; i--) {
+                if (allWrappers[i]) {
+                    allWrappers[i].remove();
+                }
+            }
+
+            const historyUserCount = currentChat.messages.filter(m => m.type === 'user').length;
+            let historyKeepCount = 1 + (historyUserCount * 2);
+            if (historyKeepCount < 1) historyKeepCount = 1;
+            if (conversationHistory.length > historyKeepCount) {
+                conversationHistory = [conversationHistory[0], ...conversationHistory.slice(1, historyKeepCount)];
+            }
+
+        }
+
         abortController = new AbortController();
+
         saveGeneratingState();
+
         setGeneratingState(true);
-        addMsg(newText, 'user', null);
+
+        const currentChatNow = chats.find(c => c.id === currentChatId);
+        const newUserMsgIndex = currentChatNow ? currentChatNow.messages.length : 0;
+
+        addMsg(newText, 'user', null, false, newUserMsgIndex);
         addMessageToCurrentChat('user', newText, null, false);
+
         if (newText) {
             lastUserText = newText;
         }
+
         toggleLoad(true);
+
         try {
+
             const userMessage = {
                 role: "user",
                 content: newText
             };
+
             conversationHistory.push(userMessage);
+
             optimizeConversationHistory();
+
             updateCurrentChatStorage();
+
             const modeConfig = MODE_CONFIGS[currentMode] || MODE_CONFIGS.normal;
+
             const requestBody = {
                 model: "meta-llama/llama-4-scout-17b-16e-instruct",
                 messages: buildRequestMessages(),
                 temperature: modeConfig.temperature,
                 max_tokens: modeConfig.max_tokens
             };
+
             const r = await sendRequestWithRetry(requestBody, abortController.signal);
+
             toggleLoad(false);
+
             const d = await r.json();
-            if (d.choices && d.choices[0] && d.choices[0].message) {
+
+            if(d.choices && d.choices[0] && d.choices[0].message) {
+
                 const aiResponse = cleanResponse(d.choices[0].message.content);
+
                 conversationHistory.push({
                     role: "assistant",
                     content: aiResponse
                 });
+
                 optimizeConversationHistory();
+
                 updateCurrentChatStorage();
-                addMsg(aiResponse, 'ai');
+
+                const currentChatFinal = chats.find(c => c.id === currentChatId);
+                const aiMsgIndex = currentChatFinal ? currentChatFinal.messages.length : 0;
+
+                addMsg(aiResponse, 'ai', null, false, aiMsgIndex);
                 await addMessageToCurrentChat('ai', aiResponse, null, true);
+
                 extractAndSaveUserInfo(newText, aiResponse);
+
             } else if (d.error) {
+
                 if (d.error.code === "rate_limit_exceeded") {
                     addMsg("Motor saturado (Rate Limit). Por favor, espera un momento.", 'ai');
                 } else {
                     addMsg("Error de la IA: " + d.error.message, 'ai');
                 }
+
             } else {
+
                 addMsg("Respuesta inesperada del servidor.", 'ai');
+
             }
+
         } catch(e) {
+
             toggleLoad(false);
+
             if (e.name === 'AbortError') {
                 addMsg("Generacion detenida.", 'ai');
             } else {
                 addMsg("Error de conexion al nucleo: " + e.message, 'ai');
             }
+
         } finally {
+
             toggleLoad(false);
+
             setGeneratingState(false);
+
             clearGeneratingState();
+
             input.style.height = "48px";
             input.scrollTop = 0;
+
             autoResizeTextarea();
+
         }
+
     }
 
     function cleanResponse(text) {
+
         if (!text) {
             return "";
         }
+
         let cleaned = text;
+
         cleaned = cleaned.replace(/```math/g, "```math");
         cleaned = cleaned.replace(/```lua/g, "```lua");
         cleaned = cleaned.replace(/```luau/g, "```luau");
@@ -2595,11 +3079,15 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
         cleaned = cleaned.replace(/```javascript/g, "```javascript");
         cleaned = cleaned.replace(/```js/g, "```js");
         cleaned = cleaned.replace(/```python/g, "```python");
+
         return cleaned;
+
     }
 
     function renderKatexInElement(element) {
+
         if (typeof renderMathInElement !== 'undefined') {
+
             renderMathInElement(element, {
                 delimiters: [
                     { left: "$$", right: "$$", display: true },
@@ -2615,33 +3103,36 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
                     "\\sqrt": "\\sqrt"
                 }
             });
-        }
-    }
 
-    function renderFormulaBlock(latexContent) {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'formula-block';
-        wrapper.textContent = '$$' + latexContent + '$$';
-        return wrapper;
+        }
+
     }
 
     function parseMarkdownTable(text) {
+
         const lines = text.split('\n');
         let result = '';
         let i = 0;
+
         while (i < lines.length) {
             const line = lines[i];
+
             if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
+
                 const nextLine = lines[i + 1] || '';
                 const isHeaderSep = /^\|[\s\-\|:]+\|$/.test(nextLine.trim());
+
                 if (isHeaderSep) {
+
                     result += '<table><thead><tr>';
                     const headers = line.trim().slice(1, -1).split('|').map(h => h.trim());
                     headers.forEach(function(h) {
                         result += '<th>' + h + '</th>';
                     });
                     result += '</tr></thead><tbody>';
+
                     i += 2;
+
                     while (i < lines.length && lines[i].trim().startsWith('|') && lines[i].trim().endsWith('|')) {
                         result += '<tr>';
                         const cells = lines[i].trim().slice(1, -1).split('|').map(c => c.trim());
@@ -2651,37 +3142,45 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
                         result += '</tr>';
                         i++;
                     }
+
                     result += '</tbody></table>';
                     continue;
+
                 }
+
             }
+
             result += lines[i] + '\n';
             i++;
+
         }
+
         return result;
+
     }
 
     function parseMarkdown(text) {
+
         if (!text) {
-            return { html: "", displayLatex: [], inlineLatex: [] };
+            return "";
         }
 
-        const latexDisplayBlocks = [];
-        const latexInlineBlocks = [];
+        const latexBlocks = [];
 
         let processed = preprocessLatex(text);
 
         processed = processed.replace(/\$\$([\s\S]*?)\$\$/g, function(match, inner) {
-            latexDisplayBlocks.push(inner);
-            return '___LATEX_DISPLAY_' + (latexDisplayBlocks.length - 1) + '___';
+            latexBlocks.push({ type: 'display', content: match });
+            return '___LATEX_BLOCK_' + (latexBlocks.length - 1) + '___';
         });
 
         processed = processed.replace(/\$([^\$\n]+?)\$/g, function(match, inner) {
-            latexInlineBlocks.push(inner);
-            return '___LATEX_INLINE_' + (latexInlineBlocks.length - 1) + '___';
+            latexBlocks.push({ type: 'inline', content: match });
+            return '___LATEX_INLINE_' + (latexBlocks.length - 1) + '___';
         });
 
         const htmlTableBlocks = [];
+
         processed = processed.replace(/<table[\s\S]*?<\/table>/gi, function(match) {
             htmlTableBlocks.push(match);
             return '___HTML_TABLE_' + (htmlTableBlocks.length - 1) + '___';
@@ -2701,26 +3200,23 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
         parsed = parsed.replace(/^## (.*$)/gim, '<h2>$1</h2>');
         parsed = parsed.replace(/^# (.*$)/gim, '<h1>$1</h1>');
 
-        parsed = parsed.replace(/\*\*\*(.+?)\*\*\*/gim, '<strong><em>$1</em></strong>');
-        parsed = parsed.replace(/\*\*(.+?)\*\*/gim, '<strong>$1</strong>');
-        parsed = parsed.replace(/\*(.+?)\*/gim, '<em>$1</em>');
-        parsed = parsed.replace(/__(.+?)__/gim, '<strong>$1</strong>');
-        parsed = parsed.replace(/_(.+?)_/gim, '<em>$1</em>');
+        parsed = parsed.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
 
         parsed = parsed.replace(/^\* (.*$)/gim, '<li>$1</li>');
         parsed = parsed.replace(/^\- (.*$)/gim, '<li>$1</li>');
-        parsed = parsed.replace(/^(\d+)\. (.*$)/gim, '<li>$2</li>');
 
-        parsed = parsed.replace(/(<li>[\s\S]*?<\/li>)/gims, '<ul>$1</ul>');
+        parsed = parsed.replace(/(<li>.*<\/li>)/gims, '<ul>$1</ul>');
+
         parsed = parsed.replace(/\n/g, '<br>');
+
         parsed = parsed.replace(/<\/ul><br><ul>/g, '');
 
-        parsed = parsed.replace(/___LATEX_DISPLAY_(\d+)___/g, function(match, idx) {
-            return '<span class="latex-display-placeholder" data-idx="' + idx + '">$$' + escapeHtml(latexDisplayBlocks[parseInt(idx)]) + '$$</span>';
+        parsed = parsed.replace(/___LATEX_BLOCK_(\d+)___/g, function(match, idx) {
+            return latexBlocks[parseInt(idx)].content;
         });
 
         parsed = parsed.replace(/___LATEX_INLINE_(\d+)___/g, function(match, idx) {
-            return '<span class="latex-inline-placeholder" data-idx="' + idx + '">$' + escapeHtml(latexInlineBlocks[parseInt(idx)]) + '$</span>';
+            return latexBlocks[parseInt(idx)].content;
         });
 
         parsed = parsed.replace(/___HTML_TABLE_(\d+)___/g, function(match, idx) {
@@ -2731,342 +3227,485 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
             return markdownTableBlocks[parseInt(idx)];
         });
 
-        return { html: parsed, displayLatex: latexDisplayBlocks, inlineLatex: latexInlineBlocks };
-    }
+        return parsed;
 
-    function applyParsedMarkdown(element, parsed) {
-        if (typeof parsed === 'string') {
-            element.innerHTML = parsed;
-            return;
-        }
-        element.innerHTML = parsed.html;
-
-        element.querySelectorAll('.latex-display-placeholder').forEach(function(placeholder) {
-            const idx = parseInt(placeholder.getAttribute('data-idx'));
-            const latexContent = parsed.displayLatex[idx];
-            const formulaBlock = document.createElement('div');
-            formulaBlock.className = 'formula-block';
-            try {
-                katex.render(latexContent, formulaBlock, {
-                    displayMode: true,
-                    throwOnError: false,
-                    strict: false
-                });
-            } catch(e) {
-                formulaBlock.textContent = latexContent;
-            }
-            placeholder.replaceWith(formulaBlock);
-        });
-
-        element.querySelectorAll('.latex-inline-placeholder').forEach(function(placeholder) {
-            const idx = parseInt(placeholder.getAttribute('data-idx'));
-            const latexContent = parsed.inlineLatex[idx];
-            const inlineSpan = document.createElement('span');
-            try {
-                katex.render(latexContent, inlineSpan, {
-                    displayMode: false,
-                    throwOnError: false,
-                    strict: false
-                });
-            } catch(e) {
-                inlineSpan.textContent = latexContent;
-            }
-            placeholder.replaceWith(inlineSpan);
-        });
-    }
-
-    function loadRating(messageId) {
-        try {
-            const raw = localStorage.getItem('darkmatter_ratings');
-            if (raw) {
-                const ratings = JSON.parse(raw);
-                return ratings[messageId] || 0;
-            }
-        } catch(e) {}
-        return 0;
-    }
-
-    function saveRating(messageId, stars) {
-        try {
-            const raw = localStorage.getItem('darkmatter_ratings');
-            const ratings = raw ? JSON.parse(raw) : {};
-            ratings[messageId] = stars;
-            localStorage.setItem('darkmatter_ratings', JSON.stringify(ratings));
-        } catch(e) {}
-    }
-
-    function createStarRating(messageId) {
-        const container = document.createElement('div');
-        container.className = 'star-rating';
-        const saved = loadRating(messageId);
-        for (let i = 1; i <= 5; i++) {
-            const btn = document.createElement('button');
-            btn.className = 'star-btn' + (i <= saved ? ' filled' : '');
-            btn.textContent = '★';
-            btn.setAttribute('data-star', String(i));
-            btn.onclick = function() {
-                const val = parseInt(btn.getAttribute('data-star'));
-                saveRating(messageId, val);
-                container.querySelectorAll('.star-btn').forEach(function(s) {
-                    const sv = parseInt(s.getAttribute('data-star'));
-                    if (sv <= val) {
-                        s.classList.add('filled');
-                    } else {
-                        s.classList.remove('filled');
-                    }
-                });
-            };
-            container.appendChild(btn);
-        }
-        return container;
     }
 
     function detectLanguage(codeText) {
+
         const firstLine = codeText.split('\n')[0].trim().toLowerCase();
+
         const languageList = [
-            "html", "css", "javascript", "js", "python", "lua", "luau",
-            "java", "cpp", "csharp", "php", "json", "pseudocode", "pseudo",
-            "bash", "shell", "sh", "typescript", "ts", "sql", "xml", "yaml",
-            "yml", "rust", "go", "swift", "kotlin", "ruby", "c", "text",
-            "plaintext", "algorithmia", "algorithm", "algoritmo"
+            "html",
+            "css",
+            "javascript",
+            "js",
+            "python",
+            "lua",
+            "luau",
+            "java",
+            "cpp",
+            "csharp",
+            "php",
+            "json",
+            "pseudocode",
+            "pseudo",
+            "bash",
+            "shell",
+            "sh",
+            "typescript",
+            "ts",
+            "sql",
+            "xml",
+            "yaml",
+            "yml",
+            "rust",
+            "go",
+            "swift",
+            "kotlin",
+            "ruby",
+            "c",
+            "text",
+            "plaintext",
+            "algorithmia",
+            "algorithm",
+            "algoritmo"
         ];
+
         if (languageList.includes(firstLine)) {
             return firstLine;
         }
+
         if (/^[a-z][a-z0-9_-]*$/.test(firstLine) && firstLine.length >= 2 && firstLine.length <= 25) {
             return firstLine;
         }
+
         return "código";
+
     }
 
     function removeLanguageLine(codeText, language) {
+
         const lines = codeText.split('\n');
+
         const firstLineLower = lines[0].trim().toLowerCase();
+
         if (language !== "código" && firstLineLower === language.toLowerCase()) {
             lines.shift();
         }
+
         return lines.join('\n');
+
     }
 
-    function addMsg(t, type, img = null, shouldSave = true, isWelcome = false) {
-        const w = document.createElement('div');
-        w.className = `msg-wrapper ${type}-wrapper`;
+    function saveRating(msgIndex, rating) {
 
-        if (img && type === 'user') {
-            const i = document.createElement('img');
-            i.src = img;
-            i.className = 'chat-img';
-            w.appendChild(i);
+        const currentChat = chats.find(c => c.id === currentChatId);
+
+        if (!currentChat) {
+            return;
         }
 
-        const hasText = t && t.trim().length > 0;
+        if (!currentChat.ratings) {
+            currentChat.ratings = {};
+        }
 
-        if (hasText) {
-            const b = document.createElement('div');
-            b.className = `bubble ${type}-bubble`;
+        currentChat.ratings[String(msgIndex)] = rating;
 
-            if (t && t.includes('```')) {
-                const p = t.split('```');
-                const container = document.createElement('div');
-                p.forEach(function(c, i) {
-                    if (i % 2 === 1) {
-                        const detectedLanguage = detectLanguage(c.trim());
-                        const cleanCode = removeLanguageLine(c.trim(), detectedLanguage);
-                        const codeWrapper = document.createElement('div');
-                        codeWrapper.innerHTML = `<div class="code-block-wrapper"><div class="code-header"><div class="code-language">${escapeHtml(detectedLanguage)}</div><button class="code-copy-btn" onclick="copyCodeBlock(this)">Copiar</button></div><pre oncontextmenu="copyCode(event, this)"><code>${escapeHtml(cleanCode)}</code></pre></div>`;
-                        container.appendChild(codeWrapper);
-                    } else if (c) {
-                        const textDiv = document.createElement('div');
-                        const parsed = parseMarkdown(c);
-                        applyParsedMarkdown(textDiv, parsed);
-                        container.appendChild(textDiv);
-                    }
-                });
-                b.appendChild(container);
-            } else if (t) {
-                const parsed = parseMarkdown(t);
-                applyParsedMarkdown(b, parsed);
+        saveChats();
+
+    }
+
+    function getRating(msgIndex) {
+
+        const currentChat = chats.find(c => c.id === currentChatId);
+
+        if (!currentChat || !currentChat.ratings) {
+            return 0;
+        }
+
+        return currentChat.ratings[String(msgIndex)] || 0;
+
+    }
+
+    function createStarRating(msgIndex) {
+
+        const container = document.createElement('div');
+        container.className = 'star-rating';
+        container.dataset.msgIndex = msgIndex;
+
+        const savedRating = getRating(msgIndex);
+
+        for (let i = 1; i <= 5; i++) {
+
+            const star = document.createElement('button');
+            star.className = 'star-btn';
+            star.dataset.value = i;
+            star.title = i + ' estrella' + (i > 1 ? 's' : '');
+            star.textContent = '★';
+
+            if (i <= savedRating) {
+                star.classList.add('filled');
             }
 
-            w.appendChild(b);
-        } else if (img && type === 'user') {
-        }
-
-        if (type === 'ai' && (hasText || img) && !isWelcome) {
-            const messageId = 'msg_' + Date.now() + '_' + Math.floor(Math.random() * 99999);
-
-            const actionsDiv = document.createElement('div');
-            actionsDiv.className = 'ai-actions';
-
-            const copyBtn = document.createElement('button');
-            copyBtn.className = 'ai-action-btn';
-            copyBtn.title = 'Copiar respuesta';
-            copyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
-            copyBtn.onclick = async () => {
-                await copyAiMessage(t || "");
-                copyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
-                setTimeout(() => {
-                    copyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
-                }, 2000);
-            };
-
-            const regenBtn = document.createElement('button');
-            regenBtn.className = 'ai-action-btn';
-            regenBtn.title = 'Regenerar respuesta';
-            regenBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>`;
-            regenBtn.onclick = () => {
-                regenerateLastResponse();
-            };
-
-            const starRating = createStarRating(messageId);
-
-            actionsDiv.appendChild(copyBtn);
-            actionsDiv.appendChild(regenBtn);
-            actionsDiv.appendChild(starRating);
-            w.appendChild(actionsDiv);
-
-            const disclaimer = document.createElement('div');
-            disclaimer.className = 'ai-disclaimer';
-            disclaimer.textContent = '⚠ DarkMatter IA es una inteligencia artificial y puede cometer errores. Verifica la información importante.';
-            w.appendChild(disclaimer);
-        }
-
-        if (type === 'user') {
-            const userActionsDiv = document.createElement('div');
-            userActionsDiv.className = 'user-actions';
-
-            const userCopyBtn = document.createElement('button');
-            userCopyBtn.className = 'user-action-btn';
-            userCopyBtn.title = 'Copiar mensaje';
-            userCopyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
-            userCopyBtn.onclick = async () => {
-                await copyAiMessage(t || "");
-                userCopyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
-                setTimeout(() => {
-                    userCopyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
-                }, 2000);
-            };
-
-            const userEditBtn = document.createElement('button');
-            userEditBtn.className = 'user-action-btn';
-            userEditBtn.title = 'Editar y reenviar';
-            userEditBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
-            userEditBtn.onclick = () => {
-                openEditModal(t || "", function(newText) {
-                    sendEditedUserMessage(newText);
+            star.addEventListener('mouseenter', function() {
+                const val = parseInt(this.dataset.value);
+                const stars = container.querySelectorAll('.star-btn');
+                stars.forEach(function(s) {
+                    const sv = parseInt(s.dataset.value);
+                    s.classList.remove('hovered');
+                    if (sv <= val) {
+                        s.classList.add('hovered');
+                    }
                 });
-            };
+            });
 
-            userActionsDiv.appendChild(userCopyBtn);
-            userActionsDiv.appendChild(userEditBtn);
-            w.appendChild(userActionsDiv);
+            star.addEventListener('mouseleave', function() {
+                const stars = container.querySelectorAll('.star-btn');
+                stars.forEach(function(s) {
+                    s.classList.remove('hovered');
+                });
+            });
+
+            star.addEventListener('click', function() {
+                const val = parseInt(this.dataset.value);
+                saveRating(msgIndex, val);
+                const stars = container.querySelectorAll('.star-btn');
+                stars.forEach(function(s) {
+                    const sv = parseInt(s.dataset.value);
+                    s.classList.remove('filled');
+                    if (sv <= val) {
+                        s.classList.add('filled');
+                    }
+                });
+            });
+
+            container.appendChild(star);
+
         }
 
-        if (hasText || img) {
+        return container;
+
+    }
+
+    function addMsg(t, type, img = null, shouldSave = true, msgIndex = null) {
+
+        const w = document.createElement('div');
+
+        w.className = `msg-wrapper ${type}-wrapper`;
+
+        if (img) {
+
+            const i = document.createElement('img');
+
+            i.src = img;
+
+            i.className = 'chat-img';
+
+            w.appendChild(i);
+
+        }
+
+        const b = document.createElement('div');
+
+        b.className = `bubble ${type}-bubble`;
+
+        if(t && t.includes('```')) {
+
+            const p = t.split('```');
+
+            b.innerHTML = p.map((c, i) => {
+
+                if (i % 2 === 1) {
+
+                    const detectedLanguage = detectLanguage(c.trim());
+
+                    const cleanCode = removeLanguageLine(c.trim(), detectedLanguage);
+
+                    return `<div class="code-block-wrapper"><div class="code-header"><div class="code-language">${escapeHtml(detectedLanguage)}</div><button class="code-copy-btn" onclick="copyCodeBlock(this)">Copiar</button></div><pre oncontextmenu="copyCode(event, this)"><code>${escapeHtml(cleanCode)}</code></pre></div>`;
+
+                }
+
+                return parseMarkdown(c);
+
+            }).join('');
+
+        } else if (t) {
+
+            b.innerHTML = parseMarkdown(t);
+
+        } else if (!t && img) {
+
+            b.style.display = 'none';
+
+        }
+
+        if (t || img) {
+
+            if (!(b.style.display === 'none')) {
+                w.appendChild(b);
+            }
+
+            if (type === 'ai') {
+
+                renderKatexInElement(b);
+
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'ai-actions';
+
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'ai-action-btn';
+                copyBtn.title = 'Copiar respuesta';
+                copyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+                copyBtn.onclick = async () => {
+                    await copyAiMessage(t || "");
+                    copyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+                    setTimeout(() => {
+                        copyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+                    }, 2000);
+                };
+
+                const regenBtn = document.createElement('button');
+                regenBtn.className = 'ai-action-btn';
+                regenBtn.title = 'Regenerar respuesta';
+                regenBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>`;
+                regenBtn.onclick = () => {
+                    regenerateLastResponse();
+                };
+
+                actionsDiv.appendChild(copyBtn);
+                actionsDiv.appendChild(regenBtn);
+
+                if (msgIndex !== null) {
+                    const starRating = createStarRating(msgIndex);
+                    actionsDiv.appendChild(starRating);
+                }
+
+                w.appendChild(actionsDiv);
+
+                const disclaimer = document.createElement('div');
+                disclaimer.className = 'ai-disclaimer';
+                disclaimer.textContent = 'DarkMatter IA es una inteligencia artificial y puede cometer errores.';
+                w.appendChild(disclaimer);
+
+            }
+
+            if (type === 'user') {
+
+                const userActionsDiv = document.createElement('div');
+                userActionsDiv.className = 'user-actions';
+
+                const userCopyBtn = document.createElement('button');
+                userCopyBtn.className = 'user-action-btn';
+                userCopyBtn.title = 'Copiar mensaje';
+                userCopyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+                userCopyBtn.onclick = async () => {
+                    await copyAiMessage(t || "");
+                    userCopyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+                    setTimeout(() => {
+                        userCopyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+                    }, 2000);
+                };
+
+                const userEditBtn = document.createElement('button');
+                userEditBtn.className = 'user-action-btn';
+                userEditBtn.title = 'Editar y reenviar';
+                userEditBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+                userEditBtn.onclick = () => {
+                    openEditModal(t || "", function(newText) {
+                        sendEditedUserMessage(newText, msgIndex !== null ? msgIndex : undefined);
+                    });
+                };
+
+                userActionsDiv.appendChild(userCopyBtn);
+                userActionsDiv.appendChild(userEditBtn);
+                w.appendChild(userActionsDiv);
+
+            }
+
+            if (img && b.style.display === 'none') {
+                w.removeChild(b);
+            }
+
             chat.appendChild(w);
+
             chat.scrollTop = chat.scrollHeight;
+
         }
+
     }
 
     function escapeHtml(text) {
+
         if (!text) {
             return "";
         }
+
         return text
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;");
+
     }
 
     function toggleLoad(s) {
-        if (s) {
+
+        if(s) {
+
             const existingLoader = document.getElementById('loader');
+
             if (existingLoader) {
                 existingLoader.remove();
             }
+
             const l = document.createElement('div');
+
             l.id = 'loader';
+
             l.className = 'msg-wrapper ai-wrapper';
-            l.innerHTML = '<div class="bubble ai-bubble loading-bubble dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+
+            l.innerHTML = '<div class="bubble ai-bubble dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+
             chat.appendChild(l);
+
             chat.scrollTop = chat.scrollHeight;
+
         } else {
+
             const l = document.getElementById('loader');
-            if (l) {
+
+            if(l) {
                 l.remove();
             }
+
         }
+
     }
 
     async function copy(btn) {
+
         const codeElement = btn.nextElementSibling;
+
         try {
+
             await navigator.clipboard.writeText(codeElement.innerText);
+
             btn.innerText = "Listo";
+
             setTimeout(() => {
+
                 btn.innerText = "Copiar";
+
             }, 2000);
+
         } catch (error) {
+
             const tempTextArea = document.createElement("textarea");
+
             tempTextArea.value = codeElement.innerText;
+
             document.body.appendChild(tempTextArea);
+
             tempTextArea.select();
+
             document.execCommand("copy");
+
             document.body.removeChild(tempTextArea);
+
             btn.innerText = "Listo";
+
             setTimeout(() => {
+
                 btn.innerText = "Copiar";
+
             }, 2000);
+
         }
+
     }
 
     async function copyCodeBlock(btn) {
+
         var wrapper = btn.closest('.code-block-wrapper');
+
         var codeElement = wrapper ? wrapper.querySelector('pre code') : null;
+
         if (!codeElement) {
             return;
         }
+
         try {
+
             await navigator.clipboard.writeText(codeElement.innerText);
+
             btn.textContent = 'Copiado';
+
             setTimeout(function() { btn.textContent = 'Copiar'; }, 2000);
+
         } catch (error) {
+
             var tempTextArea = document.createElement("textarea");
+
             tempTextArea.value = codeElement.innerText;
+
             document.body.appendChild(tempTextArea);
+
             tempTextArea.select();
+
             document.execCommand("copy");
+
             document.body.removeChild(tempTextArea);
+
             btn.textContent = 'Copiado';
+
             setTimeout(function() { btn.textContent = 'Copiar'; }, 2000);
+
         }
+
     }
 
     async function copyCode(event, element) {
+
         event.preventDefault();
+
         const codeElement = element.querySelector("code");
+
         try {
+
             await navigator.clipboard.writeText(codeElement.innerText);
+
             const btn = element.parentElement.querySelector(".code-copy-btn");
+
             if (btn) {
                 const originalText = btn.textContent;
                 btn.textContent = 'Copiado';
                 setTimeout(function() { btn.textContent = originalText; }, 2000);
             }
+
         } catch (error) {
+
             const tempTextArea = document.createElement("textarea");
+
             tempTextArea.value = codeElement.innerText;
+
             document.body.appendChild(tempTextArea);
+
             tempTextArea.select();
+
             document.execCommand("copy");
+
             document.body.removeChild(tempTextArea);
+
             const btn = element.parentElement.querySelector(".code-copy-btn");
+
             if (btn) {
                 const originalText = btn.textContent;
                 btn.textContent = 'Copiado';
                 setTimeout(function() { btn.textContent = originalText; }, 2000);
             }
+
         }
+
     }
 
     input.style.height = "48px";
