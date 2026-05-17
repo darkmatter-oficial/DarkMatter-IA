@@ -430,6 +430,14 @@
             width: 100%;
         }
 
+        .ai-bubble.loading-bubble {
+            width: auto;
+            min-width: unset;
+            display: inline-flex;
+            align-items: center;
+            padding: 14px 18px;
+        }
+
         .katex {
             color: #f0e6ff;
             font-size: 1em;
@@ -1625,7 +1633,8 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
                 {
                     type: "ai",
                     text: "Nucleo DarkMatter iniciado. Ahora puedo procesar imagenes y guias. Esperando instrucciones...",
-                    image: null
+                    image: null,
+                    isWelcome: true
                 }
             ],
             history: [getSystemPrompt()]
@@ -1765,7 +1774,7 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
         }
         chat.innerHTML = "";
         selectedChat.messages.forEach(message => {
-            addMsg(message.text, message.type, message.image, false);
+            addMsg(message.text, message.type, message.image, false, message.isWelcome || false);
         });
         renderChatList();
         saveChats();
@@ -2654,7 +2663,7 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
 
     function parseMarkdown(text) {
         if (!text) {
-            return "";
+            return { html: "", displayLatex: [], inlineLatex: [] };
         }
 
         const latexDisplayBlocks = [];
@@ -2839,7 +2848,7 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
         return lines.join('\n');
     }
 
-    function addMsg(t, type, img = null, shouldSave = true) {
+    function addMsg(t, type, img = null, shouldSave = true, isWelcome = false) {
         const w = document.createElement('div');
         w.className = `msg-wrapper ${type}-wrapper`;
 
@@ -2883,7 +2892,7 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
         } else if (img && type === 'user') {
         }
 
-        if (type === 'ai' && (hasText || img)) {
+        if (type === 'ai' && (hasText || img) && !isWelcome) {
             const messageId = 'msg_' + Date.now() + '_' + Math.floor(Math.random() * 99999);
 
             const actionsDiv = document.createElement('div');
@@ -2978,7 +2987,7 @@ Cuando uses fórmulas o expresiones matemáticas, escríbelas SIEMPRE en formato
             const l = document.createElement('div');
             l.id = 'loader';
             l.className = 'msg-wrapper ai-wrapper';
-            l.innerHTML = '<div class="bubble ai-bubble dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+            l.innerHTML = '<div class="bubble ai-bubble loading-bubble dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
             chat.appendChild(l);
             chat.scrollTop = chat.scrollHeight;
         } else {
