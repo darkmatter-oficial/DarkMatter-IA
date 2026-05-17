@@ -235,7 +235,7 @@
             right: 10px;
             background: none;
             border: none;
-            color: rgba(196, 181, 253, 0.4);
+            color: rgba(196, 181, 253, 0.35);
             cursor: pointer;
             padding: 2px;
             display: flex;
@@ -243,6 +243,7 @@
             justify-content: center;
             border-radius: 6px;
             transition: all 0.2s ease;
+            line-height: 1;
         }
 
         .chat-delete-btn:hover {
@@ -252,8 +253,8 @@
         }
 
         .chat-delete-btn svg {
-            width: 14px;
-            height: 14px;
+            width: 13px;
+            height: 13px;
         }
 
         .confirm-delete-overlay {
@@ -267,17 +268,17 @@
             animation: fadeIn 0.2s ease-out forwards;
         }
 
-        .confirm-delete-modal {
+        .confirm-delete-box {
             background: #1a0c2a;
-            border: 1px solid rgba(239, 68, 68, 0.35);
+            border: 1px solid rgba(239, 68, 68, 0.4);
             border-radius: 20px;
-            padding: 28px 24px 22px 24px;
-            width: 88%;
-            max-width: 340px;
+            padding: 28px 24px 20px 24px;
+            max-width: 300px;
+            width: 90%;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            animation: slideUp 0.25s ease-out forwards;
+            gap: 14px;
+            animation: slideUp 0.3s ease-out forwards;
             text-align: center;
         }
 
@@ -289,8 +290,8 @@
             text-transform: uppercase;
         }
 
-        .confirm-delete-text {
-            font-size: 0.85rem;
+        .confirm-delete-msg {
+            font-size: 0.82rem;
             color: #d8b4fe;
             line-height: 1.5;
         }
@@ -307,7 +308,7 @@
             color: #c4b5fd;
             padding: 10px 20px;
             border-radius: 12px;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             cursor: pointer;
             transition: all 0.2s ease;
         }
@@ -317,19 +318,19 @@
         }
 
         .confirm-delete-confirm {
-            background: #ef4444;
+            background: #dc2626;
             border: none;
             color: white;
             padding: 10px 20px;
             border-radius: 12px;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
         .confirm-delete-confirm:hover {
-            background: #dc2626;
-            box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+            background: #ef4444;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
         }
 
         #chat-view {
@@ -386,7 +387,7 @@
 
         .msg-wrapper { max-width: 90%; display: flex; animation: slideUp 0.4s ease-out forwards; flex-direction: column; }
         .user-wrapper { align-self: flex-end; }
-        .ai-wrapper { align-self: center; }
+        .ai-wrapper { align-self: flex-start; }
 
         .bubble {
             padding: 14px 18px;
@@ -622,7 +623,7 @@
         .chat-img {
             max-width: 200px;
             border-radius: 12px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             border: 1px solid rgba(255,255,255,0.1);
             animation: slideUp 0.4s ease-out forwards;
             transition: all 0.3s ease;
@@ -1088,34 +1089,23 @@
             box-shadow: 0 0 12px rgba(168, 85, 247, 0.5);
         }
 
-        .ai-disclaimer {
-            font-size: 0.62rem;
-            color: rgba(196, 181, 253, 0.45);
-            text-align: center;
-            margin-top: 5px;
-            padding: 0 4px;
-            font-style: italic;
-            letter-spacing: 0.2px;
-            line-height: 1.4;
-        }
-
-        .star-rating {
+        /* Star rating styles */
+        .ai-rating {
             display: flex;
             gap: 3px;
-            margin-top: 4px;
-            padding-left: 4px;
             align-items: center;
+            margin-top: 2px;
         }
 
         .star-btn {
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 0.95rem;
             color: rgba(196, 181, 253, 0.25);
             padding: 1px;
-            transition: color 0.15s ease, transform 0.15s ease;
+            font-size: 0.85rem;
             line-height: 1;
+            transition: color 0.15s ease, transform 0.15s ease;
         }
 
         .star-btn:hover {
@@ -1126,8 +1116,12 @@
             color: #f59e0b;
         }
 
-        .star-btn.hovered {
-            color: #fbbf24;
+        .ai-disclaimer {
+            font-size: 0.62rem;
+            color: rgba(196, 181, 253, 0.35);
+            margin-top: 6px;
+            padding-left: 4px;
+            line-height: 1.4;
         }
     </style>
 </head>
@@ -1606,8 +1600,7 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
                 title: c.title,
                 hasRealConversation: c.hasRealConversation,
                 messages: stripImagesFromMessages(c.messages),
-                history: stripImagesFromHistory(c.history),
-                ratings: c.ratings || {}
+                history: stripImagesFromHistory(c.history)
             };
         });
 
@@ -1621,7 +1614,7 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
 
         if (savedChats) {
             const parsed = JSON.parse(savedChats);
-            chats = parsed.map(c => ({ ...c, hasRealConversation: true, ratings: c.ratings || {} }));
+            chats = parsed.map(c => ({ ...c, hasRealConversation: true }));
         }
 
         createNewChat();
@@ -1643,8 +1636,7 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
                     image: null
                 }
             ],
-            history: [getSystemPrompt()],
-            ratings: {}
+            history: [getSystemPrompt()]
         };
 
         chats.unshift(newChat);
@@ -1660,25 +1652,24 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
     }
 
     function confirmDeleteChat(chatId, event) {
-
         event.stopPropagation();
 
         const overlay = document.createElement('div');
         overlay.className = 'confirm-delete-overlay';
 
-        const modal = document.createElement('div');
-        modal.className = 'confirm-delete-modal';
+        const box = document.createElement('div');
+        box.className = 'confirm-delete-box';
 
         const title = document.createElement('div');
         title.className = 'confirm-delete-title';
-        title.textContent = '¿Eliminar chat?';
+        title.textContent = 'Eliminar chat';
 
-        const text = document.createElement('div');
-        text.className = 'confirm-delete-text';
-        text.textContent = 'Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar este chat?';
+        const msg = document.createElement('div');
+        msg.className = 'confirm-delete-msg';
+        msg.textContent = '¿Estás seguro de que quieres eliminar este chat? Esta acción no se puede deshacer.';
 
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'confirm-delete-actions';
+        const actions = document.createElement('div');
+        actions.className = 'confirm-delete-actions';
 
         const cancelBtn = document.createElement('button');
         cancelBtn.className = 'confirm-delete-cancel';
@@ -1695,15 +1686,14 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
             deleteChat(chatId);
         };
 
-        actionsDiv.appendChild(cancelBtn);
-        actionsDiv.appendChild(confirmBtn);
+        actions.appendChild(cancelBtn);
+        actions.appendChild(confirmBtn);
 
-        modal.appendChild(title);
-        modal.appendChild(text);
-        modal.appendChild(actionsDiv);
+        box.appendChild(title);
+        box.appendChild(msg);
+        box.appendChild(actions);
 
-        overlay.appendChild(modal);
-
+        overlay.appendChild(box);
         document.body.appendChild(overlay);
 
         overlay.addEventListener('click', function(e) {
@@ -1711,16 +1701,11 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
                 document.body.removeChild(overlay);
             }
         });
-
     }
 
     function deleteChat(chatId) {
-
         const idx = chats.findIndex(c => c.id === chatId);
-
-        if (idx === -1) {
-            return;
-        }
+        if (idx === -1) return;
 
         chats.splice(idx, 1);
 
@@ -1735,9 +1720,7 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
         }
 
         saveChats();
-
         renderChatList();
-
     }
 
     function renderChatList() {
@@ -1769,14 +1752,6 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
                 ? chatData.messages[chatData.messages.length - 1].text
                 : "Sin mensajes";
 
-            const titleDiv = document.createElement('div');
-            titleDiv.className = 'chat-item-title';
-            titleDiv.textContent = chatData.title;
-
-            const previewDiv = document.createElement('div');
-            previewDiv.className = 'chat-item-preview';
-            previewDiv.textContent = previewText || "Sin mensajes";
-
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'chat-delete-btn';
             deleteBtn.title = 'Eliminar chat';
@@ -1785,8 +1760,11 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
                 confirmDeleteChat(chatData.id, e);
             };
 
-            item.appendChild(titleDiv);
-            item.appendChild(previewDiv);
+            item.innerHTML = `
+                <div class="chat-item-title">${escapeHtml(chatData.title)}</div>
+                <div class="chat-item-preview">${escapeHtml(previewText || "Sin mensajes")}</div>
+            `;
+
             item.appendChild(deleteBtn);
 
             chatList.appendChild(item);
@@ -1813,8 +1791,8 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
 
         chat.innerHTML = "";
 
-        selectedChat.messages.forEach((message, msgIndex) => {
-            addMsg(message.text, message.type, message.image, false, msgIndex);
+        selectedChat.messages.forEach(message => {
+            addMsg(message.text, message.type, message.image, false);
         });
 
         renderChatList();
@@ -2493,6 +2471,59 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
 
     }
 
+    /* ─── Rating helpers ─── */
+    function getRatingKey(msgIndex) {
+        return 'darkmatter_rating_' + currentChatId + '_' + msgIndex;
+    }
+
+    function saveRating(msgIndex, stars) {
+        try {
+            localStorage.setItem(getRatingKey(msgIndex), String(stars));
+        } catch(e) {}
+    }
+
+    function loadRating(msgIndex) {
+        try {
+            const v = localStorage.getItem(getRatingKey(msgIndex));
+            return v ? parseInt(v) : 0;
+        } catch(e) { return 0; }
+    }
+
+    function renderStars(container, msgIndex, initialRating) {
+        container.innerHTML = '';
+        let current = initialRating || 0;
+
+        for (let s = 1; s <= 5; s++) {
+            const btn = document.createElement('button');
+            btn.className = 'star-btn' + (s <= current ? ' filled' : '');
+            btn.title = s + ' estrella' + (s > 1 ? 's' : '');
+            btn.textContent = '★';
+            btn.dataset.star = s;
+            btn.addEventListener('mouseover', function() {
+                const hov = parseInt(this.dataset.star);
+                container.querySelectorAll('.star-btn').forEach(function(b, i) {
+                    b.classList.toggle('filled', i < hov);
+                });
+            });
+            btn.addEventListener('mouseout', function() {
+                container.querySelectorAll('.star-btn').forEach(function(b, i) {
+                    b.classList.toggle('filled', i < current);
+                });
+            });
+            btn.addEventListener('click', function() {
+                current = parseInt(this.dataset.star);
+                saveRating(msgIndex, current);
+                container.querySelectorAll('.star-btn').forEach(function(b, i) {
+                    b.classList.toggle('filled', i < current);
+                });
+            });
+            container.appendChild(btn);
+        }
+    }
+
+    /* Global AI message counter for rating keys */
+    let aiMsgCounter = 0;
+
     async function send() {
 
         if (isGeneratingResponse) {
@@ -2511,10 +2542,7 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
 
         setGeneratingState(true);
 
-        const currentChat = chats.find(c => c.id === currentChatId);
-        const msgIndex = currentChat ? currentChat.messages.length : 0;
-
-        addMsg(text, 'user', currentBase64, false, msgIndex);
+        addMsg(text, 'user', currentBase64);
         addMessageToCurrentChat('user', text, currentBase64, false);
 
         const tempImage = currentBase64;
@@ -2632,10 +2660,7 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
 
                 updateCurrentChatStorage();
 
-                const currentChatNow = chats.find(c => c.id === currentChatId);
-                const aiMsgIndex = currentChatNow ? currentChatNow.messages.length : 0;
-
-                addMsg(aiResponse, 'ai', null, false, aiMsgIndex);
+                addMsg(aiResponse, 'ai');
                 await addMessageToCurrentChat('ai', aiResponse, null, true);
 
                 extractAndSaveUserInfo(text || '', aiResponse);
@@ -2786,10 +2811,7 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
 
                 updateCurrentChatStorage();
 
-                const currentChatNow = chats.find(c => c.id === currentChatId);
-                const aiMsgIndex = currentChatNow ? currentChatNow.messages.length : 0;
-
-                addMsg(aiResponse, 'ai', null, false, aiMsgIndex);
+                addMsg(aiResponse, 'ai');
                 await addMessageToCurrentChat('ai', aiResponse, null, true);
 
             } else if (d.error) {
@@ -2918,7 +2940,7 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
 
     }
 
-    async function sendEditedUserMessage(newText, editFromMsgIndex) {
+    async function sendEditedUserMessage(newText, editedWrapperElement) {
 
         if (isGeneratingResponse) {
             return;
@@ -2928,31 +2950,46 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
             return;
         }
 
-        const currentChat = chats.find(c => c.id === currentChatId);
-
-        if (currentChat && typeof editFromMsgIndex === 'number') {
-
-            const totalMessages = currentChat.messages.length;
-            const messagesToRemove = totalMessages - editFromMsgIndex;
-
-            if (messagesToRemove > 0) {
-                currentChat.messages.splice(editFromMsgIndex, messagesToRemove);
+        /* Remove edited message wrapper and everything after it from the DOM */
+        if (editedWrapperElement) {
+            let node = editedWrapperElement.nextSibling;
+            while (node) {
+                const next = node.nextSibling;
+                node.parentNode.removeChild(node);
+                node = next;
             }
+            editedWrapperElement.parentNode.removeChild(editedWrapperElement);
+        }
 
-            const allWrappers = chat.querySelectorAll('.msg-wrapper');
-            for (let i = allWrappers.length - 1; i >= editFromMsgIndex; i--) {
-                if (allWrappers[i]) {
-                    allWrappers[i].remove();
+        /* Trim the current chat messages and history back to before the edited message */
+        const currentChat = chats.find(c => c.id === currentChatId);
+        if (currentChat) {
+            /* Find the last user message from the end and cut from there */
+            let cutIdx = -1;
+            for (let i = currentChat.messages.length - 1; i >= 0; i--) {
+                if (currentChat.messages[i].type === 'user') {
+                    cutIdx = i;
+                    break;
                 }
             }
-
-            const historyUserCount = currentChat.messages.filter(m => m.type === 'user').length;
-            let historyKeepCount = 1 + (historyUserCount * 2);
-            if (historyKeepCount < 1) historyKeepCount = 1;
-            if (conversationHistory.length > historyKeepCount) {
-                conversationHistory = [conversationHistory[0], ...conversationHistory.slice(1, historyKeepCount)];
+            if (cutIdx !== -1) {
+                currentChat.messages = currentChat.messages.slice(0, cutIdx);
             }
+        }
 
+        /* Also trim conversationHistory: remove last user + assistant pair if present */
+        let trimIdx = conversationHistory.length - 1;
+        while (trimIdx > 0) {
+            if (conversationHistory[trimIdx].role === 'user') {
+                conversationHistory = conversationHistory.slice(0, trimIdx);
+                break;
+            }
+            if (conversationHistory[trimIdx].role === 'assistant') {
+                conversationHistory = conversationHistory.slice(0, trimIdx);
+                trimIdx--;
+            } else {
+                break;
+            }
         }
 
         abortController = new AbortController();
@@ -2961,10 +2998,7 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
 
         setGeneratingState(true);
 
-        const currentChatNow = chats.find(c => c.id === currentChatId);
-        const newUserMsgIndex = currentChatNow ? currentChatNow.messages.length : 0;
-
-        addMsg(newText, 'user', null, false, newUserMsgIndex);
+        addMsg(newText, 'user', null);
         addMessageToCurrentChat('user', newText, null, false);
 
         if (newText) {
@@ -3014,10 +3048,7 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
 
                 updateCurrentChatStorage();
 
-                const currentChatFinal = chats.find(c => c.id === currentChatId);
-                const aiMsgIndex = currentChatFinal ? currentChatFinal.messages.length : 0;
-
-                addMsg(aiResponse, 'ai', null, false, aiMsgIndex);
+                addMsg(aiResponse, 'ai');
                 await addMessageToCurrentChat('ai', aiResponse, null, true);
 
                 extractAndSaveUserInfo(newText, aiResponse);
@@ -3196,10 +3227,12 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
 
         let parsed = escapeHtml(processed);
 
+        /* Fix headings: unescape # then convert — must run before general escaping side-effects */
         parsed = parsed.replace(/^### (.*$)/gim, '<h3>$1</h3>');
         parsed = parsed.replace(/^## (.*$)/gim, '<h2>$1</h2>');
         parsed = parsed.replace(/^# (.*$)/gim, '<h1>$1</h1>');
 
+        /* Fix bold: handle **text** that survived escaping as **text** */
         parsed = parsed.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
 
         parsed = parsed.replace(/^\* (.*$)/gim, '<li>$1</li>');
@@ -3298,102 +3331,13 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
 
     }
 
-    function saveRating(msgIndex, rating) {
-
-        const currentChat = chats.find(c => c.id === currentChatId);
-
-        if (!currentChat) {
-            return;
-        }
-
-        if (!currentChat.ratings) {
-            currentChat.ratings = {};
-        }
-
-        currentChat.ratings[String(msgIndex)] = rating;
-
-        saveChats();
-
-    }
-
-    function getRating(msgIndex) {
-
-        const currentChat = chats.find(c => c.id === currentChatId);
-
-        if (!currentChat || !currentChat.ratings) {
-            return 0;
-        }
-
-        return currentChat.ratings[String(msgIndex)] || 0;
-
-    }
-
-    function createStarRating(msgIndex) {
-
-        const container = document.createElement('div');
-        container.className = 'star-rating';
-        container.dataset.msgIndex = msgIndex;
-
-        const savedRating = getRating(msgIndex);
-
-        for (let i = 1; i <= 5; i++) {
-
-            const star = document.createElement('button');
-            star.className = 'star-btn';
-            star.dataset.value = i;
-            star.title = i + ' estrella' + (i > 1 ? 's' : '');
-            star.textContent = '★';
-
-            if (i <= savedRating) {
-                star.classList.add('filled');
-            }
-
-            star.addEventListener('mouseenter', function() {
-                const val = parseInt(this.dataset.value);
-                const stars = container.querySelectorAll('.star-btn');
-                stars.forEach(function(s) {
-                    const sv = parseInt(s.dataset.value);
-                    s.classList.remove('hovered');
-                    if (sv <= val) {
-                        s.classList.add('hovered');
-                    }
-                });
-            });
-
-            star.addEventListener('mouseleave', function() {
-                const stars = container.querySelectorAll('.star-btn');
-                stars.forEach(function(s) {
-                    s.classList.remove('hovered');
-                });
-            });
-
-            star.addEventListener('click', function() {
-                const val = parseInt(this.dataset.value);
-                saveRating(msgIndex, val);
-                const stars = container.querySelectorAll('.star-btn');
-                stars.forEach(function(s) {
-                    const sv = parseInt(s.dataset.value);
-                    s.classList.remove('filled');
-                    if (sv <= val) {
-                        s.classList.add('filled');
-                    }
-                });
-            });
-
-            container.appendChild(star);
-
-        }
-
-        return container;
-
-    }
-
-    function addMsg(t, type, img = null, shouldSave = true, msgIndex = null) {
+    function addMsg(t, type, img = null, shouldSave = true) {
 
         const w = document.createElement('div');
 
         w.className = `msg-wrapper ${type}-wrapper`;
 
+        /* Image always above the bubble, no extra margin below when there is also text */
         if (img) {
 
             const i = document.createElement('img');
@@ -3406,50 +3350,46 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
 
         }
 
-        const b = document.createElement('div');
+        /* Only add the bubble if there is text content */
+        if (t) {
 
-        b.className = `bubble ${type}-bubble`;
+            const b = document.createElement('div');
 
-        if(t && t.includes('```')) {
+            b.className = `bubble ${type}-bubble`;
 
-            const p = t.split('```');
+            if(t.includes('```')) {
 
-            b.innerHTML = p.map((c, i) => {
+                const p = t.split('```');
 
-                if (i % 2 === 1) {
+                b.innerHTML = p.map((c, i) => {
 
-                    const detectedLanguage = detectLanguage(c.trim());
+                    if (i % 2 === 1) {
 
-                    const cleanCode = removeLanguageLine(c.trim(), detectedLanguage);
+                        const detectedLanguage = detectLanguage(c.trim());
 
-                    return `<div class="code-block-wrapper"><div class="code-header"><div class="code-language">${escapeHtml(detectedLanguage)}</div><button class="code-copy-btn" onclick="copyCodeBlock(this)">Copiar</button></div><pre oncontextmenu="copyCode(event, this)"><code>${escapeHtml(cleanCode)}</code></pre></div>`;
+                        const cleanCode = removeLanguageLine(c.trim(), detectedLanguage);
 
-                }
+                        return `<div class="code-block-wrapper"><div class="code-header"><div class="code-language">${escapeHtml(detectedLanguage)}</div><button class="code-copy-btn" onclick="copyCodeBlock(this)">Copiar</button></div><pre oncontextmenu="copyCode(event, this)"><code>${escapeHtml(cleanCode)}</code></pre></div>`;
 
-                return parseMarkdown(c);
+                    }
 
-            }).join('');
+                    return parseMarkdown(c);
 
-        } else if (t) {
+                }).join('');
 
-            b.innerHTML = parseMarkdown(t);
+            } else {
 
-        } else if (!t && img) {
+                b.innerHTML = parseMarkdown(t);
 
-            b.style.display = 'none';
-
-        }
-
-        if (t || img) {
-
-            if (!(b.style.display === 'none')) {
-                w.appendChild(b);
             }
+
+            w.appendChild(b);
 
             if (type === 'ai') {
 
                 renderKatexInElement(b);
 
+                /* Actions row: copy + regen + stars */
                 const actionsDiv = document.createElement('div');
                 actionsDiv.className = 'ai-actions';
 
@@ -3473,16 +3413,19 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
                     regenerateLastResponse();
                 };
 
+                /* Star rating */
+                const ratingDiv = document.createElement('div');
+                ratingDiv.className = 'ai-rating';
+                const msgIdx = aiMsgCounter++;
+                const savedRating = loadRating(msgIdx);
+                renderStars(ratingDiv, msgIdx, savedRating);
+
                 actionsDiv.appendChild(copyBtn);
                 actionsDiv.appendChild(regenBtn);
-
-                if (msgIndex !== null) {
-                    const starRating = createStarRating(msgIndex);
-                    actionsDiv.appendChild(starRating);
-                }
-
+                actionsDiv.appendChild(ratingDiv);
                 w.appendChild(actionsDiv);
 
+                /* Disclaimer */
                 const disclaimer = document.createElement('div');
                 disclaimer.className = 'ai-disclaimer';
                 disclaimer.textContent = 'DarkMatter IA es una inteligencia artificial y puede cometer errores.';
@@ -3490,48 +3433,48 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
 
             }
 
-            if (type === 'user') {
+        } else if (img && !t) {
 
-                const userActionsDiv = document.createElement('div');
-                userActionsDiv.className = 'user-actions';
-
-                const userCopyBtn = document.createElement('button');
-                userCopyBtn.className = 'user-action-btn';
-                userCopyBtn.title = 'Copiar mensaje';
-                userCopyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
-                userCopyBtn.onclick = async () => {
-                    await copyAiMessage(t || "");
-                    userCopyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
-                    setTimeout(() => {
-                        userCopyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
-                    }, 2000);
-                };
-
-                const userEditBtn = document.createElement('button');
-                userEditBtn.className = 'user-action-btn';
-                userEditBtn.title = 'Editar y reenviar';
-                userEditBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
-                userEditBtn.onclick = () => {
-                    openEditModal(t || "", function(newText) {
-                        sendEditedUserMessage(newText, msgIndex !== null ? msgIndex : undefined);
-                    });
-                };
-
-                userActionsDiv.appendChild(userCopyBtn);
-                userActionsDiv.appendChild(userEditBtn);
-                w.appendChild(userActionsDiv);
-
-            }
-
-            if (img && b.style.display === 'none') {
-                w.removeChild(b);
-            }
-
-            chat.appendChild(w);
-
-            chat.scrollTop = chat.scrollHeight;
+            /* Image only, no text bubble — still need the wrapper in the DOM */
 
         }
+
+        if (type === 'user') {
+
+            const userActionsDiv = document.createElement('div');
+            userActionsDiv.className = 'user-actions';
+
+            const userCopyBtn = document.createElement('button');
+            userCopyBtn.className = 'user-action-btn';
+            userCopyBtn.title = 'Copiar mensaje';
+            userCopyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+            userCopyBtn.onclick = async () => {
+                await copyAiMessage(t || "");
+                userCopyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+                setTimeout(() => {
+                    userCopyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+                }, 2000);
+            };
+
+            const userEditBtn = document.createElement('button');
+            userEditBtn.className = 'user-action-btn';
+            userEditBtn.title = 'Editar y reenviar';
+            userEditBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+            userEditBtn.onclick = () => {
+                openEditModal(t || "", function(newText) {
+                    sendEditedUserMessage(newText, w);
+                });
+            };
+
+            userActionsDiv.appendChild(userCopyBtn);
+            userActionsDiv.appendChild(userEditBtn);
+            w.appendChild(userActionsDiv);
+
+        }
+
+        chat.appendChild(w);
+
+        chat.scrollTop = chat.scrollHeight;
 
     }
 
