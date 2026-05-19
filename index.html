@@ -2447,55 +2447,97 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
     }
 
-    function preprocessLatex(text) {
+    // ═══════════════════════════════════════════════════════════════
+    // NUEVO SISTEMA DE RENDERIZADO MATEMÁTICO — REEMPLAZA preprocessLatex
+    // El problema original: escapeHtml() se ejecutaba DESPUÉS de extraer
+    // el LaTeX, pero el HTML resultante tenía los $ escapados como &#36;
+    // o los comandos \frac escapados como \\frac, rompiendo KaTeX.
+    // Solución: extraer bloques LaTeX PRIMERO, reemplazarlos con
+    // placeholders únicos, aplicar escapeHtml solo al texto restante,
+    // luego reinyectar el LaTeX original sin escapar.
+    // ═══════════════════════════════════════════════════════════════
 
-        if (!text) {
-            return "";
-        }
-
+    function extractLatexBlocks(text) {
+        const blocks = [];
         let result = text;
 
-        // Convertir delimitadores \[ \] a $$ $$
+        // Primero convertir \[ \] y \( \) a $$ $$ y $ $
         result = result.replace(/\\\[([\s\S]*?)\\\]/g, function(match, inner) {
             return '$$' + inner + '$$';
         });
-
-        // Convertir delimitadores \( \) a $ $
         result = result.replace(/\\\(([\s\S]*?)\\\)/g, function(match, inner) {
             return '$' + inner + '$';
         });
 
-        // Detectar líneas que contienen comandos LaTeX sin delimitadores y envolverlas
+        // Detectar líneas con LaTeX sin delimitadores y envolverlas
         result = result.split('\n').map(function(line) {
-
-            // Si ya tiene delimitadores $ no tocar
-            if (/\$/.test(line)) {
-                return line;
-            }
+            if (/\$/.test(line)) return line;
 
             const hasLatexCommands = /\\(frac|sqrt|cdot|sum|int|left|right|times|div|pm|mp|leq|geq|neq|approx|infty|partial|nabla|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|phi|omega|forall|exists|in|notin|subset|supset|cup|cap|wedge|vee|neg|Rightarrow|Leftarrow|Leftrightarrow|rightarrow|leftarrow|uparrow|downarrow|overline|underline|hat|bar|vec|dot|ddot|tilde|mathbf|mathrm|mathit|text|begin|end|pmatrix|bmatrix|vmatrix)\b/.test(line);
-
             const hasSubSuperScript = /[a-zA-Z0-9]_\{|[a-zA-Z0-9]\^\{/.test(line);
-
-            // Detectar patrones como f(x) = \frac{...}{...} que no tienen delimitadores
             const hasUndelimitedLatex = /[a-zA-Z]\s*[=(]\s*\\[a-zA-Z]/.test(line) || /\\[a-zA-Z]+\{/.test(line);
 
             if (hasLatexCommands || hasSubSuperScript || hasUndelimitedLatex) {
-                // Determinar si es una expresión corta (inline) o larga (display)
                 const trimmed = line.trim();
-                // Si la línea es principalmente una fórmula (comienza con variable=formula o es solo fórmula)
-                if (/^[a-zA-Z()\s]*=\s*\\/.test(trimmed) || /^\\/.test(trimmed)) {
-                    return '$$' + trimmed + '$$';
-                }
                 return '$$' + trimmed + '$$';
             }
-
             return line;
-
         }).join('\n');
 
-        return result;
+        // Extraer bloques display $$ ... $$
+        result = result.replace(/\$\$([\s\S]*?)\$\$/g, function(match) {
+            const placeholder = '\x00LATEXDISPLAY' + blocks.length + '\x00';
+            blocks.push({ placeholder: placeholder, original: match, type: 'display' });
+            return placeholder;
+        });
 
+        // Extraer bloques inline $ ... $
+        result = result.replace(/\$([^\$\n]+?)\$/g, function(match) {
+            const placeholder = '\x00LATEXINLINE' + blocks.length + '\x00';
+            blocks.push({ placeholder: placeholder, original: match, type: 'inline' });
+            return placeholder;
+        });
+
+        return { text: result, blocks: blocks };
+    }
+
+    function reinjertLatexBlocks(html, blocks) {
+        let result = html;
+        blocks.forEach(function(block) {
+            // El placeholder puede haber sido escapado por escapeHtml — revertir eso
+            const escapedPlaceholder = block.placeholder
+                .replace(/&amp;/g, '&')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>');
+            // Buscar tanto la versión normal como la escapada
+            result = result.split(block.placeholder).join(block.original);
+            result = result.split(escapedPlaceholder).join(block.original);
+        });
+        return result;
+    }
+
+    function preprocessLatex(text) {
+        // Mantenida por compatibilidad, pero ya no se usa en parseMarkdown
+        if (!text) return "";
+        let result = text;
+        result = result.replace(/\\\[([\s\S]*?)\\\]/g, function(match, inner) {
+            return '$$' + inner + '$$';
+        });
+        result = result.replace(/\\\(([\s\S]*?)\\\)/g, function(match, inner) {
+            return '$' + inner + '$';
+        });
+        result = result.split('\n').map(function(line) {
+            if (/\$/.test(line)) return line;
+            const hasLatexCommands = /\\(frac|sqrt|cdot|sum|int|left|right|times|div|pm|mp|leq|geq|neq|approx|infty|partial|nabla|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|phi|omega|forall|exists|in|notin|subset|supset|cup|cap|wedge|vee|neg|Rightarrow|Leftarrow|Leftrightarrow|rightarrow|leftarrow|uparrow|downarrow|overline|underline|hat|bar|vec|dot|ddot|tilde|mathbf|mathrm|mathit|text|begin|end|pmatrix|bmatrix|vmatrix)\b/.test(line);
+            const hasSubSuperScript = /[a-zA-Z0-9]_\{|[a-zA-Z0-9]\^\{/.test(line);
+            const hasUndelimitedLatex = /[a-zA-Z]\s*[=(]\s*\\[a-zA-Z]/.test(line) || /\\[a-zA-Z]+\{/.test(line);
+            if (hasLatexCommands || hasSubSuperScript || hasUndelimitedLatex) {
+                const trimmed = line.trim();
+                return '$$' + trimmed + '$$';
+            }
+            return line;
+        }).join('\n');
+        return result;
     }
 
     /* ─── Rating helpers ─── */
@@ -3223,62 +3265,51 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
             return "";
         }
 
-        const latexBlocks = [];
+        // ═══════════════════════════════════════════════════════
+        // PASO 1: Extraer todos los bloques LaTeX con placeholders
+        // ANTES de cualquier escape o procesamiento de HTML.
+        // Esto evita que escapeHtml rompa los delimitadores $ y
+        // los comandos \frac, \sqrt, etc.
+        // ═══════════════════════════════════════════════════════
+        const { text: textWithPlaceholders, blocks: latexBlocks } = extractLatexBlocks(text);
 
-        let processed = preprocessLatex(text);
-
-        processed = processed.replace(/\$\$([\s\S]*?)\$\$/g, function(match, inner) {
-            latexBlocks.push({ type: 'display', content: match });
-            return '___LATEX_BLOCK_' + (latexBlocks.length - 1) + '___';
-        });
-
-        processed = processed.replace(/\$([^\$\n]+?)\$/g, function(match, inner) {
-            latexBlocks.push({ type: 'inline', content: match });
-            return '___LATEX_INLINE_' + (latexBlocks.length - 1) + '___';
-        });
-
+        // PASO 2: Extraer tablas HTML existentes
         const htmlTableBlocks = [];
-
-        processed = processed.replace(/<table[\s\S]*?<\/table>/gi, function(match) {
+        let processed = textWithPlaceholders.replace(/<table[\s\S]*?<\/table>/gi, function(match) {
             htmlTableBlocks.push(match);
             return '___HTML_TABLE_' + (htmlTableBlocks.length - 1) + '___';
         });
 
+        // PASO 3: Convertir tablas Markdown a HTML
         processed = parseMarkdownTable(processed);
 
+        // PASO 4: Guardar las tablas Markdown convertidas
         const markdownTableBlocks = [];
         processed = processed.replace(/<table[\s\S]*?<\/table>/gi, function(match) {
             markdownTableBlocks.push(match);
             return '___MD_TABLE_' + (markdownTableBlocks.length - 1) + '___';
         });
 
+        // PASO 5: Escapar HTML del texto (los placeholders LaTeX
+        // son solo caracteres \x00 + texto ASCII, sobreviven el escape)
         let parsed = escapeHtml(processed);
 
-        /* Fix headings: unescape # then convert — must run before general escaping side-effects */
+        // PASO 6: Procesar Markdown (headings, bold, listas)
         parsed = parsed.replace(/^### (.*$)/gim, '<h3>$1</h3>');
         parsed = parsed.replace(/^## (.*$)/gim, '<h2>$1</h2>');
         parsed = parsed.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-
-        /* Fix bold: handle **text** that survived escaping as **text** */
         parsed = parsed.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
-
         parsed = parsed.replace(/^\* (.*$)/gim, '<li>$1</li>');
         parsed = parsed.replace(/^\- (.*$)/gim, '<li>$1</li>');
-
         parsed = parsed.replace(/(<li>.*<\/li>)/gims, '<ul>$1</ul>');
-
         parsed = parsed.replace(/\n/g, '<br>');
-
         parsed = parsed.replace(/<\/ul><br><ul>/g, '');
 
-        parsed = parsed.replace(/___LATEX_BLOCK_(\d+)___/g, function(match, idx) {
-            return latexBlocks[parseInt(idx)].content;
-        });
+        // PASO 7: Reinyectar los bloques LaTeX originales SIN escapar
+        // para que KaTeX pueda procesarlos correctamente
+        parsed = reinjertLatexBlocks(parsed, latexBlocks);
 
-        parsed = parsed.replace(/___LATEX_INLINE_(\d+)___/g, function(match, idx) {
-            return latexBlocks[parseInt(idx)].content;
-        });
-
+        // PASO 8: Reinyectar tablas HTML
         parsed = parsed.replace(/___HTML_TABLE_(\d+)___/g, function(match, idx) {
             return htmlTableBlocks[parseInt(idx)];
         });
@@ -3415,7 +3446,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
             if (type === 'ai') {
 
                 // Renderizar KaTeX después de insertar el HTML en el DOM
-                // Usamos setTimeout para asegurar que el elemento ya está en el DOM
                 setTimeout(function() {
                     renderKatexInElement(b);
                 }, 0);
