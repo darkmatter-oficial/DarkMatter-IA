@@ -1389,13 +1389,27 @@ FRASES QUE DEBES USAR CUANDO TENGAS DUDA:
 FIN DEL PROTOCOLO ANTI-ALUCINACIÓN
 ════════════════════════════════════════════════════════
 
-REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
+REGLA CRÍTICA SOBRE FORMATO MATEMÁTICO — LEE CON ATENCIÓN MÁXIMA:
+SIEMPRE que escribas fórmulas, expresiones matemáticas, fracciones, exponentes, raíces, integrales, sumatorias, límites, derivadas, o cualquier símbolo matemático, DEBES usar formato LaTeX con delimitadores correctos. NUNCA escribas matemáticas en texto plano como "f(x) = \frac{x^3 - 9}{x^2 - 4}" sin delimitadores. SIEMPRE envuelve las matemáticas así:
+- Para fórmulas en línea dentro del texto: $formula_aqui$
+- Para fórmulas destacadas en bloque: $$formula_aqui$$
+EJEMPLOS CORRECTOS:
+- La función es $f(x) = \frac{x^3 - 9}{x^2 - 4}$
+- $$f(x) = \frac{x^3 - 9}{x^2 - 4}$$
+- El resultado es $x = -2$ y $x = 2$
+- $$(x+2)(x-2) = 0$$
+EJEMPLOS INCORRECTOS (JAMÁS hagas esto):
+- f(x) = \frac{x^3 - 9}{x^2 - 4}  ← SIN delimitadores, se ve como texto raro
+- La solución es x = -2  ← variables matemáticas deben ir en $x = -2$
+Toda variable, número en contexto matemático, fracción, raíz cuadrada, exponente, integral, límite, derivada, vector, matriz, debe ir dentro de $ o $$.
+
+REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 - USA PROSA NORMAL por defecto para la gran mayoría de respuestas. Escribe como si le hablaras a un amigo: párrafos fluidos, lenguaje natural, sin estructura forzada.
 - NO uses tablas, NO uses listas con bullets, NO uses LaTeX matemático a menos que la situación lo requiera específicamente. La mayoría de las preguntas NO lo requieren.
 - USA tablas HTML SOLO cuando: el usuario pida explícitamente "tabla", "cuadro comparativo", "compara en tabla", o cuando estés comparando múltiples elementos con múltiples atributos y la tabla sea genuinamente más clara que el texto.
 - USA listas con bullets o numeradas SOLO cuando: el usuario pida "lista", "enumera", "pasos", o cuando estés describiendo pasos secuenciales donde el orden importa, o cuando son 5 o más elementos claramente enumerables sin conexión narrativa entre sí.
-- USA LaTeX matemático SOLO cuando: el usuario pida resolver una ecuación, una fórmula matemática, un ejercicio de cálculo, álgebra, física con fórmulas, etc. Para mencionar números en conversación normal (como "el precio es 50 dólares" o "tiene 3 características"), escribe el número directamente en texto, SIN LaTeX.
-- Una respuesta conversacional, una explicación de concepto, una opinión, una recomendación, una historia, una definición → SIEMPRE en prosa normal, sin tablas, sin listas forzadas, sin LaTeX.
+- USA LaTeX matemático SIEMPRE que haya fórmulas, ecuaciones, fracciones, exponentes, raíces, variables matemáticas, integrales, límites, derivadas, o cualquier expresión matemática. Envuelve TODO contenido matemático en delimitadores $ o $$.
+- Una respuesta conversacional, una explicación de concepto, una opinión, una recomendación, una historia, una definición → SIEMPRE en prosa normal, sin tablas, sin listas forzadas. Solo usa LaTeX si aparece matemática real.
 - Si la respuesta naturalmente fluye como texto corrido, escríbela como texto corrido. No fragmentes información que fluye bien en prosa en bullets artificiales.`;
 
         const memStr = getUserMemoryString();
@@ -2441,16 +2455,20 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
 
         let result = text;
 
+        // Convertir delimitadores \[ \] a $$ $$
         result = result.replace(/\\\[([\s\S]*?)\\\]/g, function(match, inner) {
             return '$$' + inner + '$$';
         });
 
+        // Convertir delimitadores \( \) a $ $
         result = result.replace(/\\\(([\s\S]*?)\\\)/g, function(match, inner) {
             return '$' + inner + '$';
         });
 
+        // Detectar líneas que contienen comandos LaTeX sin delimitadores y envolverlas
         result = result.split('\n').map(function(line) {
 
+            // Si ya tiene delimitadores $ no tocar
             if (/\$/.test(line)) {
                 return line;
             }
@@ -2459,8 +2477,17 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
 
             const hasSubSuperScript = /[a-zA-Z0-9]_\{|[a-zA-Z0-9]\^\{/.test(line);
 
-            if (hasLatexCommands || hasSubSuperScript) {
-                return '$$' + line + '$$';
+            // Detectar patrones como f(x) = \frac{...}{...} que no tienen delimitadores
+            const hasUndelimitedLatex = /[a-zA-Z]\s*[=(]\s*\\[a-zA-Z]/.test(line) || /\\[a-zA-Z]+\{/.test(line);
+
+            if (hasLatexCommands || hasSubSuperScript || hasUndelimitedLatex) {
+                // Determinar si es una expresión corta (inline) o larga (display)
+                const trimmed = line.trim();
+                // Si la línea es principalmente una fórmula (comienza con variable=formula o es solo fórmula)
+                if (/^[a-zA-Z()\s]*=\s*\\/.test(trimmed) || /^\\/.test(trimmed)) {
+                    return '$$' + trimmed + '$$';
+                }
+                return '$$' + trimmed + '$$';
             }
 
             return line;
@@ -2584,7 +2611,7 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
                     content: [
                         {
                             type: "text",
-                            text: `Analiza esta imagen detalladamente. Lee todo el texto visible. Si es un ejercicio o guía, resuelve cada punto con claridad y de forma completa. Explica procedimientos paso a paso. Usa fórmulas LaTeX SOLO si el contenido de la imagen incluye matemáticas o fórmulas. Usa tablas HTML SOLO si la imagen muestra una tabla o comparación que lo requiera. Para el resto, responde en prosa normal. IMPORTANTE: Aplica el protocolo anti-alucinación estricto. Si no puedes leer claramente algún dato en la imagen, indícalo en lugar de asumir. ${text ? "Pregunta adicional del usuario: " + text : ""}`
+                            text: `Analiza esta imagen detalladamente. Lee todo el texto visible. Si es un ejercicio o guía, resuelve cada punto con claridad y de forma completa. Explica procedimientos paso a paso. IMPORTANTE PARA MATEMÁTICAS: Si el contenido incluye matemáticas, fórmulas, fracciones, exponentes, raíces, integrales, sumatorias, variables, ecuaciones o cualquier expresión matemática, DEBES escribirlas usando LaTeX con delimitadores correctos: usa $formula$ para expresiones en línea y $$formula$$ para expresiones en bloque. NUNCA escribas expresiones matemáticas sin delimitadores LaTeX. Usa tablas HTML SOLO si la imagen muestra una tabla o comparación que lo requiera. Para el resto, responde en prosa normal. IMPORTANTE: Aplica el protocolo anti-alucinación estricto. Si no puedes leer claramente algún dato en la imagen, indícalo en lugar de asumir. ${text ? "Pregunta adicional del usuario: " + text : ""}`
                         },
                         {
                             type: "image_url",
@@ -2778,7 +2805,7 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
 
                 historyForRetry.push({
                     role: "user",
-                    content: `Analiza tu respuesta anterior cuidadosamente. Tu respuesta anterior fue:\n\n${lastAiResponseText.substring(0, 1500)}\n\nAhora responde de nuevo la misma pregunta/solicitud pero de forma MEJOR y MAS COMPLETA. PROTOCOLO ANTI-ALUCINACIÓN ACTIVO: Verifica internamente cada dato, nombre, fecha, estadística o cifra antes de escribirlo. Si no estás 100% seguro de algún dato específico, indica la incertidumbre o simplemente omítelo y di que el usuario lo verifique. Es MEJOR admitir incertidumbre que dar datos incorrectos. Usa prosa normal para explicar, tablas solo si la comparación genuinamente lo requiere, y LaTeX solo si hay fórmulas matemáticas reales. Regenera la respuesta siendo más preciso y honesto sobre lo que sabes con certeza.`
+                    content: `Analiza tu respuesta anterior cuidadosamente. Tu respuesta anterior fue:\n\n${lastAiResponseText.substring(0, 1500)}\n\nAhora responde de nuevo la misma pregunta/solicitud pero de forma MEJOR y MAS COMPLETA. PROTOCOLO ANTI-ALUCINACIÓN ACTIVO: Verifica internamente cada dato, nombre, fecha, estadística o cifra antes de escribirlo. Si no estás 100% seguro de algún dato específico, indica la incertidumbre o simplemente omítelo y di que el usuario lo verifique. Es MEJOR admitir incertidumbre que dar datos incorrectos. IMPORTANTE PARA MATEMÁTICAS: Usa LaTeX con delimitadores correctos para TODAS las expresiones matemáticas: $formula$ para inline y $$formula$$ para bloques. NUNCA escribas matemáticas sin delimitadores. Usa prosa normal para explicar, tablas solo si la comparación genuinamente lo requiere. Regenera la respuesta siendo más preciso y honesto sobre lo que sabes con certeza.`
                 });
 
             }
@@ -3387,7 +3414,11 @@ REGLA CRÍTICA SOBRE FORMATO — LEE CON ATENCIÓN:
 
             if (type === 'ai') {
 
-                renderKatexInElement(b);
+                // Renderizar KaTeX después de insertar el HTML en el DOM
+                // Usamos setTimeout para asegurar que el elemento ya está en el DOM
+                setTimeout(function() {
+                    renderKatexInElement(b);
+                }, 0);
 
                 /* Actions row: copy + regen + stars */
                 const actionsDiv = document.createElement('div');
