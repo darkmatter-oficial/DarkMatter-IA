@@ -385,6 +385,75 @@
             to { transform: rotate(360deg); }
         }
 
+        @keyframes formulaPulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.03); }
+        }
+
+        @keyframes formulaSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .formula-loading-placeholder {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(168, 85, 247, 0.10);
+            border: 1px solid rgba(168, 85, 247, 0.30);
+            border-radius: 10px;
+            padding: 5px 13px;
+            margin: 3px 2px;
+            vertical-align: middle;
+            animation: formulaPulse 1.2s ease-in-out infinite;
+        }
+
+        .formula-loading-placeholder .formula-spinner {
+            width: 13px;
+            height: 13px;
+            border: 2px solid rgba(168, 85, 247, 0.25);
+            border-top-color: #a855f7;
+            border-radius: 50%;
+            animation: formulaSpin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+
+        .formula-loading-placeholder .formula-loading-text {
+            font-size: 0.72rem;
+            color: #c4b5fd;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .formula-loading-block {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: rgba(168, 85, 247, 0.08);
+            border: 1px solid rgba(168, 85, 247, 0.25);
+            border-radius: 12px;
+            padding: 12px 18px;
+            margin: 10px 0;
+            animation: formulaPulse 1.2s ease-in-out infinite;
+        }
+
+        .formula-loading-block .formula-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(168, 85, 247, 0.2);
+            border-top-color: #a855f7;
+            border-radius: 50%;
+            animation: formulaSpin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+
+        .formula-loading-block .formula-loading-text {
+            font-size: 0.78rem;
+            color: #c4b5fd;
+            letter-spacing: 0.5px;
+        }
+
         .msg-wrapper { max-width: 90%; display: flex; animation: slideUp 0.4s ease-out forwards; flex-direction: column; }
         .user-wrapper { align-self: flex-end; }
         .ai-wrapper { align-self: flex-start; }
@@ -422,6 +491,10 @@
 
         .katex-display > .katex {
             font-size: 1.1em;
+        }
+
+        .katex-error {
+            display: none !important;
         }
 
         .ai-bubble table {
@@ -1234,6 +1307,111 @@
             systemSuffix: ' MODO PRECISO ACTIVO: Cubre absolutamente cada aspecto del tema con el maximo nivel de detalle y profundidad. No omitas ningun paso, caso especial ni concepto. Se completamente exhaustivo, meticuloso y riguroso en cada punto de tu respuesta.'
         }
     };
+
+    // ═══════════════════════════════════════════════════════════════
+    // SISTEMA DE REPARACIÓN DE FÓRMULAS — Detecta LaTeX roto y lo
+    // repara usando la API antes de mostrar el contenido al usuario.
+    // Mientras repara, muestra un placeholder animado "Cargando fórmula..."
+    // ═══════════════════════════════════════════════════════════════
+
+    function containsBrokenLatex(text) {
+        if (!text) return false;
+        // Detecta patrones de LaTeX sin delimitadores $ o con delimitadores mal formados
+        const brokenPatterns = [
+            // Comandos LaTeX sin delimitadores dólar
+            /(?<!\$)\\(frac|sqrt|cdot|sum|int|left|right|times|div|pm|mp|leq|geq|neq|approx|infty|partial|nabla|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|phi|omega|forall|exists|in|notin|subset|supset|cup|cap|wedge|vee|neg|Rightarrow|Leftarrow|Leftrightarrow|rightarrow|leftarrow|uparrow|downarrow|overline|underline|hat|bar|vec|dot|ddot|tilde|mathbf|mathrm|mathit|text|begin|end|pmatrix|bmatrix|vmatrix)\b(?!\$)/,
+            // Patrones tipo f(x) = \algo sin delimitadores
+            /[a-zA-Z]\s*[=(]\s*\\[a-zA-Z]+\{/,
+            // Llaves sin contexto de dólar
+            /(?<!\$)[a-zA-Z0-9]_\{[^}]+\}(?!\$)/,
+            /(?<!\$)[a-zA-Z0-9]\^\{[^}]+\}(?!\$)/,
+            // Detecta texto crudo con backslash que parece LaTeX
+            /\\[a-zA-Z]+\{[^}]*\}/
+        ];
+        return brokenPatterns.some(function(pattern) {
+            return pattern.test(text);
+        });
+    }
+
+    function createFormulaLoadingPlaceholderInline() {
+        return '<span class="formula-loading-placeholder"><span class="formula-spinner"></span><span class="formula-loading-text">Cargando fórmula...</span></span>';
+    }
+
+    function createFormulaLoadingPlaceholderBlock() {
+        return '<div class="formula-loading-block"><span class="formula-spinner"></span><span class="formula-loading-text">Cargando fórmula...</span></div>';
+    }
+
+    async function repairLatexWithAI(rawText) {
+        try {
+            const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer " + KEY,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    model: "meta-llama/llama-4-scout-17b-16e-instruct",
+                    messages: [
+                        {
+                            role: "system",
+                            content: "Eres un experto en LaTeX. Tu única tarea es recibir texto con fórmulas matemáticas escritas sin los delimitadores correctos (sin signos $) o con LaTeX crudo visible, y devolver el texto EXACTAMENTE IGUAL pero con todas las expresiones matemáticas correctamente envueltas en delimitadores LaTeX: usa $formula$ para expresiones en línea y $$formula$$ para expresiones en bloque o cuando ocupan su propia línea. NO cambies ningún texto que no sea matemático. NO agregues explicaciones. NO cambies el idioma. Devuelve SOLO el texto corregido sin ningún comentario adicional, sin bloques de código, sin comillas al inicio o final."
+                        },
+                        {
+                            role: "user",
+                            content: rawText
+                        }
+                    ],
+                    temperature: 0.1,
+                    max_tokens: 4096
+                })
+            });
+            if (r.ok) {
+                const d = await r.json();
+                if (d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) {
+                    return d.choices[0].message.content.trim();
+                }
+            }
+        } catch (e) {}
+        return rawText;
+    }
+
+    async function processAndRenderMessage(bubbleElement, rawText, isCodeBlock) {
+        if (!isCodeBlock && containsBrokenLatex(rawText)) {
+            // Mostrar placeholder animado mientras se repara
+            bubbleElement.innerHTML = createFormulaLoadingPlaceholderBlock();
+
+            // Reparar con IA
+            const repairedText = await repairLatexWithAI(rawText);
+
+            // Renderizar el texto reparado
+            bubbleElement.innerHTML = parseMarkdown(repairedText);
+
+            // Renderizar KaTeX en el elemento reparado
+            setTimeout(function() {
+                renderKatexInElement(bubbleElement);
+                // Segunda pasada: verificar si KaTeX aún dejó errores visibles y volver a reparar
+                const errorSpans = bubbleElement.querySelectorAll('.katex-error');
+                if (errorSpans.length > 0) {
+                    errorSpans.forEach(function(errSpan) {
+                        errSpan.style.display = 'none';
+                    });
+                }
+            }, 0);
+        } else {
+            // No hay LaTeX roto, renderizar normalmente
+            if (isCodeBlock) {
+                // El contenido ya fue seteado antes, solo renderizar KaTeX
+                setTimeout(function() {
+                    renderKatexInElement(bubbleElement);
+                }, 0);
+            } else {
+                bubbleElement.innerHTML = parseMarkdown(rawText);
+                setTimeout(function() {
+                    renderKatexInElement(bubbleElement);
+                }, 0);
+            }
+        }
+    }
 
     function loadUserMemory() {
         try {
@@ -3204,6 +3382,12 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
                 }
             });
 
+            // Ocultar cualquier span de error de KaTeX que haya quedado visible
+            const errorSpans = element.querySelectorAll('.katex-error');
+            errorSpans.forEach(function(errSpan) {
+                errSpan.style.display = 'none';
+            });
+
         }
 
     }
@@ -3435,20 +3619,44 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
                 }).join('');
 
+                // Para mensajes con bloques de código, renderizar KaTeX en las partes no-código
+                setTimeout(function() {
+                    renderKatexInElement(b);
+                }, 0);
+
             } else {
 
-                b.innerHTML = parseMarkdown(t);
+                if (type === 'ai') {
+                    // Usar el sistema de reparación de fórmulas para mensajes de IA
+                    // Primero mostrar placeholder si hay LaTeX potencialmente roto
+                    if (containsBrokenLatex(t)) {
+                        b.innerHTML = createFormulaLoadingPlaceholderBlock();
+                        // Reparar asincrónicamente
+                        repairLatexWithAI(t).then(function(repairedText) {
+                            b.innerHTML = parseMarkdown(repairedText);
+                            setTimeout(function() {
+                                renderKatexInElement(b);
+                            }, 0);
+                            chat.scrollTop = chat.scrollHeight;
+                        });
+                    } else {
+                        b.innerHTML = parseMarkdown(t);
+                        setTimeout(function() {
+                            renderKatexInElement(b);
+                        }, 0);
+                    }
+                } else {
+                    b.innerHTML = parseMarkdown(t);
+                    setTimeout(function() {
+                        renderKatexInElement(b);
+                    }, 0);
+                }
 
             }
 
             w.appendChild(b);
 
             if (type === 'ai') {
-
-                // Renderizar KaTeX después de insertar el HTML en el DOM
-                setTimeout(function() {
-                    renderKatexInElement(b);
-                }, 0);
 
                 /* Actions row: copy + regen + stars */
                 const actionsDiv = document.createElement('div');
