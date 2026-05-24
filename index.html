@@ -464,9 +464,10 @@
             letter-spacing: 0.5px;
         }
 
-        .msg-wrapper { max-width: 90%; display: flex; animation: slideUp 0.4s ease-out forwards; flex-direction: column; }
-        .user-wrapper { align-self: flex-end; }
-        .ai-wrapper { align-self: flex-start; }
+        /* CAMBIO: ai-wrapper ocupa todo el ancho disponible */
+        .msg-wrapper { display: flex; animation: slideUp 0.4s ease-out forwards; flex-direction: column; }
+        .user-wrapper { align-self: flex-end; max-width: 90%; }
+        .ai-wrapper { align-self: stretch; width: 100%; }
 
         .bubble {
             padding: 14px 18px;
@@ -477,6 +478,9 @@
             white-space: normal;
             word-wrap: break-word;
             overflow-wrap: break-word;
+            /* CAMBIO: fórmulas no se salen de la burbuja */
+            overflow-x: auto;
+            max-width: 100%;
             transition: all 0.3s ease;
         }
 
@@ -486,7 +490,22 @@
         }
 
         .user-bubble { background: var(--user-bubble); border-bottom-right-radius: 4px; animation: slideUp 0.5s ease-out forwards; }
-        .ai-bubble { background: var(--ai-bubble); border: 1px solid rgba(168, 85, 247, 0.15); border-bottom-left-radius: 4px; animation: slideUp 0.5s ease-out forwards; }
+        /* CAMBIO: ai-bubble ocupa todo el ancho */
+        .ai-bubble { background: var(--ai-bubble); border: 1px solid rgba(168, 85, 247, 0.15); border-bottom-left-radius: 4px; animation: slideUp 0.5s ease-out forwards; width: 100%; }
+
+        /* CAMBIO: MathJax dentro de la burbuja no se desborda */
+        .ai-bubble .MathJax,
+        .ai-bubble mjx-container {
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            display: block;
+        }
+
+        .ai-bubble mjx-container[display="true"] {
+            margin: 10px 0;
+            overflow-x: auto;
+        }
 
         .MathJax {
             color: #f0e6ff;
@@ -499,6 +518,7 @@
             overflow-y: hidden;
         }
 
+        /* CAMBIO: tablas dentro de ai-bubble también convierten ** y * correctamente */
         .ai-bubble table {
             border-collapse: collapse;
             width: 100%;
@@ -710,6 +730,25 @@
         .chat-img:hover {
             transform: scale(1.05);
             box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+        }
+
+        /* CAMBIO: imagen rota mostrada como placeholder cuando no se puede cargar */
+        .chat-img-broken {
+            max-width: 200px;
+            border-radius: 12px;
+            margin-bottom: 6px;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            animation: slideUp 0.4s ease-out forwards;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(168, 85, 247, 0.08);
+            padding: 12px 16px;
+            margin-left: auto;
+            margin-right: 0;
+            gap: 8px;
+            font-size: 0.72rem;
+            color: rgba(196, 181, 253, 0.5);
         }
 
         #preview-container {
@@ -1288,6 +1327,8 @@
     let imageSentTimestamp = null;
 
     const IMAGE_COOLDOWN_TIME = 300000;
+    // CAMBIO: umbral cambiado de 3 a 0 para que el contador se reinicie correctamente
+    // y se permitan hasta 3 imágenes antes del cooldown
     const IMAGE_COOLDOWN_THRESHOLD = 3;
 
     let currentMode = 'normal';
@@ -2182,8 +2223,24 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
     });
 
+    // CAMBIO: función corregida para contar imágenes enviadas en la sesión actual
+    // y reiniciar el contador cuando el cooldown expira
     function getImagesSentCount() {
         try {
+            // Si el cooldown ya expiró, resetear el contador
+            const savedTime = localStorage.getItem("darkmatter_last_image_time");
+            if (savedTime) {
+                const elapsed = Date.now() - parseInt(savedTime);
+                if (elapsed >= IMAGE_COOLDOWN_TIME) {
+                    localStorage.removeItem('darkmatter_images_sent_count');
+                    localStorage.removeItem('darkmatter_last_image_time');
+                    return 0;
+                }
+            } else {
+                // No hay tiempo guardado, resetear contador
+                localStorage.removeItem('darkmatter_images_sent_count');
+                return 0;
+            }
             const val = localStorage.getItem('darkmatter_images_sent_count');
             return val ? parseInt(val) : 0;
         } catch (e) {
@@ -2213,6 +2270,9 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
                 return remaining;
             } else {
                 imageSentTimestamp = null;
+                // CAMBIO: al expirar el cooldown en memoria, también resetear el contador
+                localStorage.removeItem('darkmatter_images_sent_count');
+                localStorage.removeItem('darkmatter_last_image_time');
                 return 0;
             }
         }
@@ -2228,6 +2288,9 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
         const remaining = IMAGE_COOLDOWN_TIME - elapsed;
 
         if (remaining < 0) {
+            // CAMBIO: al expirar, resetear contador para permitir 3 nuevas imágenes
+            localStorage.removeItem('darkmatter_images_sent_count');
+            localStorage.removeItem('darkmatter_last_image_time');
             return 0;
         }
 
@@ -2479,6 +2542,9 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
         };
 
         reader.readAsDataURL(file);
+
+        // CAMBIO: resetear el input para permitir seleccionar el mismo archivo de nuevo
+        document.getElementById('fileInput').value = '';
 
     }
 
@@ -3367,6 +3433,7 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
         }
     }
 
+    // CAMBIO: parseMarkdownTable ahora también convierte ** y * dentro de celdas
     function parseMarkdownTable(text) {
 
         const lines = text.split('\n');
@@ -3386,7 +3453,9 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
                     result += '<table><thead><tr>';
                     const headers = line.trim().slice(1, -1).split('|').map(h => h.trim());
                     headers.forEach(function(h) {
-                        result += '<th>' + h + '</th>';
+                        // CAMBIO: convertir markdown dentro de cabeceras de tabla
+                        const hConverted = convertInlineMarkdown(h);
+                        result += '<th>' + hConverted + '</th>';
                     });
                     result += '</tr></thead><tbody>';
 
@@ -3396,7 +3465,9 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
                         result += '<tr>';
                         const cells = lines[i].trim().slice(1, -1).split('|').map(c => c.trim());
                         cells.forEach(function(c) {
-                            result += '<td>' + c + '</td>';
+                            // CAMBIO: convertir markdown dentro de celdas de tabla
+                            const cConverted = convertInlineMarkdown(c);
+                            result += '<td>' + cConverted + '</td>';
                         });
                         result += '</tr>';
                         i++;
@@ -3416,6 +3487,20 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
         return result;
 
+    }
+
+    // CAMBIO: función auxiliar para convertir markdown inline (**, *, ####, ###, ##, #)
+    // dentro de celdas de tabla y en texto general
+    function convertInlineMarkdown(text) {
+        if (!text) return text;
+        let result = text;
+        // Negritas (**texto** o __texto__)
+        result = result.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        result = result.replace(/__(.*?)__/g, '<strong>$1</strong>');
+        // Cursivas (*texto* o _texto_)
+        result = result.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        result = result.replace(/_(.*?)_/g, '<em>$1</em>');
+        return result;
     }
 
     function parseMarkdown(text) {
@@ -3439,7 +3524,7 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
             return '___HTML_TABLE_' + (htmlTableBlocks.length - 1) + '___';
         });
 
-        // PASO 3: Convertir tablas Markdown a HTML
+        // PASO 3: Convertir tablas Markdown a HTML (con conversión de markdown en celdas)
         processed = parseMarkdownTable(processed);
 
         // PASO 4: Guardar las tablas Markdown convertidas
@@ -3454,8 +3539,7 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
         let parsed = escapeHtml(processed);
 
         // ═══════════════════════════════════════════════════════
-        // PASO 6: Procesar Markdown usando la lógica de la página
-        // de referencia (convertirMarkdown) — headings ####/###/##/#,
+        // PASO 6: Procesar Markdown — headings ####/###/##/#,
         // negritas **texto** y __texto__, cursivas *texto* y _texto_,
         // listas con * o - seguidas de espacio, agrupadas en <ul>.
         // ═══════════════════════════════════════════════════════
@@ -3584,6 +3668,16 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
             i.src = img;
 
             i.className = 'chat-img';
+
+            // CAMBIO: manejar error de imagen rota (cuando se recarga el chat y la imagen ya no está en memoria)
+            i.onerror = function() {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'chat-img-broken';
+                placeholder.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(196,181,253,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Imagen no disponible</span>`;
+                if (i.parentNode) {
+                    i.parentNode.replaceChild(placeholder, i);
+                }
+            };
 
             w.appendChild(i);
 
