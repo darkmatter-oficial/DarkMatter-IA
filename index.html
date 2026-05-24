@@ -464,10 +464,9 @@
             letter-spacing: 0.5px;
         }
 
-        /* CAMBIO: ai-wrapper ocupa todo el ancho disponible */
-        .msg-wrapper { display: flex; animation: slideUp 0.4s ease-out forwards; flex-direction: column; }
-        .user-wrapper { align-self: flex-end; max-width: 90%; }
-        .ai-wrapper { align-self: stretch; width: 100%; }
+        .msg-wrapper { max-width: 90%; display: flex; animation: slideUp 0.4s ease-out forwards; flex-direction: column; }
+        .user-wrapper { align-self: flex-end; }
+        .ai-wrapper { align-self: flex-start; }
 
         .bubble {
             padding: 14px 18px;
@@ -478,9 +477,6 @@
             white-space: normal;
             word-wrap: break-word;
             overflow-wrap: break-word;
-            /* CAMBIO: fórmulas no se salen de la burbuja */
-            overflow-x: auto;
-            max-width: 100%;
             transition: all 0.3s ease;
         }
 
@@ -490,21 +486,13 @@
         }
 
         .user-bubble { background: var(--user-bubble); border-bottom-right-radius: 4px; animation: slideUp 0.5s ease-out forwards; }
-        /* CAMBIO: ai-bubble ocupa todo el ancho */
-        .ai-bubble { background: var(--ai-bubble); border: 1px solid rgba(168, 85, 247, 0.15); border-bottom-left-radius: 4px; animation: slideUp 0.5s ease-out forwards; width: 100%; }
+        .ai-bubble { background: var(--ai-bubble); border: 1px solid rgba(168, 85, 247, 0.15); border-bottom-left-radius: 4px; animation: slideUp 0.5s ease-out forwards; }
 
-        /* CAMBIO: MathJax dentro de la burbuja no se desborda */
-        .ai-bubble .MathJax,
-        .ai-bubble mjx-container {
-            max-width: 100%;
-            overflow-x: auto;
-            overflow-y: hidden;
-            display: block;
-        }
-
-        .ai-bubble mjx-container[display="true"] {
-            margin: 10px 0;
-            overflow-x: auto;
+        /* CAMBIO 2: Burbuja de los 3 puntos ajustada al contenido */
+        .ai-bubble.dots {
+            display: inline-flex;
+            width: auto;
+            padding: 14px 20px;
         }
 
         .MathJax {
@@ -518,7 +506,50 @@
             overflow-y: hidden;
         }
 
-        /* CAMBIO: tablas dentro de ai-bubble también convierten ** y * correctamente */
+        /* CAMBIO 3: Estilos para fórmulas matemáticas bien formateadas */
+        .math-block {
+            display: block;
+            width: 100%;
+            text-align: center;
+            margin: 14px 0;
+            padding: 10px 0;
+            overflow-x: auto;
+        }
+
+        .math-block-important {
+            display: block;
+            width: 100%;
+            text-align: center;
+            margin: 16px 0;
+            padding: 12px 16px;
+            background: rgba(168, 85, 247, 0.08);
+            border-left: 3px solid #a855f7;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        .math-block-important .MathJax,
+        .math-block-important mjx-container {
+            font-size: 1.15em !important;
+        }
+
+        .ai-bubble .MathJax {
+            display: inline;
+        }
+
+        .ai-bubble mjx-container[display="true"] {
+            display: block !important;
+            margin: 12px auto !important;
+            text-align: center !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+        }
+
+        .ai-bubble mjx-container[display="false"] {
+            display: inline !important;
+            margin: 0 2px !important;
+        }
+
         .ai-bubble table {
             border-collapse: collapse;
             width: 100%;
@@ -730,25 +761,6 @@
         .chat-img:hover {
             transform: scale(1.05);
             box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
-        }
-
-        /* CAMBIO: imagen rota mostrada como placeholder cuando no se puede cargar */
-        .chat-img-broken {
-            max-width: 200px;
-            border-radius: 12px;
-            margin-bottom: 6px;
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            animation: slideUp 0.4s ease-out forwards;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(168, 85, 247, 0.08);
-            padding: 12px 16px;
-            margin-left: auto;
-            margin-right: 0;
-            gap: 8px;
-            font-size: 0.72rem;
-            color: rgba(196, 181, 253, 0.5);
         }
 
         #preview-container {
@@ -1327,8 +1339,6 @@
     let imageSentTimestamp = null;
 
     const IMAGE_COOLDOWN_TIME = 300000;
-    // CAMBIO: umbral cambiado de 3 a 0 para que el contador se reinicie correctamente
-    // y se permitan hasta 3 imágenes antes del cooldown
     const IMAGE_COOLDOWN_THRESHOLD = 3;
 
     let currentMode = 'normal';
@@ -1351,24 +1361,13 @@
         }
     };
 
-    // ═══════════════════════════════════════════════════════════════
-    // SISTEMA DE REPARACIÓN DE FÓRMULAS — Detecta LaTeX roto y lo
-    // repara usando la API antes de mostrar el contenido al usuario.
-    // Mientras repara, muestra un placeholder animado "Cargando fórmula..."
-    // ═══════════════════════════════════════════════════════════════
-
     function containsBrokenLatex(text) {
         if (!text) return false;
-        // Detecta patrones de LaTeX sin delimitadores $ o con delimitadores mal formados
         const brokenPatterns = [
-            // Comandos LaTeX sin delimitadores dólar
             /(?<!\$)\\(frac|sqrt|cdot|sum|int|left|right|times|div|pm|mp|leq|geq|neq|approx|infty|partial|nabla|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|phi|omega|forall|exists|in|notin|subset|supset|cup|cap|wedge|vee|neg|Rightarrow|Leftarrow|Leftrightarrow|rightarrow|leftarrow|uparrow|downarrow|overline|underline|hat|bar|vec|dot|ddot|tilde|mathbf|mathrm|mathit|text|begin|end|pmatrix|bmatrix|vmatrix)\b(?!\$)/,
-            // Patrones tipo f(x) = \algo sin delimitadores
             /[a-zA-Z]\s*[=(]\s*\\[a-zA-Z]+\{/,
-            // Llaves sin contexto de dólar
             /(?<!\$)[a-zA-Z0-9]_\{[^}]+\}(?!\$)/,
             /(?<!\$)[a-zA-Z0-9]\^\{[^}]+\}(?!\$)/,
-            // Detecta texto crudo con backslash que parece LaTeX
             /\\[a-zA-Z]+\{[^}]*\}/
         ];
         return brokenPatterns.some(function(pattern) {
@@ -1420,23 +1419,14 @@
 
     async function processAndRenderMessage(bubbleElement, rawText, isCodeBlock) {
         if (!isCodeBlock && containsBrokenLatex(rawText)) {
-            // Mostrar placeholder animado mientras se repara
             bubbleElement.innerHTML = createFormulaLoadingPlaceholderBlock();
-
-            // Reparar con IA
             const repairedText = await repairLatexWithAI(rawText);
-
-            // Renderizar el texto reparado
             bubbleElement.innerHTML = parseMarkdown(repairedText);
-
-            // Renderizar MathJax en el elemento reparado
             setTimeout(function() {
                 renderMathInElement(bubbleElement);
             }, 0);
         } else {
-            // No hay LaTeX roto, renderizar normalmente
             if (isCodeBlock) {
-                // El contenido ya fue seteado antes, solo renderizar MathJax
                 setTimeout(function() {
                     renderMathInElement(bubbleElement);
                 }, 0);
@@ -1603,19 +1593,68 @@ FRASES QUE DEBES USAR CUANDO TENGAS DUDA:
 FIN DEL PROTOCOLO ANTI-ALUCINACIÓN
 ════════════════════════════════════════════════════════
 
+════════════════════════════════════════════════════════
+📷 PROTOCOLO DE ANÁLISIS DE IMÁGENES — MÁXIMA PRECISIÓN
+════════════════════════════════════════════════════════
+
+Cuando recibas una imagen, sigue OBLIGATORIAMENTE este proceso:
+
+PASO 1 — LECTURA EXHAUSTIVA:
+Lee ABSOLUTAMENTE TODO el texto visible en la imagen. Lee cada palabra, cada número, cada símbolo, cada instrucción. No asumas nada que no esté claramente escrito. Si un texto es difícil de leer, indícalo.
+
+PASO 2 — IDENTIFICACIÓN DEL TIPO DE CONTENIDO:
+Determina exactamente qué tipo de contenido es la imagen:
+- ¿Es un ejercicio o tarea escolar? → Identifica cada punto numerado o con letra.
+- ¿Es una fotografía de un libro o hoja? → Lee todas las instrucciones del ejercicio.
+- ¿Es un diagrama, gráfico o tabla? → Describe y analiza todos los datos.
+- ¿Es una imagen con texto mixto? → Separa y procesa cada sección.
+
+PASO 3 — RESOLUCIÓN PUNTO POR PUNTO:
+Si la imagen contiene ejercicios o preguntas:
+- Resuelve CADA punto individualmente.
+- Numera o etiqueta tu respuesta igual que el ejercicio original.
+- No omitas ningún punto aunque parezca trivial.
+- Si hay imágenes dentro del ejercicio que debes relacionar con opciones, analiza CADA imagen cuidadosamente antes de asignar la respuesta.
+
+PASO 4 — VERIFICACIÓN DE RESPUESTAS:
+Antes de dar tu respuesta final, verifica internamente:
+- ¿Leí correctamente TODAS las imágenes/ilustraciones del ejercicio?
+- ¿Las opciones que di tienen sentido lógico con lo que muestran las imágenes?
+- ¿Respondí TODOS los puntos del ejercicio?
+- ¿Mis respuestas son consistentes entre sí?
+
+REGLA CRÍTICA PARA EJERCICIOS DE RELACIONAR IMÁGENES:
+Cuando el ejercicio pide relacionar imágenes con opciones de texto:
+- Observa DETENIDAMENTE qué muestra cada imagen numerada.
+- No te dejes llevar por suposiciones. Describe mentalmente lo que ves en cada imagen antes de asignar la opción.
+- Si una imagen muestra personas en uniformes de servicio → puede ser hospitality o airline.
+- Si muestra aviones, aeropuertos, pilotos → airline industry.
+- Si muestra pantallas con código, computadoras de trabajo → information technology.
+- Si muestra videojuegos, personajes de juegos, consolas → computer game design.
+- Si muestra restaurantes, hoteles, bares, turismo → hospitality.
+- Si muestra publicidad, carteles, campañas → marketing.
+- Asigna basándote en lo que VES, no en lo que asumes.
+
+════════════════════════════════════════════════════════
+FIN DEL PROTOCOLO DE ANÁLISIS DE IMÁGENES
+════════════════════════════════════════════════════════
+
 REGLA CRÍTICA SOBRE FORMATO MATEMÁTICO — LEE CON ATENCIÓN MÁXIMA:
-SIEMPRE que escribas fórmulas, expresiones matemáticas, fracciones, exponentes, raíces, integrales, sumatorias, límites, derivadas, o cualquier símbolo matemático, DEBES usar formato LaTeX con delimitadores correctos. NUNCA escribas matemáticas en texto plano como "f(x) = \frac{x^3 - 9}{x^2 - 4}" sin delimitadores. SIEMPRE envuelve las matemáticas así:
-- Para fórmulas en línea dentro del texto: $formula_aqui$
-- Para fórmulas destacadas en bloque: $$formula_aqui$$
-EJEMPLOS CORRECTOS:
-- La función es $f(x) = \frac{x^3 - 9}{x^2 - 4}$
-- $$f(x) = \frac{x^3 - 9}{x^2 - 4}$$
-- El resultado es $x = -2$ y $x = 2$
-- $$(x+2)(x-2) = 0$$
-EJEMPLOS INCORRECTOS (JAMÁS hagas esto):
-- f(x) = \frac{x^3 - 9}{x^2 - 4}  ← SIN delimitadores, se ve como texto raro
-- La solución es x = -2  ← variables matemáticas deben ir en $x = -2$
-Toda variable, número en contexto matemático, fracción, raíz cuadrada, exponente, integral, límite, derivada, vector, matriz, debe ir dentro de $ o $$.
+SIEMPRE que escribas fórmulas, expresiones matemáticas, fracciones, exponentes, raíces, integrales, sumatorias, límites, derivadas, o cualquier símbolo matemático, DEBES usar formato LaTeX con delimitadores correctos. NUNCA escribas matemáticas en texto plano.
+
+REGLAS DE FORMATO MATEMÁTICO ESTILO CHATGPT:
+1. Fórmulas IMPORTANTES (definiciones, fórmulas principales, resultados clave) → usa bloques $$ ... $$ centrados y destacados. Estas deben aparecer solas en su línea, bien espaciadas.
+2. Fórmulas de RESOLUCIÓN o pasos intermedios → usa $$ ... $$ también pero pueden ir más seguidas si el contexto es un cálculo paso a paso.
+3. Variables y expresiones CORTAS dentro del texto → usa $ ... $ inline.
+4. NUNCA cortes una fórmula en múltiples líneas con saltos de párrafo intermedios. Una fórmula va COMPLETA en un solo bloque $$ ... $$.
+5. NUNCA escribas matemáticas sin delimitadores LaTeX.
+
+EJEMPLOS CORRECTOS DE FORMATO:
+- "La fórmula del nivel de intensidad sonora es:" seguido de $$\\beta = 10 \\log\\left(\\frac{I}{I_0}\\right)$$
+- "Sustituyendo los valores:" seguido de $$\\beta = 10 \\log\\left(\\frac{10^{-7}}{10^{-12}}\\right) = 10 \\log(10^5) = 10 \\cdot 5 = 50 \\text{ dB}$$
+- "donde $I_0 = 10^{-12} \\text{ W/m}^2$ es la intensidad de referencia"
+
+IMPORTANTE: NUNCA separes una ecuación de resolución en partes. Por ejemplo, si calculas $\\beta = 10\\log(10^5) = 10 \\cdot 5 = 50$ dB, eso va TODO en un solo $$ ... $$ sin saltos.
 
 REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 - USA PROSA NORMAL por defecto para la gran mayoría de respuestas. Escribe como si le hablaras a un amigo: párrafos fluidos, lenguaje natural, sin estructura forzada.
@@ -2223,24 +2262,8 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
     });
 
-    // CAMBIO: función corregida para contar imágenes enviadas en la sesión actual
-    // y reiniciar el contador cuando el cooldown expira
     function getImagesSentCount() {
         try {
-            // Si el cooldown ya expiró, resetear el contador
-            const savedTime = localStorage.getItem("darkmatter_last_image_time");
-            if (savedTime) {
-                const elapsed = Date.now() - parseInt(savedTime);
-                if (elapsed >= IMAGE_COOLDOWN_TIME) {
-                    localStorage.removeItem('darkmatter_images_sent_count');
-                    localStorage.removeItem('darkmatter_last_image_time');
-                    return 0;
-                }
-            } else {
-                // No hay tiempo guardado, resetear contador
-                localStorage.removeItem('darkmatter_images_sent_count');
-                return 0;
-            }
             const val = localStorage.getItem('darkmatter_images_sent_count');
             return val ? parseInt(val) : 0;
         } catch (e) {
@@ -2270,9 +2293,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
                 return remaining;
             } else {
                 imageSentTimestamp = null;
-                // CAMBIO: al expirar el cooldown en memoria, también resetear el contador
-                localStorage.removeItem('darkmatter_images_sent_count');
-                localStorage.removeItem('darkmatter_last_image_time');
                 return 0;
             }
         }
@@ -2288,9 +2308,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
         const remaining = IMAGE_COOLDOWN_TIME - elapsed;
 
         if (remaining < 0) {
-            // CAMBIO: al expirar, resetear contador para permitir 3 nuevas imágenes
-            localStorage.removeItem('darkmatter_images_sent_count');
-            localStorage.removeItem('darkmatter_last_image_time');
             return 0;
         }
 
@@ -2543,9 +2560,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
         reader.readAsDataURL(file);
 
-        // CAMBIO: resetear el input para permitir seleccionar el mismo archivo de nuevo
-        document.getElementById('fileInput').value = '';
-
     }
 
     function clearImage() {
@@ -2686,19 +2700,10 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // SISTEMA DE RENDERIZADO MATEMÁTICO CON MATHJAX
-    // Reemplaza el sistema anterior basado en KaTeX.
-    // Estrategia: extraer bloques LaTeX con placeholders ANTES de
-    // escapar HTML, luego reinyectarlos limpios para que MathJax
-    // los procese correctamente.
-    // ═══════════════════════════════════════════════════════════════
-
     function extractLatexBlocks(text) {
         const blocks = [];
         let result = text;
 
-        // Primero convertir \[ \] y \( \) a $$ $$ y $ $
         result = result.replace(/\\\[([\s\S]*?)\\\]/g, function(match, inner) {
             return '$$' + inner + '$$';
         });
@@ -2706,7 +2711,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
             return '$' + inner + '$';
         });
 
-        // Detectar líneas con LaTeX sin delimitadores y envolverlas
         result = result.split('\n').map(function(line) {
             if (/\$/.test(line)) return line;
 
@@ -2721,14 +2725,12 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
             return line;
         }).join('\n');
 
-        // Extraer bloques display $$ ... $$
         result = result.replace(/\$\$([\s\S]*?)\$\$/g, function(match) {
             const placeholder = '\x00LATEXDISPLAY' + blocks.length + '\x00';
             blocks.push({ placeholder: placeholder, original: match, type: 'display' });
             return placeholder;
         });
 
-        // Extraer bloques inline $ ... $
         result = result.replace(/\$([^\$\n]+?)\$/g, function(match) {
             const placeholder = '\x00LATEXINLINE' + blocks.length + '\x00';
             blocks.push({ placeholder: placeholder, original: match, type: 'inline' });
@@ -2741,12 +2743,10 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
     function reinjertLatexBlocks(html, blocks) {
         let result = html;
         blocks.forEach(function(block) {
-            // El placeholder puede haber sido escapado por escapeHtml — revertir eso
             const escapedPlaceholder = block.placeholder
                 .replace(/&amp;/g, '&')
                 .replace(/&lt;/g, '<')
                 .replace(/&gt;/g, '>');
-            // Buscar tanto la versión normal como la escapada
             result = result.split(block.placeholder).join(block.original);
             result = result.split(escapedPlaceholder).join(block.original);
         });
@@ -2754,7 +2754,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
     }
 
     function preprocessLatex(text) {
-        // Mantenida por compatibilidad, pero ya no se usa en parseMarkdown
         if (!text) return "";
         let result = text;
         result = result.replace(/\\\[([\s\S]*?)\\\]/g, function(match, inner) {
@@ -2885,12 +2884,35 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
             if (tempImage) {
 
+                // CAMBIO 1: Prompt mejorado para análisis de imágenes con instrucciones detalladas
                 userMessage = {
                     role: "user",
                     content: [
                         {
                             type: "text",
-                            text: `Analiza esta imagen detalladamente. Lee todo el texto visible. Si es un ejercicio o guía, resuelve cada punto con claridad y de forma completa. Explica procedimientos paso a paso. IMPORTANTE PARA MATEMÁTICAS: Si el contenido incluye matemáticas, fórmulas, fracciones, exponentes, raíces, integrales, sumatorias, variables, ecuaciones o cualquier expresión matemática, DEBES escribirlas usando LaTeX con delimitadores correctos: usa $formula$ para expresiones en línea y $$formula$$ para expresiones en bloque. NUNCA escribas expresiones matemáticas sin delimitadores LaTeX. Usa tablas HTML SOLO si la imagen muestra una tabla o comparación que lo requiera. Para el resto, responde en prosa normal. IMPORTANTE: Aplica el protocolo anti-alucinación estricto. Si no puedes leer claramente algún dato en la imagen, indícalo en lugar de asumir. ${text ? "Pregunta adicional del usuario: " + text : ""}`
+                            text: `Analiza esta imagen con MÁXIMA atención y precisión. Sigue estos pasos obligatorios:
+
+PASO 1 — LEE TODO:
+Lee absolutamente TODO el texto visible en la imagen. Cada palabra, número, instrucción, etiqueta y símbolo. No omitas nada.
+
+PASO 2 — IDENTIFICA EL TIPO:
+¿Es una página de libro de ejercicios? ¿Un examen? ¿Una guía? ¿Tiene imágenes numeradas que relacionar con opciones? Identifica exactamente qué tipo de ejercicio es.
+
+PASO 3 — ANALIZA CADA IMAGEN/ILUSTRACIÓN:
+Si el ejercicio contiene imágenes o ilustraciones numeradas (1, 2, 3, etc.) que debes relacionar con opciones (a, b, c, etc.):
+- Describe EXACTAMENTE lo que muestra cada imagen numerada.
+- Luego asigna la opción correcta basándote en lo que VES, no en suposiciones.
+- Imagen 1: ¿Qué muestra exactamente? → Opción que corresponde.
+- Imagen 2: ¿Qué muestra exactamente? → Opción que corresponde.
+- (Continúa para cada imagen numerada)
+
+PASO 4 — RESUELVE CADA PUNTO:
+Resuelve CADA ejercicio, pregunta o punto numerado individualmente. No omitas ninguno.
+
+PASO 5 — MATEMÁTICAS:
+Si hay fórmulas o ecuaciones, escríbelas en LaTeX: $formula$ para inline y $$formula$$ para bloques. NUNCA cortes una ecuación en partes separadas — cada ecuación va COMPLETA en un solo bloque.
+
+${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que aparece en la imagen."}`
                         },
                         {
                             type: "image_url",
@@ -3084,7 +3106,7 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
                 historyForRetry.push({
                     role: "user",
-                    content: `Analiza tu respuesta anterior cuidadosamente. Tu respuesta anterior fue:\n\n${lastAiResponseText.substring(0, 1500)}\n\nAhora responde de nuevo la misma pregunta/solicitud pero de forma MEJOR y MAS COMPLETA. PROTOCOLO ANTI-ALUCINACIÓN ACTIVO: Verifica internamente cada dato, nombre, fecha, estadística o cifra antes de escribirlo. Si no estás 100% seguro de algún dato específico, indica la incertidumbre o simplemente omítelo y di que el usuario lo verifique. Es MEJOR admitir incertidumbre que dar datos incorrectos. IMPORTANTE PARA MATEMÁTICAS: Usa LaTeX con delimitadores correctos para TODAS las expresiones matemáticas: $formula$ para inline y $$formula$$ para bloques. NUNCA escribas matemáticas sin delimitadores. Usa prosa normal para explicar, tablas solo si la comparación genuinamente lo requiere. Regenera la respuesta siendo más preciso y honesto sobre lo que sabes con certeza.`
+                    content: `Analiza tu respuesta anterior cuidadosamente. Tu respuesta anterior fue:\n\n${lastAiResponseText.substring(0, 1500)}\n\nAhora responde de nuevo la misma pregunta/solicitud pero de forma MEJOR y MAS COMPLETA. PROTOCOLO ANTI-ALUCINACIÓN ACTIVO: Verifica internamente cada dato, nombre, fecha, estadística o cifra antes de escribirlo. Si no estás 100% seguro de algún dato específico, indica la incertidumbre o simplemente omítelo y di que el usuario lo verifique. Es MEJOR admitir incertidumbre que dar datos incorrectos. IMPORTANTE PARA MATEMÁTICAS: Usa LaTeX con delimitadores correctos para TODAS las expresiones matemáticas: $formula$ para inline y $$formula$$ para bloques. NUNCA escribas matemáticas sin delimitadores. NUNCA cortes una ecuación en partes — va COMPLETA en un solo bloque. Usa prosa normal para explicar, tablas solo si la comparación genuinamente lo requiere. Regenera la respuesta siendo más preciso y honesto sobre lo que sabes con certeza.`
                 });
 
             }
@@ -3256,7 +3278,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
             return;
         }
 
-        /* Remove edited message wrapper and everything after it from the DOM */
         if (editedWrapperElement) {
             let node = editedWrapperElement.nextSibling;
             while (node) {
@@ -3267,10 +3288,8 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
             editedWrapperElement.parentNode.removeChild(editedWrapperElement);
         }
 
-        /* Trim the current chat messages and history back to before the edited message */
         const currentChat = chats.find(c => c.id === currentChatId);
         if (currentChat) {
-            /* Find the last user message from the end and cut from there */
             let cutIdx = -1;
             for (let i = currentChat.messages.length - 1; i >= 0; i--) {
                 if (currentChat.messages[i].type === 'user') {
@@ -3283,7 +3302,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
             }
         }
 
-        /* Also trim conversationHistory: remove last user + assistant pair if present */
         let trimIdx = conversationHistory.length - 1;
         while (trimIdx > 0) {
             if (conversationHistory[trimIdx].role === 'user') {
@@ -3421,10 +3439,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // renderMathInElement — usa MathJax en lugar de KaTeX.
-    // Mismo nombre de función para no romper las llamadas existentes.
-    // ═══════════════════════════════════════════════════════════════
     function renderMathInElement(element) {
         if (window.MathJax && window.MathJax.typesetPromise) {
             window.MathJax.typesetPromise([element]).catch(function(err) {
@@ -3433,7 +3447,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
         }
     }
 
-    // CAMBIO: parseMarkdownTable ahora también convierte ** y * dentro de celdas
     function parseMarkdownTable(text) {
 
         const lines = text.split('\n');
@@ -3453,9 +3466,7 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
                     result += '<table><thead><tr>';
                     const headers = line.trim().slice(1, -1).split('|').map(h => h.trim());
                     headers.forEach(function(h) {
-                        // CAMBIO: convertir markdown dentro de cabeceras de tabla
-                        const hConverted = convertInlineMarkdown(h);
-                        result += '<th>' + hConverted + '</th>';
+                        result += '<th>' + h + '</th>';
                     });
                     result += '</tr></thead><tbody>';
 
@@ -3465,9 +3476,7 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
                         result += '<tr>';
                         const cells = lines[i].trim().slice(1, -1).split('|').map(c => c.trim());
                         cells.forEach(function(c) {
-                            // CAMBIO: convertir markdown dentro de celdas de tabla
-                            const cConverted = convertInlineMarkdown(c);
-                            result += '<td>' + cConverted + '</td>';
+                            result += '<td>' + c + '</td>';
                         });
                         result += '</tr>';
                         i++;
@@ -3489,92 +3498,51 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
     }
 
-    // CAMBIO: función auxiliar para convertir markdown inline (**, *, ####, ###, ##, #)
-    // dentro de celdas de tabla y en texto general
-    function convertInlineMarkdown(text) {
-        if (!text) return text;
-        let result = text;
-        // Negritas (**texto** o __texto__)
-        result = result.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        result = result.replace(/__(.*?)__/g, '<strong>$1</strong>');
-        // Cursivas (*texto* o _texto_)
-        result = result.replace(/\*(.*?)\*/g, '<em>$1</em>');
-        result = result.replace(/_(.*?)_/g, '<em>$1</em>');
-        return result;
-    }
-
     function parseMarkdown(text) {
 
         if (!text) {
             return "";
         }
 
-        // ═══════════════════════════════════════════════════════
-        // PASO 1: Extraer todos los bloques LaTeX con placeholders
-        // ANTES de cualquier escape o procesamiento de HTML.
-        // Esto evita que escapeHtml rompa los delimitadores $ y
-        // los comandos \frac, \sqrt, etc.
-        // ═══════════════════════════════════════════════════════
         const { text: textWithPlaceholders, blocks: latexBlocks } = extractLatexBlocks(text);
 
-        // PASO 2: Extraer tablas HTML existentes
         const htmlTableBlocks = [];
         let processed = textWithPlaceholders.replace(/<table[\s\S]*?<\/table>/gi, function(match) {
             htmlTableBlocks.push(match);
             return '___HTML_TABLE_' + (htmlTableBlocks.length - 1) + '___';
         });
 
-        // PASO 3: Convertir tablas Markdown a HTML (con conversión de markdown en celdas)
         processed = parseMarkdownTable(processed);
 
-        // PASO 4: Guardar las tablas Markdown convertidas
         const markdownTableBlocks = [];
         processed = processed.replace(/<table[\s\S]*?<\/table>/gi, function(match) {
             markdownTableBlocks.push(match);
             return '___MD_TABLE_' + (markdownTableBlocks.length - 1) + '___';
         });
 
-        // PASO 5: Escapar HTML del texto (los placeholders LaTeX
-        // son solo caracteres \x00 + texto ASCII, sobreviven el escape)
         let parsed = escapeHtml(processed);
 
-        // ═══════════════════════════════════════════════════════
-        // PASO 6: Procesar Markdown — headings ####/###/##/#,
-        // negritas **texto** y __texto__, cursivas *texto* y _texto_,
-        // listas con * o - seguidas de espacio, agrupadas en <ul>.
-        // ═══════════════════════════════════════════════════════
-
-        // Encabezados (####, ###, ##, #) — de mayor a menor especificidad
         parsed = parsed.replace(/^#### (.*?)$/gm, '<h4>$1</h4>');
         parsed = parsed.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
         parsed = parsed.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
         parsed = parsed.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
 
-        // Negritas (**texto** o __texto__)
         parsed = parsed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         parsed = parsed.replace(/__(.*?)__/g, '<strong>$1</strong>');
 
-        // Cursivas (*texto* o _texto_) — después de negritas para no colisionar
         parsed = parsed.replace(/\*(.*?)\*/g, '<em>$1</em>');
         parsed = parsed.replace(/_(.*?)_/g, '<em>$1</em>');
 
-        // Listas desordenadas (líneas que empiezan con * o - seguidas de espacio)
         parsed = parsed.replace(/^\s*[\*\-]\s+(.*?)$/gm, '<li>$1</li>');
 
-        // Envolver grupos de <li> en <ul>
         parsed = parsed.replace(/(<li>.*?<\/li>)/gs, '<ul>$1</ul>');
 
-        // Corregir etiquetas <ul> duplicadas adyacentes
         parsed = parsed.replace(/<\/ul>\s*<ul>/g, '');
 
-        // Saltos de línea para el resto del texto
         parsed = parsed.replace(/\n/g, '<br>');
 
-        // PASO 7: Reinyectar los bloques LaTeX originales SIN escapar
-        // para que MathJax pueda procesarlos correctamente
         parsed = reinjertLatexBlocks(parsed, latexBlocks);
 
-        // PASO 8: Reinyectar tablas HTML
         parsed = parsed.replace(/___HTML_TABLE_(\d+)___/g, function(match, idx) {
             return htmlTableBlocks[parseInt(idx)];
         });
@@ -3660,7 +3628,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
         w.className = `msg-wrapper ${type}-wrapper`;
 
-        /* Image always above the bubble, no extra margin below when there is also text */
         if (img) {
 
             const i = document.createElement('img');
@@ -3669,21 +3636,10 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
             i.className = 'chat-img';
 
-            // CAMBIO: manejar error de imagen rota (cuando se recarga el chat y la imagen ya no está en memoria)
-            i.onerror = function() {
-                const placeholder = document.createElement('div');
-                placeholder.className = 'chat-img-broken';
-                placeholder.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(196,181,253,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Imagen no disponible</span>`;
-                if (i.parentNode) {
-                    i.parentNode.replaceChild(placeholder, i);
-                }
-            };
-
             w.appendChild(i);
 
         }
 
-        /* Only add the bubble if there is text content */
         if (t) {
 
             const b = document.createElement('div');
@@ -3710,7 +3666,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
                 }).join('');
 
-                // Para mensajes con bloques de código, renderizar MathJax en las partes no-código
                 setTimeout(function() {
                     renderMathInElement(b);
                 }, 0);
@@ -3718,11 +3673,8 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
             } else {
 
                 if (type === 'ai') {
-                    // Usar el sistema de reparación de fórmulas para mensajes de IA
-                    // Primero mostrar placeholder si hay LaTeX potencialmente roto
                     if (containsBrokenLatex(t)) {
                         b.innerHTML = createFormulaLoadingPlaceholderBlock();
-                        // Reparar asincrónicamente
                         repairLatexWithAI(t).then(function(repairedText) {
                             b.innerHTML = parseMarkdown(repairedText);
                             setTimeout(function() {
@@ -3749,7 +3701,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
             if (type === 'ai') {
 
-                /* Actions row: copy + regen + stars */
                 const actionsDiv = document.createElement('div');
                 actionsDiv.className = 'ai-actions';
 
@@ -3773,7 +3724,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
                     regenerateLastResponse();
                 };
 
-                /* Star rating */
                 const ratingDiv = document.createElement('div');
                 ratingDiv.className = 'ai-rating';
                 const msgIdx = aiMsgCounter++;
@@ -3785,7 +3735,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
                 actionsDiv.appendChild(ratingDiv);
                 w.appendChild(actionsDiv);
 
-                /* Disclaimer */
                 const disclaimer = document.createElement('div');
                 disclaimer.className = 'ai-disclaimer';
                 disclaimer.textContent = 'DarkMatter IA es una inteligencia artificial y puede cometer errores.';
@@ -3794,8 +3743,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
             }
 
         } else if (img && !t) {
-
-            /* Image only, no text bubble — still need the wrapper in the DOM */
 
         }
 
@@ -3865,9 +3812,11 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
             l.id = 'loader';
 
+            // CAMBIO 2: Wrapper con display inline-flex para que se ajuste al contenido
             l.className = 'msg-wrapper ai-wrapper';
+            l.style.maxWidth = 'fit-content';
 
-            l.innerHTML = '<div class="bubble ai-bubble dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+            l.innerHTML = '<div class="bubble ai-bubble dots" style="width:auto;display:inline-flex;padding:14px 20px;"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
 
             chat.appendChild(l);
 
