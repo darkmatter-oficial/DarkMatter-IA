@@ -4,9 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DarkMatter Pro AI</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
     <style>
         :root {
             --bg-color: #14081f;
@@ -478,23 +488,15 @@
         .user-bubble { background: var(--user-bubble); border-bottom-right-radius: 4px; animation: slideUp 0.5s ease-out forwards; }
         .ai-bubble { background: var(--ai-bubble); border: 1px solid rgba(168, 85, 247, 0.15); border-bottom-left-radius: 4px; animation: slideUp 0.5s ease-out forwards; }
 
-        .katex {
+        .MathJax {
             color: #f0e6ff;
             font-size: 1em;
         }
 
-        .katex-display {
+        .MathJax_Display {
             margin: 10px 0;
             overflow-x: auto;
             overflow-y: hidden;
-        }
-
-        .katex-display > .katex {
-            font-size: 1.1em;
-        }
-
-        .katex-error {
-            display: none !important;
         }
 
         .ai-bubble table {
@@ -1386,28 +1388,21 @@
             // Renderizar el texto reparado
             bubbleElement.innerHTML = parseMarkdown(repairedText);
 
-            // Renderizar KaTeX en el elemento reparado
+            // Renderizar MathJax en el elemento reparado
             setTimeout(function() {
-                renderKatexInElement(bubbleElement);
-                // Segunda pasada: verificar si KaTeX aún dejó errores visibles y volver a reparar
-                const errorSpans = bubbleElement.querySelectorAll('.katex-error');
-                if (errorSpans.length > 0) {
-                    errorSpans.forEach(function(errSpan) {
-                        errSpan.style.display = 'none';
-                    });
-                }
+                renderMathInElement(bubbleElement);
             }, 0);
         } else {
             // No hay LaTeX roto, renderizar normalmente
             if (isCodeBlock) {
-                // El contenido ya fue seteado antes, solo renderizar KaTeX
+                // El contenido ya fue seteado antes, solo renderizar MathJax
                 setTimeout(function() {
-                    renderKatexInElement(bubbleElement);
+                    renderMathInElement(bubbleElement);
                 }, 0);
             } else {
                 bubbleElement.innerHTML = parseMarkdown(rawText);
                 setTimeout(function() {
-                    renderKatexInElement(bubbleElement);
+                    renderMathInElement(bubbleElement);
                 }, 0);
             }
         }
@@ -2626,13 +2621,11 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // NUEVO SISTEMA DE RENDERIZADO MATEMÁTICO — REEMPLAZA preprocessLatex
-    // El problema original: escapeHtml() se ejecutaba DESPUÉS de extraer
-    // el LaTeX, pero el HTML resultante tenía los $ escapados como &#36;
-    // o los comandos \frac escapados como \\frac, rompiendo KaTeX.
-    // Solución: extraer bloques LaTeX PRIMERO, reemplazarlos con
-    // placeholders únicos, aplicar escapeHtml solo al texto restante,
-    // luego reinyectar el LaTeX original sin escapar.
+    // SISTEMA DE RENDERIZADO MATEMÁTICO CON MATHJAX
+    // Reemplaza el sistema anterior basado en KaTeX.
+    // Estrategia: extraer bloques LaTeX con placeholders ANTES de
+    // escapar HTML, luego reinyectarlos limpios para que MathJax
+    // los procese correctamente.
     // ═══════════════════════════════════════════════════════════════
 
     function extractLatexBlocks(text) {
@@ -3362,34 +3355,16 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
     }
 
-    function renderKatexInElement(element) {
-
-        if (typeof renderMathInElement !== 'undefined') {
-
-            renderMathInElement(element, {
-                delimiters: [
-                    { left: "$$", right: "$$", display: true },
-                    { left: "$", right: "$", display: false },
-                    { left: "\\(", right: "\\)", display: false },
-                    { left: "\\[", right: "\\]", display: true }
-                ],
-                throwOnError: false,
-                errorColor: '#cc0000',
-                strict: false,
-                trust: false,
-                macros: {
-                    "\\sqrt": "\\sqrt"
-                }
+    // ═══════════════════════════════════════════════════════════════
+    // renderMathInElement — usa MathJax en lugar de KaTeX.
+    // Mismo nombre de función para no romper las llamadas existentes.
+    // ═══════════════════════════════════════════════════════════════
+    function renderMathInElement(element) {
+        if (window.MathJax && window.MathJax.typesetPromise) {
+            window.MathJax.typesetPromise([element]).catch(function(err) {
+                console.log("Error al procesar MathJax: " + err.message);
             });
-
-            // Ocultar cualquier span de error de KaTeX que haya quedado visible
-            const errorSpans = element.querySelectorAll('.katex-error');
-            errorSpans.forEach(function(errSpan) {
-                errSpan.style.display = 'none';
-            });
-
         }
-
     }
 
     function parseMarkdownTable(text) {
@@ -3490,7 +3465,7 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
         parsed = parsed.replace(/<\/ul><br><ul>/g, '');
 
         // PASO 7: Reinyectar los bloques LaTeX originales SIN escapar
-        // para que KaTeX pueda procesarlos correctamente
+        // para que MathJax pueda procesarlos correctamente
         parsed = reinjertLatexBlocks(parsed, latexBlocks);
 
         // PASO 8: Reinyectar tablas HTML
@@ -3619,9 +3594,9 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
                 }).join('');
 
-                // Para mensajes con bloques de código, renderizar KaTeX en las partes no-código
+                // Para mensajes con bloques de código, renderizar MathJax en las partes no-código
                 setTimeout(function() {
-                    renderKatexInElement(b);
+                    renderMathInElement(b);
                 }, 0);
 
             } else {
@@ -3635,20 +3610,20 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
                         repairLatexWithAI(t).then(function(repairedText) {
                             b.innerHTML = parseMarkdown(repairedText);
                             setTimeout(function() {
-                                renderKatexInElement(b);
+                                renderMathInElement(b);
                             }, 0);
                             chat.scrollTop = chat.scrollHeight;
                         });
                     } else {
                         b.innerHTML = parseMarkdown(t);
                         setTimeout(function() {
-                            renderKatexInElement(b);
+                            renderMathInElement(b);
                         }, 0);
                     }
                 } else {
                     b.innerHTML = parseMarkdown(t);
                     setTimeout(function() {
-                        renderKatexInElement(b);
+                        renderMathInElement(b);
                     }, 0);
                 }
 
