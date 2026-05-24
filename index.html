@@ -3453,16 +3453,38 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
         // son solo caracteres \x00 + texto ASCII, sobreviven el escape)
         let parsed = escapeHtml(processed);
 
-        // PASO 6: Procesar Markdown (headings, bold, listas)
-        parsed = parsed.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-        parsed = parsed.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-        parsed = parsed.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-        parsed = parsed.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
-        parsed = parsed.replace(/^\* (.*$)/gim, '<li>$1</li>');
-        parsed = parsed.replace(/^\- (.*$)/gim, '<li>$1</li>');
-        parsed = parsed.replace(/(<li>.*<\/li>)/gims, '<ul>$1</ul>');
+        // ═══════════════════════════════════════════════════════
+        // PASO 6: Procesar Markdown usando la lógica de la página
+        // de referencia (convertirMarkdown) — headings ####/###/##/#,
+        // negritas **texto** y __texto__, cursivas *texto* y _texto_,
+        // listas con * o - seguidas de espacio, agrupadas en <ul>.
+        // ═══════════════════════════════════════════════════════
+
+        // Encabezados (####, ###, ##, #) — de mayor a menor especificidad
+        parsed = parsed.replace(/^#### (.*?)$/gm, '<h4>$1</h4>');
+        parsed = parsed.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
+        parsed = parsed.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
+        parsed = parsed.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
+
+        // Negritas (**texto** o __texto__)
+        parsed = parsed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        parsed = parsed.replace(/__(.*?)__/g, '<strong>$1</strong>');
+
+        // Cursivas (*texto* o _texto_) — después de negritas para no colisionar
+        parsed = parsed.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        parsed = parsed.replace(/_(.*?)_/g, '<em>$1</em>');
+
+        // Listas desordenadas (líneas que empiezan con * o - seguidas de espacio)
+        parsed = parsed.replace(/^\s*[\*\-]\s+(.*?)$/gm, '<li>$1</li>');
+
+        // Envolver grupos de <li> en <ul>
+        parsed = parsed.replace(/(<li>.*?<\/li>)/gs, '<ul>$1</ul>');
+
+        // Corregir etiquetas <ul> duplicadas adyacentes
+        parsed = parsed.replace(/<\/ul>\s*<ul>/g, '');
+
+        // Saltos de línea para el resto del texto
         parsed = parsed.replace(/\n/g, '<br>');
-        parsed = parsed.replace(/<\/ul><br><ul>/g, '');
 
         // PASO 7: Reinyectar los bloques LaTeX originales SIN escapar
         // para que MathJax pueda procesarlos correctamente
