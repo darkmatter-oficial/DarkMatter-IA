@@ -472,7 +472,7 @@
             padding: 14px 18px;
             border-radius: 22px;
             font-size: 0.9rem;
-            line-height: 1.6;
+            line-height: 1.7;
             box-shadow: 0 10px 25px rgba(0,0,0,0.25);
             white-space: normal;
             word-wrap: break-word;
@@ -505,28 +505,45 @@
             overflow-y: hidden;
         }
 
-        /* ── BLOQUE DE FÓRMULA GENERAL (grande, centrada, destacada) ── */
-        .math-display-block {
+        /* MEJORADO: Estilos para fórmulas matemáticas estilo ChatGPT */
+        .math-display-wrapper {
             display: block;
             width: 100%;
             text-align: center;
-            margin: 18px 0;
+            margin: 16px 0;
             padding: 14px 10px;
             overflow-x: auto;
+            overflow-y: hidden;
+            line-height: 1;
         }
 
-        .math-display-block mjx-container,
-        .math-display-block .MathJax {
-            font-size: 1.25em !important;
+        .math-display-wrapper mjx-container,
+        .math-display-wrapper .MathJax {
+            font-size: 1.1em !important;
         }
 
-        /* ── FÓRMULA INLINE NORMAL (dentro del texto o en sustitución) ── */
+        .math-inline-wrapper {
+            display: inline;
+            margin: 0 1px;
+        }
+
+        /* Eliminar puntos y bullets antes/después de fórmulas */
+        .ai-bubble p {
+            margin: 0 0 10px 0;
+            line-height: 1.7;
+        }
+
+        .ai-bubble p:last-child {
+            margin-bottom: 0;
+        }
+
         .ai-bubble mjx-container[display="true"] {
             display: block !important;
-            margin: 10px auto !important;
+            margin: 16px auto !important;
             text-align: center !important;
             overflow-x: auto !important;
             overflow-y: hidden !important;
+            padding: 10px 0 !important;
         }
 
         .ai-bubble mjx-container[display="false"] {
@@ -534,10 +551,36 @@
             margin: 0 2px !important;
         }
 
+        /* Estilo ChatGPT para listas — sin bullet antes de fórmulas */
+        .ai-bubble ul {
+            padding-left: 22px;
+            margin: 10px 0;
+            list-style-type: disc;
+        }
+
+        .ai-bubble ol {
+            padding-left: 22px;
+            margin: 10px 0;
+            list-style-type: decimal;
+        }
+
+        .ai-bubble li {
+            margin-bottom: 6px;
+            line-height: 1.7;
+        }
+
+        /* Si un li contiene SOLO una fórmula, la centramos y quitamos el bullet */
+        .ai-bubble li.formula-only-li {
+            list-style: none;
+            margin-left: -22px;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
         .ai-bubble table {
             border-collapse: collapse;
             width: 100%;
-            margin: 10px 0;
+            margin: 14px 0;
             font-size: 0.85rem;
             overflow-x: auto;
             display: block;
@@ -694,6 +737,20 @@
             transform: scale(0.95);
         }
 
+        /* Headings estilo ChatGPT */
+        .ai-bubble h1, .ai-bubble h2, .ai-bubble h3,
+        .ai-bubble h4, .ai-bubble h5, .ai-bubble h6 {
+            margin-top: 18px;
+            margin-bottom: 8px;
+            color: #ffffff;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .ai-bubble h1 { font-size: 1.4rem; border-bottom: 1px solid rgba(168,85,247,0.2); padding-bottom: 6px; }
+        .ai-bubble h2 { font-size: 1.2rem; }
+        .ai-bubble h3 { font-size: 1.05rem; color: #e9d5ff; }
+
         h1, h2, h3, h4, h5, h6 {
             margin-top: 12px;
             margin-bottom: 8px;
@@ -701,17 +758,9 @@
             animation: slideUp 0.5s ease-out forwards;
         }
 
-        h1 {
-            font-size: 1.5rem;
-        }
-
-        h2 {
-            font-size: 1.3rem;
-        }
-
-        h3 {
-            font-size: 1.1rem;
-        }
+        h1 { font-size: 1.5rem; }
+        h2 { font-size: 1.3rem; }
+        h3 { font-size: 1.1rem; }
 
         strong {
             color: #ffffff;
@@ -1199,6 +1248,7 @@
             box-shadow: 0 0 12px rgba(168, 85, 247, 0.5);
         }
 
+        /* Star rating styles */
         .ai-rating {
             display: flex;
             gap: 3px;
@@ -1422,77 +1472,8 @@
         }
     }
 
-    function loadUserMemory() {
-        try {
-            const raw = localStorage.getItem('darkmatter_user_memory');
-            if (raw) {
-                return JSON.parse(raw);
-            }
-        } catch (e) {}
-        return {};
-    }
-
-    function saveUserMemory(memObj) {
-        try {
-            localStorage.setItem('darkmatter_user_memory', JSON.stringify(memObj));
-        } catch (e) {}
-    }
-
-    function getUserMemoryString() {
-        const mem = loadUserMemory();
-        const keys = Object.keys(mem);
-        if (keys.length === 0) return '';
-        let parts = [];
-        keys.forEach(function(k) {
-            parts.push(k + ': ' + mem[k]);
-        });
-        return parts.join('; ');
-    }
-
-    async function extractAndSaveUserInfo(userText, aiText) {
-        try {
-            const memStr = getUserMemoryString();
-            const contextNote = memStr.length > 0 ? ('Lo que ya sabes del usuario: ' + memStr + '. ') : '';
-            const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${KEY}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    model: "meta-llama/llama-4-scout-17b-16e-instruct",
-                    messages: [
-                        {
-                            role: "system",
-                            content: "Eres un extractor de información personal del usuario. " + contextNote + "Analiza el siguiente intercambio entre usuario e IA y extrae SOLO datos personales nuevos y relevantes del usuario: nombre, edad, ocupación, ciudad, país, gustos, hobbies, intereses, comportamiento, personalidad, idioma preferido, estilo de comunicación, estudios, trabajo, familia, mascotas, comidas favoritas, música, deportes, metas, problemas recurrentes, o cualquier otro dato personal. Si no hay nada nuevo relevante, responde exactamente con: NADA. Si hay datos, responde SOLO con un JSON plano de una sola línea como: {\"nombre\":\"Juan\",\"hobby\":\"programar\"}. Sin explicaciones, sin texto extra, solo el JSON o NADA."
-                        },
-                        {
-                            role: "user",
-                            content: "Mensaje del usuario: " + userText.substring(0, 600) + "\nRespuesta de la IA: " + aiText.substring(0, 600)
-                        }
-                    ],
-                    temperature: 0.1,
-                    max_tokens: 200
-                })
-            });
-            if (r.ok) {
-                const d = await r.json();
-                if (d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) {
-                    const raw = d.choices[0].message.content.trim();
-                    if (raw !== 'NADA' && raw.startsWith('{')) {
-                        try {
-                            const parsed = JSON.parse(raw);
-                            const existing = loadUserMemory();
-                            Object.keys(parsed).forEach(function(k) {
-                                existing[k] = parsed[k];
-                            });
-                            saveUserMemory(existing);
-                        } catch (parseErr) {}
-                    }
-                }
-            }
-        } catch (e) {}
-    }
+    // MODIFICADO: Eliminadas todas las funciones de memoria de usuario
+    // No se guarda ni carga información personal del usuario
 
     function buildSystemPromptContent() {
         const baseContent = `Eres DarkMatter Pro AI, una IA amigable, cercana y genuinamente interesada en el usuario — no eres una IA fría y plana, eres como un amigo inteligente que ayuda con todo. Responde siempre en español. Cuando el usuario te haga una pregunta, responde de forma completa, detallada y bien explicada. No des resúmenes ni respuestas cortas a menos que el usuario lo pida explícitamente. Explica cada concepto con claridad, da ejemplos cuando sea útil, desarrolla los temas paso a paso y asegúrate de que el usuario entienda bien el tema. Si el usuario te pide que seas más corto, más resumido o más conciso, entonces adáptate a eso. Si recibes una imagen, analízala detalladamente. Siempre sé exhaustivo en tus explicaciones por defecto.
@@ -1524,7 +1505,7 @@ REGLAS ESPECÍFICAS INNEGOCIABLES:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 REGLA 1 — NOMBRES COMPLETOS DE PERSONAS:
-Si no recuerdas el nombre completo y exacto de una persona con certeza absoluta del 100%, NO escribas el apellido ni ninguna parte que no estés seguro. Di solamente el nombre que sí recuerdas con certeza, y para la parte dudosa usa: "cuyo apellido no recuerdo con exactitud". 
+Si no recuerdas el nombre completo y exacto de una persona con certeza absoluta del 100%, NO escribas el apellido ni ninguna parte que no estés seguro. Di solamente el nombre que sí recuerdas con certeza, y para la parte dudosa usa: "cuyo apellido no recuerdo con exactitud".
 EJEMPLO DE ERROR GRAVE QUE JAMÁS DEBES REPETIR: Escribir "Emmanuel Gazol Rodríguez" cuando el nombre real es "Emmanuel Gazmey Santiago". Inventar un apellido falso es peor que no dar ninguno.
 
 REGLA 2 — FECHAS DE NACIMIENTO Y DATOS BIOGRÁFICOS:
@@ -1622,49 +1603,36 @@ Cuando el ejercicio pide relacionar imágenes con opciones de texto:
 FIN DEL PROTOCOLO DE ANÁLISIS DE IMÁGENES
 ════════════════════════════════════════════════════════
 
-════════════════════════════════════════════════════════
-📐 PROTOCOLO DE FORMATO MATEMÁTICO — LEE CON MÁXIMA ATENCIÓN
-════════════════════════════════════════════════════════
+REGLA CRÍTICA SOBRE FORMATO MATEMÁTICO — LEE CON ATENCIÓN MÁXIMA:
+SIEMPRE que escribas fórmulas, expresiones matemáticas, fracciones, exponentes, raíces, integrales, sumatorias, límites, derivadas, o cualquier símbolo matemático, DEBES usar formato LaTeX con delimitadores correctos. NUNCA escribas matemáticas en texto plano.
 
-REGLA CRÍTICA: NUNCA dejes un símbolo $ suelto visible en tu respuesta. SIEMPRE que abras un $ debes cerrarlo correctamente. Si usas $$, ciérralo con $$. Si usas $, ciérralo con $. Un $ suelto sin cerrar rompe el renderizado y es visible al usuario como texto plano.
+REGLAS DE FORMATO MATEMÁTICO ESTILO CHATGPT — CRÍTICO:
+1. Fórmulas IMPORTANTES (definiciones, fórmulas principales, resultados clave) → usa bloques $$ ... $$ centrados y destacados. Estas deben aparecer solas en su línea, con una línea en blanco ANTES y DESPUÉS de la fórmula.
+2. Fórmulas de RESOLUCIÓN o pasos intermedios → usa $$ ... $$ también, con una línea en blanco antes y después.
+3. Variables y expresiones CORTAS dentro del texto → usa $ ... $ inline, integradas naturalmente en la oración.
+4. NUNCA cortes una fórmula en múltiples líneas con saltos de párrafo intermedios. Una fórmula va COMPLETA en un solo bloque $$ ... $$.
+5. NUNCA escribas matemáticas sin delimitadores LaTeX.
+6. NUNCA pongas un punto "." después de una fórmula en bloque $$...$$. Los puntos van solo al final de oraciones de texto, nunca después de fórmulas.
+7. NUNCA pongas un bullet "•" o "- " inmediatamente antes de una fórmula $$ ... $$. Si quieres presentar una fórmula como un punto de una lista, escribe primero el texto descriptivo en el bullet y luego la fórmula en su propio bloque $$ fuera de la lista.
+8. NUNCA pongas texto suelto como "dB." o "m/s" o cualquier unidad en una línea separada debajo de una fórmula. Si la fórmula incluye unidades, ponlas DENTRO de la fórmula con \\text{dB} o similar.
+9. Cuando una resolución encadena pasos como β = 10log(10⁵) = 10×5 = 50 dB, todo ese encadenamiento va en UN SOLO bloque $$ sin dividirlo.
+10. El texto explicativo va ANTES de la fórmula, no después en línea separada.
 
-SISTEMA DE DOS NIVELES PARA FÓRMULAS MATEMÁTICAS:
+EJEMPLOS CORRECTOS DE FORMATO:
+- Texto: "La fórmula del nivel de intensidad sonora es:"
+  (línea en blanco)
+  $$\\beta = 10 \\log\\left(\\frac{I}{I_0}\\right)$$
+  (línea en blanco)
+  Texto: "donde $I_0 = 10^{-12} \\, \\text{W/m}^2$ es la intensidad de referencia."
 
-NIVEL 1 — FÓRMULAS GENERALES Y DEFINICIONES PRINCIPALES:
-Usa $$formula$$ en su propia línea, sola, sin texto antes ni después en esa misma línea.
-Aplica este nivel para:
-- La fórmula principal o definición del tema (por ejemplo, la fórmula del nivel de intensidad sonora)
-- Fórmulas físicas o matemáticas canónicas que defines al inicio
-- Resultados o conclusiones importantes que quieres destacar visualmente
-Estas fórmulas se verán GRANDES y CENTRADAS, destacadas visualmente.
-EJEMPLO CORRECTO:
-La fórmula del nivel de intensidad sonora es:
-$$\\beta = 10 \\log\\left(\\frac{I}{I_0}\\right)$$
-donde $I_0 = 10^{-12}$ W/m² es la intensidad de referencia.
+- Texto: "Sustituyendo los valores:"
+  (línea en blanco)
+  $$\\beta = 10 \\log\\left(\\frac{10^{-7}}{10^{-12}}\\right) = 10 \\log(10^5) = 10 \\times 5 = 50 \\, \\text{dB}$$
 
-NIVEL 2 — FÓRMULAS DE SUSTITUCIÓN, CÁLCULO Y PASOS INTERMEDIOS:
-Usa $formula$ inline dentro del texto o en su propia línea pero sin el bloque grande.
-Aplica este nivel para:
-- Cuando sustituyes valores numéricos en una fórmula
-- Pasos de cálculo paso a paso
-- Resultados intermedios
-- Variables dentro de oraciones explicativas
-EJEMPLO CORRECTO:
-Sustituyendo $I = 2 \\times 10^{-7}$ W/m²:
-$\\beta = 10 \\log\\left(\\frac{2 \\times 10^{-7}}{10^{-12}}\\right) = 10 \\log(2 \\times 10^5)$
-$\\beta = 10(\\log 2 + \\log 10^5) = 10(0.301 + 5) = 53.01$ dB
-**Respuesta: $\\beta \\approx 53$ dB**
-
-REGLAS ADICIONALES OBLIGATORIAS:
-1. NUNCA escribas matemáticas sin delimitadores LaTeX. Ni exponentes, ni fracciones, ni variables matemáticas en texto plano.
-2. NUNCA cortes una fórmula en múltiples líneas con saltos intermedios — va COMPLETA en un solo bloque.
-3. Para variables dentro de oraciones de texto, usa siempre $variable$ inline: "donde $I$ es la intensidad".
-4. Usa $$ ... $$ SOLO para la fórmula general/canónica. Para todo lo demás usa $ ... $ inline.
-5. NUNCA termines una línea con un $ suelto. SIEMPRE verifica que cada $ tenga su pareja de cierre.
-
-════════════════════════════════════════════════════════
-FIN DEL PROTOCOLO DE FORMATO MATEMÁTICO
-════════════════════════════════════════════════════════
+EJEMPLOS INCORRECTOS (NUNCA HACER ESTO):
+- "• $$\\beta = 10 \\log(I/I_0)$$" ← bullet antes de fórmula en bloque: MAL
+- "$$formula$$\ndB." ← punto o unidad debajo de fórmula: MAL
+- "$$formula$$\n\n, donde..." ← coma al inicio después de fórmula: MAL
 
 REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 - USA PROSA NORMAL por defecto para la gran mayoría de respuestas. Escribe como si le hablaras a un amigo: párrafos fluidos, lenguaje natural, sin estructura forzada.
@@ -1675,10 +1643,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 - Una respuesta conversacional, una explicación de concepto, una opinión, una recomendación, una historia, una definición → SIEMPRE en prosa normal, sin tablas, sin listas forzadas. Solo usa LaTeX si aparece matemática real.
 - Si la respuesta naturalmente fluye como texto corrido, escríbela como texto corrido. No fragmentes información que fluye bien en prosa en bullets artificiales.`;
 
-        const memStr = getUserMemoryString();
-        if (memStr.length > 0) {
-            return baseContent + '\n\nINFORMACIÓN PERSONAL DEL USUARIO QUE RECUERDAS (úsala para personalizar tu trato, hacer referencias naturales y ser un mejor amigo/asistente): ' + memStr;
-        }
         return baseContent;
     }
 
@@ -2424,6 +2388,13 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
     checkPreviousSessionGeneration();
 
+    // MODIFICADO: Limpiar datos personales guardados anteriormente
+    (function clearOldPersonalData() {
+        try {
+            localStorage.removeItem('darkmatter_user_memory');
+        } catch (e) {}
+    })();
+
     function setGeneratingState(state) {
 
         isGeneratingResponse = state;
@@ -2710,60 +2681,42 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
     }
 
-    /*
-     * ─────────────────────────────────────────────────────────────────
-     *  NUEVO extractLatexBlocks — protege los bloques LaTeX antes de
-     *  que escapeHtml los rompa, y los reinyecta después.
-     *  CORRECCIÓN PRINCIPAL: ya no genera $ sueltos al convertir \[ \]
-     *  y ahora detecta líneas con LaTeX sin delimitadores con mayor
-     *  precisión para evitar falsos positivos.
-     * ─────────────────────────────────────────────────────────────────
-     */
     function extractLatexBlocks(text) {
         const blocks = [];
         let result = text;
 
-        /* 1. Normalizar \[ ... \] → $$ ... $$ */
         result = result.replace(/\\\[([\s\S]*?)\\\]/g, function(match, inner) {
-            return '$$' + inner.trim() + '$$';
+            return '$$' + inner + '$$';
         });
-
-        /* 2. Normalizar \( ... \) → $ ... $ */
         result = result.replace(/\\\(([\s\S]*?)\\\)/g, function(match, inner) {
-            return '$' + inner.trim() + '$';
+            return '$' + inner + '$';
         });
 
-        /* 3. Detectar líneas con LaTeX crudo SIN delimitadores y envolverlas.
-              Solo actúa si la línea NO contiene ya ningún $. */
         result = result.split('\n').map(function(line) {
-            if (/\$/.test(line)) return line; // ya tiene delimitadores → no tocar
+            if (/\$/.test(line)) return line;
 
-            const hasLatexCommands = /\\(?:frac|sqrt|cdot|sum|int|left|right|times|div|pm|mp|leq|geq|neq|approx|infty|partial|nabla|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|phi|omega|forall|exists|in|notin|subset|supset|cup|cap|wedge|vee|neg|Rightarrow|Leftarrow|Leftrightarrow|rightarrow|leftarrow|uparrow|downarrow|overline|underline|hat|bar|vec|dot|ddot|tilde|mathbf|mathrm|mathit|text|begin|end|pmatrix|bmatrix|vmatrix)\b/.test(line);
+            const hasLatexCommands = /\\(frac|sqrt|cdot|sum|int|left|right|times|div|pm|mp|leq|geq|neq|approx|infty|partial|nabla|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|phi|omega|forall|exists|in|notin|subset|supset|cup|cap|wedge|vee|neg|Rightarrow|Leftarrow|Leftrightarrow|rightarrow|leftarrow|uparrow|downarrow|overline|underline|hat|bar|vec|dot|ddot|tilde|mathbf|mathrm|mathit|text|begin|end|pmatrix|bmatrix|vmatrix)\b/.test(line);
             const hasSubSuperScript = /[a-zA-Z0-9]_\{|[a-zA-Z0-9]\^\{/.test(line);
             const hasUndelimitedLatex = /[a-zA-Z]\s*[=(]\s*\\[a-zA-Z]/.test(line) || /\\[a-zA-Z]+\{/.test(line);
 
             if (hasLatexCommands || hasSubSuperScript || hasUndelimitedLatex) {
-                return '$$' + line.trim() + '$$';
+                const trimmed = line.trim();
+                return '$$' + trimmed + '$$';
             }
             return line;
         }).join('\n');
 
-        /* 4. Extraer bloques $$ ... $$ primero (display) */
         result = result.replace(/\$\$([\s\S]*?)\$\$/g, function(match) {
             const placeholder = '\x00LATEXDISPLAY' + blocks.length + '\x00';
             blocks.push({ placeholder: placeholder, original: match, type: 'display' });
             return placeholder;
         });
 
-        /* 5. Extraer bloques $ ... $ (inline) — solo los que quedan */
         result = result.replace(/\$([^\$\n]+?)\$/g, function(match) {
             const placeholder = '\x00LATEXINLINE' + blocks.length + '\x00';
             blocks.push({ placeholder: placeholder, original: match, type: 'inline' });
             return placeholder;
         });
-
-        /* 6. Eliminar cualquier $ suelto que haya quedado sin pareja */
-        result = result.replace(/\$/g, '');
 
         return { text: result, blocks: blocks };
     }
@@ -2785,18 +2738,19 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
         if (!text) return "";
         let result = text;
         result = result.replace(/\\\[([\s\S]*?)\\\]/g, function(match, inner) {
-            return '$$' + inner.trim() + '$$';
+            return '$$' + inner + '$$';
         });
         result = result.replace(/\\\(([\s\S]*?)\\\)/g, function(match, inner) {
-            return '$' + inner.trim() + '$';
+            return '$' + inner + '$';
         });
         result = result.split('\n').map(function(line) {
             if (/\$/.test(line)) return line;
-            const hasLatexCommands = /\\(?:frac|sqrt|cdot|sum|int|left|right|times|div|pm|mp|leq|geq|neq|approx|infty|partial|nabla|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|phi|omega|forall|exists|in|notin|subset|supset|cup|cap|wedge|vee|neg|Rightarrow|Leftarrow|Leftrightarrow|rightarrow|leftarrow|uparrow|downarrow|overline|underline|hat|bar|vec|dot|ddot|tilde|mathbf|mathrm|mathit|text|begin|end|pmatrix|bmatrix|vmatrix)\b/.test(line);
+            const hasLatexCommands = /\\(frac|sqrt|cdot|sum|int|left|right|times|div|pm|mp|leq|geq|neq|approx|infty|partial|nabla|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|phi|omega|forall|exists|in|notin|subset|supset|cup|cap|wedge|vee|neg|Rightarrow|Leftarrow|Leftrightarrow|rightarrow|leftarrow|uparrow|downarrow|overline|underline|hat|bar|vec|dot|ddot|tilde|mathbf|mathrm|mathit|text|begin|end|pmatrix|bmatrix|vmatrix)\b/.test(line);
             const hasSubSuperScript = /[a-zA-Z0-9]_\{|[a-zA-Z0-9]\^\{/.test(line);
             const hasUndelimitedLatex = /[a-zA-Z]\s*[=(]\s*\\[a-zA-Z]/.test(line) || /\\[a-zA-Z]+\{/.test(line);
             if (hasLatexCommands || hasSubSuperScript || hasUndelimitedLatex) {
-                return '$$' + line.trim() + '$$';
+                const trimmed = line.trim();
+                return '$$' + trimmed + '$$';
             }
             return line;
         }).join('\n');
@@ -2936,10 +2890,7 @@ PASO 4 — RESUELVE CADA PUNTO:
 Resuelve CADA ejercicio, pregunta o punto numerado individualmente. No omitas ninguno.
 
 PASO 5 — MATEMÁTICAS:
-Si hay fórmulas o ecuaciones, usa el sistema de DOS NIVELES:
-- Fórmulas GENERALES o DEFINICIONES principales: usa $$formula$$ sola en su propia línea.
-- Fórmulas de SUSTITUCIÓN o cálculo paso a paso: usa $formula$ inline.
-- NUNCA dejes un $ suelto sin cerrar. NUNCA cortes una ecuación en partes.
+Si hay fórmulas o ecuaciones, escríbelas en LaTeX con una línea en blanco antes y después: usa $formula$ para inline y $$formula$$ para bloques. NUNCA pongas un punto "." después de una fórmula en bloque. NUNCA pongas un bullet "•" antes de una fórmula en bloque. Si la resolución encadena pasos, ponlos TODOS en un solo bloque $$. Las unidades van DENTRO de la fórmula con \\text{}.
 
 ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que aparece en la imagen."}`
                         },
@@ -3020,7 +2971,7 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
                 addMsg(aiResponse, 'ai');
                 await addMessageToCurrentChat('ai', aiResponse, null, true);
 
-                extractAndSaveUserInfo(text || '', aiResponse);
+                // MODIFICADO: Ya no se extraen ni guardan datos personales del usuario
 
             } else if (d.error) {
 
@@ -3135,7 +3086,7 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
                 historyForRetry.push({
                     role: "user",
-                    content: `Analiza tu respuesta anterior cuidadosamente. Tu respuesta anterior fue:\n\n${lastAiResponseText.substring(0, 1500)}\n\nAhora responde de nuevo la misma pregunta/solicitud pero de forma MEJOR y MAS COMPLETA. PROTOCOLO ANTI-ALUCINACIÓN ACTIVO: Verifica internamente cada dato, nombre, fecha, estadística o cifra antes de escribirlo. Si no estás 100% seguro de algún dato específico, indica la incertidumbre o simplemente omítelo y di que el usuario lo verifique. Es MEJOR admitir incertidumbre que dar datos incorrectos. IMPORTANTE PARA MATEMÁTICAS: Usa el sistema de DOS NIVELES — fórmulas GENERALES con $$formula$$ centradas y grandes, fórmulas de SUSTITUCIÓN/CÁLCULO con $formula$ inline. NUNCA dejes un $ suelto sin cerrar. NUNCA escribas matemáticas sin delimitadores. NUNCA cortes una ecuación en partes. Usa prosa normal para explicar, tablas solo si la comparación genuinamente lo requiere. Regenera la respuesta siendo más preciso y honesto sobre lo que sabes con certeza.`
+                    content: `Analiza tu respuesta anterior cuidadosamente. Tu respuesta anterior fue:\n\n${lastAiResponseText.substring(0, 1500)}\n\nAhora responde de nuevo la misma pregunta/solicitud pero de forma MEJOR y MAS COMPLETA. PROTOCOLO ANTI-ALUCINACIÓN ACTIVO: Verifica internamente cada dato, nombre, fecha, estadística o cifra antes de escribirlo. Si no estás 100% seguro de algún dato específico, indica la incertidumbre o simplemente omítelo y di que el usuario lo verifique. Es MEJOR admitir incertidumbre que dar datos incorrectos. IMPORTANTE PARA MATEMÁTICAS: Usa LaTeX con delimitadores correctos para TODAS las expresiones matemáticas: $formula$ para inline y $$formula$$ para bloques. Pon una línea en blanco ANTES y DESPUÉS de cada bloque $$. NUNCA pongas un punto "." después de una fórmula en bloque. NUNCA pongas un bullet antes de una fórmula en bloque. Si la resolución encadena pasos ponlos TODOS en un solo bloque $$. Usa prosa normal para explicar, tablas solo si la comparación genuinamente lo requiere. Regenera la respuesta siendo más preciso y honesto sobre lo que sabes con certeza.`
                 });
 
             }
@@ -3404,7 +3355,7 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
                 addMsg(aiResponse, 'ai');
                 await addMessageToCurrentChat('ai', aiResponse, null, true);
 
-                extractAndSaveUserInfo(newText, aiResponse);
+                // MODIFICADO: Ya no se extraen ni guardan datos personales del usuario
 
             } else if (d.error) {
 
@@ -3455,6 +3406,15 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
         let cleaned = text;
 
+        // MODIFICADO: Limpiar puntos finales después de fórmulas en bloque y bullets antes de ellas
+        // Eliminar "." suelto en línea propia inmediatamente después de un bloque $$
+        cleaned = cleaned.replace(/(\$\$[^$]*\$\$)\s*\n\s*\.\s*\n/g, '$1\n\n');
+        cleaned = cleaned.replace(/(\$\$[^$]*\$\$)\s*\n\s*\.\s*$/g, '$1');
+
+        // Eliminar ", donde" o ", con" al inicio de línea después de fórmulas (moverlo antes)
+        // Limpiar bullet • o - inmediatamente antes de $$ en la misma línea
+        cleaned = cleaned.replace(/^[\s]*[•\-]\s*(\$\$)/gm, '$1');
+
         cleaned = cleaned.replace(/```math/g, "```math");
         cleaned = cleaned.replace(/```lua/g, "```lua");
         cleaned = cleaned.replace(/```luau/g, "```luau");
@@ -3476,6 +3436,7 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
         }
     }
 
+    // MODIFICADO: parseMarkdown mejorado para manejar fórmulas estilo ChatGPT
     function parseMarkdownTable(text) {
 
         const lines = text.split('\n');
@@ -3527,15 +3488,6 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
     }
 
-    /*
-     * ─────────────────────────────────────────────────────────────────
-     *  NUEVO parseMarkdown — ahora los bloques $$ ... $$ se envuelven
-     *  en un <div class="math-display-block"> para que MathJax los
-     *  renderice grandes y centrados, igual que ChatGPT.
-     *  Los bloques $ ... $ (inline) se dejan tal cual para que MathJax
-     *  los renderice en línea con el texto.
-     * ─────────────────────────────────────────────────────────────────
-     */
     function parseMarkdown(text) {
 
         if (!text) {
@@ -3558,6 +3510,12 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
             return '___MD_TABLE_' + (markdownTableBlocks.length - 1) + '___';
         });
 
+        // MODIFICADO: Pre-procesar para eliminar puntos y bullets antes de fórmulas
+        // Quitar "." solo en línea después de placeholder de fórmula display
+        processed = processed.replace(/(\x00LATEXDISPLAY\d+\x00)\s*\n\s*\.\s*(\n|$)/g, '$1\n$2');
+        // Quitar bullet • o - al inicio de línea que contiene SOLO un placeholder de display
+        processed = processed.replace(/^[\s]*[•\-]\s*(\x00LATEXDISPLAY\d+\x00)\s*$/gm, '$1');
+
         let parsed = escapeHtml(processed);
 
         parsed = parsed.replace(/^#### (.*?)$/gm, '<h4>$1</h4>');
@@ -3579,27 +3537,7 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
         parsed = parsed.replace(/\n/g, '<br>');
 
-        /* Reinyectar bloques LaTeX y envolver los display en div centrado */
-        let reinjected = parsed;
-        latexBlocks.forEach(function(block) {
-            const escapedPlaceholder = block.placeholder
-                .replace(/&amp;/g, '&')
-                .replace(/&lt;/g, '<')
-                .replace(/&gt;/g, '>');
-
-            let replacement;
-            if (block.type === 'display') {
-                /* Fórmula general → bloque grande centrado */
-                replacement = '<div class="math-display-block">' + block.original + '</div>';
-            } else {
-                /* Fórmula inline → se deja tal cual para MathJax */
-                replacement = block.original;
-            }
-
-            reinjected = reinjected.split(block.placeholder).join(replacement);
-            reinjected = reinjected.split(escapedPlaceholder).join(replacement);
-        });
-        parsed = reinjected;
+        parsed = reinjertLatexBlocks(parsed, latexBlocks);
 
         parsed = parsed.replace(/___HTML_TABLE_(\d+)___/g, function(match, idx) {
             return htmlTableBlocks[parseInt(idx)];
@@ -3608,6 +3546,11 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
         parsed = parsed.replace(/___MD_TABLE_(\d+)___/g, function(match, idx) {
             return markdownTableBlocks[parseInt(idx)];
         });
+
+        // MODIFICADO: Post-procesar HTML para limpiar artefactos visuales de fórmulas
+        // Eliminar <br> sueltos inmediatamente antes o después de bloques MathJax display
+        parsed = parsed.replace(/(<br\s*\/?>)+(\x00LATEXDISPLAY|\$\$)/g, '$2');
+        parsed = parsed.replace(/(\x00LATEXDISPLAY[^<]+)(<br\s*\/?>)+/g, '$1');
 
         return parsed;
 
