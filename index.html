@@ -505,7 +505,6 @@
             overflow-y: hidden;
         }
 
-        /* MEJORADO: Estilos para fórmulas matemáticas estilo ChatGPT */
         .math-display-wrapper {
             display: block;
             width: 100%;
@@ -527,7 +526,6 @@
             margin: 0 1px;
         }
 
-        /* Eliminar puntos y bullets antes/después de fórmulas */
         .ai-bubble p {
             margin: 0 0 10px 0;
             line-height: 1.7;
@@ -551,7 +549,6 @@
             margin: 0 2px !important;
         }
 
-        /* Estilo ChatGPT para listas — sin bullet antes de fórmulas */
         .ai-bubble ul {
             padding-left: 22px;
             margin: 10px 0;
@@ -569,7 +566,6 @@
             line-height: 1.7;
         }
 
-        /* Si un li contiene SOLO una fórmula, la centramos y quitamos el bullet */
         .ai-bubble li.formula-only-li {
             list-style: none;
             margin-left: -22px;
@@ -737,7 +733,6 @@
             transform: scale(0.95);
         }
 
-        /* Headings estilo ChatGPT */
         .ai-bubble h1, .ai-bubble h2, .ai-bubble h3,
         .ai-bubble h4, .ai-bubble h5, .ai-bubble h6 {
             margin-top: 18px;
@@ -1248,7 +1243,6 @@
             box-shadow: 0 0 12px rgba(168, 85, 247, 0.5);
         }
 
-        /* Star rating styles */
         .ai-rating {
             display: flex;
             gap: 3px;
@@ -1341,7 +1335,7 @@
                 <svg id="attachIcon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
             </button>
         </div>
-        <textarea id="userInput" class="field" placeholder="Escribe un comando..." autocomplete="off" enterkeyhint="enter"></textarea>
+        <textarea id="userInput" class="field" placeholder="Escribe un mensaje..." autocomplete="off" enterkeyhint="send"></textarea>
         <button class="btn-icon active" id="sendButton" onclick="handleSendOrStop()">
             <svg id="sendIcon" viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
             <svg id="stopIcon" viewBox="0 0 24 24" width="20" height="20" fill="white" style="display:none;"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
@@ -1471,9 +1465,6 @@
             }
         }
     }
-
-    // MODIFICADO: Eliminadas todas las funciones de memoria de usuario
-    // No se guarda ni carga información personal del usuario
 
     function buildSystemPromptContent() {
         const baseContent = `Eres DarkMatter Pro AI, una IA amigable, cercana y genuinamente interesada en el usuario — no eres una IA fría y plana, eres como un amigo inteligente que ayuda con todo. Responde siempre en español. Cuando el usuario te haga una pregunta, responde de forma completa, detallada y bien explicada. No des resúmenes ni respuestas cortas a menos que el usuario lo pida explícitamente. Explica cada concepto con claridad, da ejemplos cuando sea útil, desarrolla los temas paso a paso y asegúrate de que el usuario entienda bien el tema. Si el usuario te pide que seas más corto, más resumido o más conciso, entonces adáptate a eso. Si recibes una imagen, analízala detalladamente. Siempre sé exhaustivo en tus explicaciones por defecto.
@@ -1631,8 +1622,8 @@ EJEMPLOS CORRECTOS DE FORMATO:
 
 EJEMPLOS INCORRECTOS (NUNCA HACER ESTO):
 - "• $$\\beta = 10 \\log(I/I_0)$$" ← bullet antes de fórmula en bloque: MAL
-- "$$formula$$\ndB." ← punto o unidad debajo de fórmula: MAL
-- "$$formula$$\n\n, donde..." ← coma al inicio después de fórmula: MAL
+- "$$formula$$\\ndB." ← punto o unidad debajo de fórmula: MAL
+- "$$formula$$\\n\\n, donde..." ← coma al inicio después de fórmula: MAL
 
 REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 - USA PROSA NORMAL por defecto para la gran mayoría de respuestas. Escribe como si le hablaras a un amigo: párrafos fluidos, lenguaje natural, sin estructura forzada.
@@ -1854,8 +1845,12 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
         const savedChats = localStorage.getItem("darkmatter_saved_chats");
 
         if (savedChats) {
-            const parsed = JSON.parse(savedChats);
-            chats = parsed.map(c => ({ ...c, hasRealConversation: true }));
+            try {
+                const parsed = JSON.parse(savedChats);
+                chats = parsed.map(c => ({ ...c, hasRealConversation: true }));
+            } catch (e) {
+                chats = [];
+            }
         }
 
         createNewChat();
@@ -2026,6 +2021,10 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
         conversationHistory = selectedChat.history;
 
+        if (!conversationHistory || conversationHistory.length === 0) {
+            conversationHistory = [getSystemPrompt()];
+        }
+
         if (conversationHistory.length > 0 && conversationHistory[0].role === 'system') {
             conversationHistory[0] = getSystemPrompt();
         }
@@ -2131,18 +2130,55 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
     }
 
+    // CORREGIDO: optimizeConversationHistory ahora garantiza que el último mensaje del usuario siempre se incluya
+    function optimizeConversationHistory() {
+
+        if (!conversationHistory || conversationHistory.length === 0) {
+            conversationHistory = [getSystemPrompt()];
+            return;
+        }
+
+        const systemMessage = conversationHistory[0];
+        const nonSystemMessages = conversationHistory.slice(1);
+        const messageCount = nonSystemMessages.length;
+
+        // Si hay pocos mensajes, no recortar nada
+        if (messageCount <= 10) {
+            return;
+        }
+
+        // Con muchos mensajes, conservar los más recientes pero siempre al menos 10
+        let keepCount = 10;
+        if (messageCount > 30) {
+            keepCount = 16;
+        } else if (messageCount > 20) {
+            keepCount = 12;
+        }
+
+        const recentMessages = nonSystemMessages.slice(-keepCount);
+
+        conversationHistory = [systemMessage, ...recentMessages];
+
+    }
+
     function buildRequestMessages() {
 
         var config = MODE_CONFIGS[currentMode] || MODE_CONFIGS.normal;
 
         var messages = conversationHistory.slice();
 
-        if (messages.length > 0 && messages[0].role === 'system') {
-            messages[0] = getSystemPrompt();
+        if (!messages || messages.length === 0) {
+            messages = [getSystemPrompt()];
         }
 
-        if (config.systemSuffix && config.systemSuffix.length > 0 && messages.length > 0 && messages[0].role === 'system') {
-            messages = [{ role: 'system', content: messages[0].content + config.systemSuffix }].concat(messages.slice(1));
+        if (messages.length > 0 && messages[0].role === 'system') {
+            messages[0] = getSystemPrompt();
+        } else {
+            messages = [getSystemPrompt(), ...messages];
+        }
+
+        if (config.systemSuffix && config.systemSuffix.length > 0) {
+            messages[0] = { role: 'system', content: messages[0].content + config.systemSuffix };
         }
 
         return messages;
@@ -2353,34 +2389,11 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
         if (previousGenerating === "true") {
 
-            isGeneratingResponse = true;
+            clearGeneratingState();
 
-            toggleLoad(true);
+            isGeneratingResponse = false;
 
-            sendButton.disabled = true;
-
-            sendButton.classList.add("active");
-
-            addMsg("Respuesta generada en la sesion anterior. Espera a que finalice el proceso anterior.", 'ai');
-
-            setTimeout(() => {
-
-                toggleLoad(false);
-
-                isGeneratingResponse = false;
-
-                sendButton.disabled = false;
-
-                sendButton.classList.remove("active");
-
-                clearGeneratingState();
-
-                input.placeholder = "Escribe un comando...";
-                input.style.height = "48px";
-                input.scrollTop = 0;
-                autoResizeTextarea();
-
-            }, 15000);
+            setGeneratingState(false);
 
         }
 
@@ -2388,7 +2401,7 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
     checkPreviousSessionGeneration();
 
-    // MODIFICADO: Limpiar datos personales guardados anteriormente
+    // Limpiar datos personales guardados anteriormente
     (function clearOldPersonalData() {
         try {
             localStorage.removeItem('darkmatter_user_memory');
@@ -2411,7 +2424,7 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
             sendIcon.style.display = 'block';
             stopIcon.style.display = 'none';
 
-            input.placeholder = "Escribe un comando...";
+            input.placeholder = "Escribe un mensaje...";
 
             input.style.height = "48px";
             input.scrollTop = 0;
@@ -2555,28 +2568,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
     }
 
-    function optimizeConversationHistory() {
-
-        const systemMessage = conversationHistory[0];
-        const messageCount = conversationHistory.length - 1;
-
-        let recentMessages = [];
-
-        if (messageCount > 20) {
-            recentMessages = conversationHistory.slice(-8);
-        } else if (messageCount > 12) {
-            recentMessages = conversationHistory.slice(-6);
-        } else {
-            recentMessages = conversationHistory.slice(-4);
-        }
-
-        conversationHistory = [
-            systemMessage,
-            ...recentMessages
-        ];
-
-    }
-
     function extractRetrySeconds(errorMessage) {
 
         const regex = /try again in ([0-9.]+)s/i;
@@ -2599,7 +2590,10 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
     async function sendRequestWithRetry(requestBody, signal) {
 
-        while (true) {
+        let retryCount = 0;
+        const MAX_RETRIES = 3;
+
+        while (retryCount < MAX_RETRIES) {
 
             const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
@@ -2631,19 +2625,23 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
                         await wait(seconds * 1000);
 
+                        retryCount++;
+
                         continue;
 
                     }
 
                 }
 
-            } catch {
+            } catch (parseErr) {
 
             }
 
             throw new Error(errorText);
 
         }
+
+        throw new Error("Demasiados intentos fallidos. Por favor espera un momento e intenta de nuevo.");
 
     }
 
@@ -2757,7 +2755,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
         return result;
     }
 
-    /* ─── Rating helpers ─── */
     function getRatingKey(msgIndex) {
         return 'darkmatter_rating_' + currentChatId + '_' + msgIndex;
     }
@@ -2807,7 +2804,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
         }
     }
 
-    /* Global AI message counter for rating keys */
     let aiMsgCounter = 0;
 
     async function send() {
@@ -2818,7 +2814,7 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
         const text = input.value.trim();
 
-        if(!text && !currentBase64) {
+        if (!text && !currentBase64) {
             return;
         }
 
@@ -2942,9 +2938,11 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
             const modeConfig = MODE_CONFIGS[currentMode] || MODE_CONFIGS.normal;
 
+            const requestMessages = buildRequestMessages();
+
             const requestBody = {
                 model: "meta-llama/llama-4-scout-17b-16e-instruct",
-                messages: buildRequestMessages(),
+                messages: requestMessages,
                 temperature: modeConfig.temperature,
                 max_tokens: modeConfig.max_tokens
             };
@@ -2955,7 +2953,7 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
             const d = await r.json();
 
-            if(d.choices && d.choices[0] && d.choices[0].message) {
+            if (d.choices && d.choices[0] && d.choices[0].message) {
 
                 const aiResponse = cleanResponse(d.choices[0].message.content);
 
@@ -2971,13 +2969,11 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
                 addMsg(aiResponse, 'ai');
                 await addMessageToCurrentChat('ai', aiResponse, null, true);
 
-                // MODIFICADO: Ya no se extraen ni guardan datos personales del usuario
-
             } else if (d.error) {
 
                 if (d.error.code === "rate_limit_exceeded") {
 
-                    addMsg("Motor saturado (Rate Limit). Por favor, espera un momento antes de volver a subir una imagen.", 'ai');
+                    addMsg("Motor saturado (Rate Limit). Por favor, espera un momento antes de volver a intentarlo.", 'ai');
 
                 } else {
 
@@ -2991,7 +2987,7 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
             }
 
-        } catch(e) {
+        } catch (e) {
 
             toggleLoad(false);
 
@@ -3106,7 +3102,7 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
             const d = await r.json();
 
-            if(d.choices && d.choices[0] && d.choices[0].message) {
+            if (d.choices && d.choices[0] && d.choices[0].message) {
 
                 const aiResponse = cleanResponse(d.choices[0].message.content);
 
@@ -3136,7 +3132,7 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
             }
 
-        } catch(e) {
+        } catch (e) {
 
             toggleLoad(false);
 
@@ -3326,9 +3322,11 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
             const modeConfig = MODE_CONFIGS[currentMode] || MODE_CONFIGS.normal;
 
+            const requestMessages = buildRequestMessages();
+
             const requestBody = {
                 model: "meta-llama/llama-4-scout-17b-16e-instruct",
-                messages: buildRequestMessages(),
+                messages: requestMessages,
                 temperature: modeConfig.temperature,
                 max_tokens: modeConfig.max_tokens
             };
@@ -3339,7 +3337,7 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
             const d = await r.json();
 
-            if(d.choices && d.choices[0] && d.choices[0].message) {
+            if (d.choices && d.choices[0] && d.choices[0].message) {
 
                 const aiResponse = cleanResponse(d.choices[0].message.content);
 
@@ -3355,8 +3353,6 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
                 addMsg(aiResponse, 'ai');
                 await addMessageToCurrentChat('ai', aiResponse, null, true);
 
-                // MODIFICADO: Ya no se extraen ni guardan datos personales del usuario
-
             } else if (d.error) {
 
                 if (d.error.code === "rate_limit_exceeded") {
@@ -3371,7 +3367,7 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
             }
 
-        } catch(e) {
+        } catch (e) {
 
             toggleLoad(false);
 
@@ -3406,13 +3402,9 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
         let cleaned = text;
 
-        // MODIFICADO: Limpiar puntos finales después de fórmulas en bloque y bullets antes de ellas
-        // Eliminar "." suelto en línea propia inmediatamente después de un bloque $$
         cleaned = cleaned.replace(/(\$\$[^$]*\$\$)\s*\n\s*\.\s*\n/g, '$1\n\n');
         cleaned = cleaned.replace(/(\$\$[^$]*\$\$)\s*\n\s*\.\s*$/g, '$1');
 
-        // Eliminar ", donde" o ", con" al inicio de línea después de fórmulas (moverlo antes)
-        // Limpiar bullet • o - inmediatamente antes de $$ en la misma línea
         cleaned = cleaned.replace(/^[\s]*[•\-]\s*(\$\$)/gm, '$1');
 
         cleaned = cleaned.replace(/```math/g, "```math");
@@ -3436,7 +3428,6 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
         }
     }
 
-    // MODIFICADO: parseMarkdown mejorado para manejar fórmulas estilo ChatGPT
     function parseMarkdownTable(text) {
 
         const lines = text.split('\n');
@@ -3510,10 +3501,7 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
             return '___MD_TABLE_' + (markdownTableBlocks.length - 1) + '___';
         });
 
-        // MODIFICADO: Pre-procesar para eliminar puntos y bullets antes de fórmulas
-        // Quitar "." solo en línea después de placeholder de fórmula display
         processed = processed.replace(/(\x00LATEXDISPLAY\d+\x00)\s*\n\s*\.\s*(\n|$)/g, '$1\n$2');
-        // Quitar bullet • o - al inicio de línea que contiene SOLO un placeholder de display
         processed = processed.replace(/^[\s]*[•\-]\s*(\x00LATEXDISPLAY\d+\x00)\s*$/gm, '$1');
 
         let parsed = escapeHtml(processed);
@@ -3547,8 +3535,6 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
             return markdownTableBlocks[parseInt(idx)];
         });
 
-        // MODIFICADO: Post-procesar HTML para limpiar artefactos visuales de fórmulas
-        // Eliminar <br> sueltos inmediatamente antes o después de bloques MathJax display
         parsed = parsed.replace(/(<br\s*\/?>)+(\x00LATEXDISPLAY|\$\$)/g, '$2');
         parsed = parsed.replace(/(\x00LATEXDISPLAY[^<]+)(<br\s*\/?>)+/g, '$1');
 
@@ -3647,7 +3633,7 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
             b.className = `bubble ${type}-bubble`;
 
-            if(t.includes('```')) {
+            if (t.includes('```')) {
 
                 const p = t.split('```');
 
@@ -3801,7 +3787,7 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
     function toggleLoad(s) {
 
-        if(s) {
+        if (s) {
 
             const existingLoader = document.getElementById('loader');
 
@@ -3826,7 +3812,7 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
             const l = document.getElementById('loader');
 
-            if(l) {
+            if (l) {
                 l.remove();
             }
 
