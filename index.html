@@ -488,7 +488,6 @@
         .user-bubble { background: var(--user-bubble); border-bottom-right-radius: 4px; animation: slideUp 0.5s ease-out forwards; }
         .ai-bubble { background: var(--ai-bubble); border: 1px solid rgba(168, 85, 247, 0.15); border-bottom-left-radius: 4px; animation: slideUp 0.5s ease-out forwards; }
 
-        /* CAMBIO 2: Burbuja de los 3 puntos ajustada al contenido */
         .ai-bubble.dots {
             display: inline-flex;
             width: auto;
@@ -506,40 +505,25 @@
             overflow-y: hidden;
         }
 
-        /* CAMBIO 3: Estilos para fórmulas matemáticas bien formateadas */
-        .math-block {
+        /* ── BLOQUE DE FÓRMULA GENERAL (grande, centrada, destacada) ── */
+        .math-display-block {
             display: block;
             width: 100%;
             text-align: center;
-            margin: 14px 0;
-            padding: 10px 0;
+            margin: 18px 0;
+            padding: 14px 10px;
             overflow-x: auto;
         }
 
-        .math-block-important {
-            display: block;
-            width: 100%;
-            text-align: center;
-            margin: 16px 0;
-            padding: 12px 16px;
-            background: rgba(168, 85, 247, 0.08);
-            border-left: 3px solid #a855f7;
-            border-radius: 8px;
-            overflow-x: auto;
+        .math-display-block mjx-container,
+        .math-display-block .MathJax {
+            font-size: 1.25em !important;
         }
 
-        .math-block-important .MathJax,
-        .math-block-important mjx-container {
-            font-size: 1.15em !important;
-        }
-
-        .ai-bubble .MathJax {
-            display: inline;
-        }
-
+        /* ── FÓRMULA INLINE NORMAL (dentro del texto o en sustitución) ── */
         .ai-bubble mjx-container[display="true"] {
             display: block !important;
-            margin: 12px auto !important;
+            margin: 10px auto !important;
             text-align: center !important;
             overflow-x: auto !important;
             overflow-y: hidden !important;
@@ -1215,7 +1199,6 @@
             box-shadow: 0 0 12px rgba(168, 85, 247, 0.5);
         }
 
-        /* Star rating styles */
         .ai-rating {
             display: flex;
             gap: 3px;
@@ -1639,22 +1622,49 @@ Cuando el ejercicio pide relacionar imágenes con opciones de texto:
 FIN DEL PROTOCOLO DE ANÁLISIS DE IMÁGENES
 ════════════════════════════════════════════════════════
 
-REGLA CRÍTICA SOBRE FORMATO MATEMÁTICO — LEE CON ATENCIÓN MÁXIMA:
-SIEMPRE que escribas fórmulas, expresiones matemáticas, fracciones, exponentes, raíces, integrales, sumatorias, límites, derivadas, o cualquier símbolo matemático, DEBES usar formato LaTeX con delimitadores correctos. NUNCA escribas matemáticas en texto plano.
+════════════════════════════════════════════════════════
+📐 PROTOCOLO DE FORMATO MATEMÁTICO — LEE CON MÁXIMA ATENCIÓN
+════════════════════════════════════════════════════════
 
-REGLAS DE FORMATO MATEMÁTICO ESTILO CHATGPT:
-1. Fórmulas IMPORTANTES (definiciones, fórmulas principales, resultados clave) → usa bloques $$ ... $$ centrados y destacados. Estas deben aparecer solas en su línea, bien espaciadas.
-2. Fórmulas de RESOLUCIÓN o pasos intermedios → usa $$ ... $$ también pero pueden ir más seguidas si el contexto es un cálculo paso a paso.
-3. Variables y expresiones CORTAS dentro del texto → usa $ ... $ inline.
-4. NUNCA cortes una fórmula en múltiples líneas con saltos de párrafo intermedios. Una fórmula va COMPLETA en un solo bloque $$ ... $$.
-5. NUNCA escribas matemáticas sin delimitadores LaTeX.
+REGLA CRÍTICA: NUNCA dejes un símbolo $ suelto visible en tu respuesta. SIEMPRE que abras un $ debes cerrarlo correctamente. Si usas $$, ciérralo con $$. Si usas $, ciérralo con $. Un $ suelto sin cerrar rompe el renderizado y es visible al usuario como texto plano.
 
-EJEMPLOS CORRECTOS DE FORMATO:
-- "La fórmula del nivel de intensidad sonora es:" seguido de $$\\beta = 10 \\log\\left(\\frac{I}{I_0}\\right)$$
-- "Sustituyendo los valores:" seguido de $$\\beta = 10 \\log\\left(\\frac{10^{-7}}{10^{-12}}\\right) = 10 \\log(10^5) = 10 \\cdot 5 = 50 \\text{ dB}$$
-- "donde $I_0 = 10^{-12} \\text{ W/m}^2$ es la intensidad de referencia"
+SISTEMA DE DOS NIVELES PARA FÓRMULAS MATEMÁTICAS:
 
-IMPORTANTE: NUNCA separes una ecuación de resolución en partes. Por ejemplo, si calculas $\\beta = 10\\log(10^5) = 10 \\cdot 5 = 50$ dB, eso va TODO en un solo $$ ... $$ sin saltos.
+NIVEL 1 — FÓRMULAS GENERALES Y DEFINICIONES PRINCIPALES:
+Usa $$formula$$ en su propia línea, sola, sin texto antes ni después en esa misma línea.
+Aplica este nivel para:
+- La fórmula principal o definición del tema (por ejemplo, la fórmula del nivel de intensidad sonora)
+- Fórmulas físicas o matemáticas canónicas que defines al inicio
+- Resultados o conclusiones importantes que quieres destacar visualmente
+Estas fórmulas se verán GRANDES y CENTRADAS, destacadas visualmente.
+EJEMPLO CORRECTO:
+La fórmula del nivel de intensidad sonora es:
+$$\\beta = 10 \\log\\left(\\frac{I}{I_0}\\right)$$
+donde $I_0 = 10^{-12}$ W/m² es la intensidad de referencia.
+
+NIVEL 2 — FÓRMULAS DE SUSTITUCIÓN, CÁLCULO Y PASOS INTERMEDIOS:
+Usa $formula$ inline dentro del texto o en su propia línea pero sin el bloque grande.
+Aplica este nivel para:
+- Cuando sustituyes valores numéricos en una fórmula
+- Pasos de cálculo paso a paso
+- Resultados intermedios
+- Variables dentro de oraciones explicativas
+EJEMPLO CORRECTO:
+Sustituyendo $I = 2 \\times 10^{-7}$ W/m²:
+$\\beta = 10 \\log\\left(\\frac{2 \\times 10^{-7}}{10^{-12}}\\right) = 10 \\log(2 \\times 10^5)$
+$\\beta = 10(\\log 2 + \\log 10^5) = 10(0.301 + 5) = 53.01$ dB
+**Respuesta: $\\beta \\approx 53$ dB**
+
+REGLAS ADICIONALES OBLIGATORIAS:
+1. NUNCA escribas matemáticas sin delimitadores LaTeX. Ni exponentes, ni fracciones, ni variables matemáticas en texto plano.
+2. NUNCA cortes una fórmula en múltiples líneas con saltos intermedios — va COMPLETA en un solo bloque.
+3. Para variables dentro de oraciones de texto, usa siempre $variable$ inline: "donde $I$ es la intensidad".
+4. Usa $$ ... $$ SOLO para la fórmula general/canónica. Para todo lo demás usa $ ... $ inline.
+5. NUNCA termines una línea con un $ suelto. SIEMPRE verifica que cada $ tenga su pareja de cierre.
+
+════════════════════════════════════════════════════════
+FIN DEL PROTOCOLO DE FORMATO MATEMÁTICO
+════════════════════════════════════════════════════════
 
 REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 - USA PROSA NORMAL por defecto para la gran mayoría de respuestas. Escribe como si le hablaras a un amigo: párrafos fluidos, lenguaje natural, sin estructura forzada.
@@ -2700,42 +2710,60 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
     }
 
+    /*
+     * ─────────────────────────────────────────────────────────────────
+     *  NUEVO extractLatexBlocks — protege los bloques LaTeX antes de
+     *  que escapeHtml los rompa, y los reinyecta después.
+     *  CORRECCIÓN PRINCIPAL: ya no genera $ sueltos al convertir \[ \]
+     *  y ahora detecta líneas con LaTeX sin delimitadores con mayor
+     *  precisión para evitar falsos positivos.
+     * ─────────────────────────────────────────────────────────────────
+     */
     function extractLatexBlocks(text) {
         const blocks = [];
         let result = text;
 
+        /* 1. Normalizar \[ ... \] → $$ ... $$ */
         result = result.replace(/\\\[([\s\S]*?)\\\]/g, function(match, inner) {
-            return '$$' + inner + '$$';
+            return '$$' + inner.trim() + '$$';
         });
+
+        /* 2. Normalizar \( ... \) → $ ... $ */
         result = result.replace(/\\\(([\s\S]*?)\\\)/g, function(match, inner) {
-            return '$' + inner + '$';
+            return '$' + inner.trim() + '$';
         });
 
+        /* 3. Detectar líneas con LaTeX crudo SIN delimitadores y envolverlas.
+              Solo actúa si la línea NO contiene ya ningún $. */
         result = result.split('\n').map(function(line) {
-            if (/\$/.test(line)) return line;
+            if (/\$/.test(line)) return line; // ya tiene delimitadores → no tocar
 
-            const hasLatexCommands = /\\(frac|sqrt|cdot|sum|int|left|right|times|div|pm|mp|leq|geq|neq|approx|infty|partial|nabla|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|phi|omega|forall|exists|in|notin|subset|supset|cup|cap|wedge|vee|neg|Rightarrow|Leftarrow|Leftrightarrow|rightarrow|leftarrow|uparrow|downarrow|overline|underline|hat|bar|vec|dot|ddot|tilde|mathbf|mathrm|mathit|text|begin|end|pmatrix|bmatrix|vmatrix)\b/.test(line);
+            const hasLatexCommands = /\\(?:frac|sqrt|cdot|sum|int|left|right|times|div|pm|mp|leq|geq|neq|approx|infty|partial|nabla|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|phi|omega|forall|exists|in|notin|subset|supset|cup|cap|wedge|vee|neg|Rightarrow|Leftarrow|Leftrightarrow|rightarrow|leftarrow|uparrow|downarrow|overline|underline|hat|bar|vec|dot|ddot|tilde|mathbf|mathrm|mathit|text|begin|end|pmatrix|bmatrix|vmatrix)\b/.test(line);
             const hasSubSuperScript = /[a-zA-Z0-9]_\{|[a-zA-Z0-9]\^\{/.test(line);
             const hasUndelimitedLatex = /[a-zA-Z]\s*[=(]\s*\\[a-zA-Z]/.test(line) || /\\[a-zA-Z]+\{/.test(line);
 
             if (hasLatexCommands || hasSubSuperScript || hasUndelimitedLatex) {
-                const trimmed = line.trim();
-                return '$$' + trimmed + '$$';
+                return '$$' + line.trim() + '$$';
             }
             return line;
         }).join('\n');
 
+        /* 4. Extraer bloques $$ ... $$ primero (display) */
         result = result.replace(/\$\$([\s\S]*?)\$\$/g, function(match) {
             const placeholder = '\x00LATEXDISPLAY' + blocks.length + '\x00';
             blocks.push({ placeholder: placeholder, original: match, type: 'display' });
             return placeholder;
         });
 
+        /* 5. Extraer bloques $ ... $ (inline) — solo los que quedan */
         result = result.replace(/\$([^\$\n]+?)\$/g, function(match) {
             const placeholder = '\x00LATEXINLINE' + blocks.length + '\x00';
             blocks.push({ placeholder: placeholder, original: match, type: 'inline' });
             return placeholder;
         });
+
+        /* 6. Eliminar cualquier $ suelto que haya quedado sin pareja */
+        result = result.replace(/\$/g, '');
 
         return { text: result, blocks: blocks };
     }
@@ -2757,19 +2785,18 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
         if (!text) return "";
         let result = text;
         result = result.replace(/\\\[([\s\S]*?)\\\]/g, function(match, inner) {
-            return '$$' + inner + '$$';
+            return '$$' + inner.trim() + '$$';
         });
         result = result.replace(/\\\(([\s\S]*?)\\\)/g, function(match, inner) {
-            return '$' + inner + '$';
+            return '$' + inner.trim() + '$';
         });
         result = result.split('\n').map(function(line) {
             if (/\$/.test(line)) return line;
-            const hasLatexCommands = /\\(frac|sqrt|cdot|sum|int|left|right|times|div|pm|mp|leq|geq|neq|approx|infty|partial|nabla|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|phi|omega|forall|exists|in|notin|subset|supset|cup|cap|wedge|vee|neg|Rightarrow|Leftarrow|Leftrightarrow|rightarrow|leftarrow|uparrow|downarrow|overline|underline|hat|bar|vec|dot|ddot|tilde|mathbf|mathrm|mathit|text|begin|end|pmatrix|bmatrix|vmatrix)\b/.test(line);
+            const hasLatexCommands = /\\(?:frac|sqrt|cdot|sum|int|left|right|times|div|pm|mp|leq|geq|neq|approx|infty|partial|nabla|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|phi|omega|forall|exists|in|notin|subset|supset|cup|cap|wedge|vee|neg|Rightarrow|Leftarrow|Leftrightarrow|rightarrow|leftarrow|uparrow|downarrow|overline|underline|hat|bar|vec|dot|ddot|tilde|mathbf|mathrm|mathit|text|begin|end|pmatrix|bmatrix|vmatrix)\b/.test(line);
             const hasSubSuperScript = /[a-zA-Z0-9]_\{|[a-zA-Z0-9]\^\{/.test(line);
             const hasUndelimitedLatex = /[a-zA-Z]\s*[=(]\s*\\[a-zA-Z]/.test(line) || /\\[a-zA-Z]+\{/.test(line);
             if (hasLatexCommands || hasSubSuperScript || hasUndelimitedLatex) {
-                const trimmed = line.trim();
-                return '$$' + trimmed + '$$';
+                return '$$' + line.trim() + '$$';
             }
             return line;
         }).join('\n');
@@ -2884,7 +2911,6 @@ REGLA CRÍTICA SOBRE FORMATO GENERAL — LEE CON ATENCIÓN:
 
             if (tempImage) {
 
-                // CAMBIO 1: Prompt mejorado para análisis de imágenes con instrucciones detalladas
                 userMessage = {
                     role: "user",
                     content: [
@@ -2910,7 +2936,10 @@ PASO 4 — RESUELVE CADA PUNTO:
 Resuelve CADA ejercicio, pregunta o punto numerado individualmente. No omitas ninguno.
 
 PASO 5 — MATEMÁTICAS:
-Si hay fórmulas o ecuaciones, escríbelas en LaTeX: $formula$ para inline y $$formula$$ para bloques. NUNCA cortes una ecuación en partes separadas — cada ecuación va COMPLETA en un solo bloque.
+Si hay fórmulas o ecuaciones, usa el sistema de DOS NIVELES:
+- Fórmulas GENERALES o DEFINICIONES principales: usa $$formula$$ sola en su propia línea.
+- Fórmulas de SUSTITUCIÓN o cálculo paso a paso: usa $formula$ inline.
+- NUNCA dejes un $ suelto sin cerrar. NUNCA cortes una ecuación en partes.
 
 ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que aparece en la imagen."}`
                         },
@@ -3106,7 +3135,7 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
                 historyForRetry.push({
                     role: "user",
-                    content: `Analiza tu respuesta anterior cuidadosamente. Tu respuesta anterior fue:\n\n${lastAiResponseText.substring(0, 1500)}\n\nAhora responde de nuevo la misma pregunta/solicitud pero de forma MEJOR y MAS COMPLETA. PROTOCOLO ANTI-ALUCINACIÓN ACTIVO: Verifica internamente cada dato, nombre, fecha, estadística o cifra antes de escribirlo. Si no estás 100% seguro de algún dato específico, indica la incertidumbre o simplemente omítelo y di que el usuario lo verifique. Es MEJOR admitir incertidumbre que dar datos incorrectos. IMPORTANTE PARA MATEMÁTICAS: Usa LaTeX con delimitadores correctos para TODAS las expresiones matemáticas: $formula$ para inline y $$formula$$ para bloques. NUNCA escribas matemáticas sin delimitadores. NUNCA cortes una ecuación en partes — va COMPLETA en un solo bloque. Usa prosa normal para explicar, tablas solo si la comparación genuinamente lo requiere. Regenera la respuesta siendo más preciso y honesto sobre lo que sabes con certeza.`
+                    content: `Analiza tu respuesta anterior cuidadosamente. Tu respuesta anterior fue:\n\n${lastAiResponseText.substring(0, 1500)}\n\nAhora responde de nuevo la misma pregunta/solicitud pero de forma MEJOR y MAS COMPLETA. PROTOCOLO ANTI-ALUCINACIÓN ACTIVO: Verifica internamente cada dato, nombre, fecha, estadística o cifra antes de escribirlo. Si no estás 100% seguro de algún dato específico, indica la incertidumbre o simplemente omítelo y di que el usuario lo verifique. Es MEJOR admitir incertidumbre que dar datos incorrectos. IMPORTANTE PARA MATEMÁTICAS: Usa el sistema de DOS NIVELES — fórmulas GENERALES con $$formula$$ centradas y grandes, fórmulas de SUSTITUCIÓN/CÁLCULO con $formula$ inline. NUNCA dejes un $ suelto sin cerrar. NUNCA escribas matemáticas sin delimitadores. NUNCA cortes una ecuación en partes. Usa prosa normal para explicar, tablas solo si la comparación genuinamente lo requiere. Regenera la respuesta siendo más preciso y honesto sobre lo que sabes con certeza.`
                 });
 
             }
@@ -3498,6 +3527,15 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
     }
 
+    /*
+     * ─────────────────────────────────────────────────────────────────
+     *  NUEVO parseMarkdown — ahora los bloques $$ ... $$ se envuelven
+     *  en un <div class="math-display-block"> para que MathJax los
+     *  renderice grandes y centrados, igual que ChatGPT.
+     *  Los bloques $ ... $ (inline) se dejan tal cual para que MathJax
+     *  los renderice en línea con el texto.
+     * ─────────────────────────────────────────────────────────────────
+     */
     function parseMarkdown(text) {
 
         if (!text) {
@@ -3541,7 +3579,27 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
         parsed = parsed.replace(/\n/g, '<br>');
 
-        parsed = reinjertLatexBlocks(parsed, latexBlocks);
+        /* Reinyectar bloques LaTeX y envolver los display en div centrado */
+        let reinjected = parsed;
+        latexBlocks.forEach(function(block) {
+            const escapedPlaceholder = block.placeholder
+                .replace(/&amp;/g, '&')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>');
+
+            let replacement;
+            if (block.type === 'display') {
+                /* Fórmula general → bloque grande centrado */
+                replacement = '<div class="math-display-block">' + block.original + '</div>';
+            } else {
+                /* Fórmula inline → se deja tal cual para MathJax */
+                replacement = block.original;
+            }
+
+            reinjected = reinjected.split(block.placeholder).join(replacement);
+            reinjected = reinjected.split(escapedPlaceholder).join(replacement);
+        });
+        parsed = reinjected;
 
         parsed = parsed.replace(/___HTML_TABLE_(\d+)___/g, function(match, idx) {
             return htmlTableBlocks[parseInt(idx)];
@@ -3812,7 +3870,6 @@ ${text ? "Instrucción adicional del usuario: " + text : "Resuelve todo lo que a
 
             l.id = 'loader';
 
-            // CAMBIO 2: Wrapper con display inline-flex para que se ajuste al contenido
             l.className = 'msg-wrapper ai-wrapper';
             l.style.maxWidth = 'fit-content';
 
