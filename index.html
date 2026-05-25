@@ -592,7 +592,7 @@
       opacity: 0.3;
     }
 
-    /* ── BOTONES DE ACCIÓN — siempre visibles al terminar ── */
+    /* ── BOTONES DE ACCIÓN ── */
     .msg-actions {
       display: flex;
       gap: 6px;
@@ -681,16 +681,172 @@
       background: linear-gradient(90deg, transparent, rgba(0,212,255,0.2), rgba(123,79,255,0.2), transparent);
     }
 
-    .input-wrapper {
-      display: flex;
+    /* ── FILA DE PREVIEW DE IMÁGENES ── */
+    #image-preview-bar {
+      display: none;
       gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    #image-preview-bar.has-images {
+      display: flex;
+    }
+
+    .img-preview-item {
+      position: relative;
+      width: 56px;
+      height: 56px;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--border2);
+      flex-shrink: 0;
+      background: var(--bg);
+    }
+
+    .img-preview-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      border-radius: 3px;
+    }
+
+    /* ── SPINNER DE CARGA SOBRE LA IMAGEN ── */
+    .img-loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(6,8,16,0.78);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 3px;
+      transition: opacity .35s ease;
+      z-index: 2;
+    }
+
+    .img-loading-overlay.done {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .img-spinner {
+      width: 22px;
+      height: 22px;
+      border: 2px solid rgba(0,212,255,0.15);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spinImg .75s linear infinite;
+    }
+
+    @keyframes spinImg {
+      to { transform: rotate(360deg); }
+    }
+
+    .img-remove-btn {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(6,8,16,0.85);
+      border: 1px solid var(--border2);
+      color: var(--text-dim);
+      font-size: 10px;
+      line-height: 16px;
+      text-align: center;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3;
+      transition: all .15s;
+    }
+
+    .img-preview-item:hover .img-remove-btn {
+      display: flex;
+    }
+
+    .img-remove-btn:hover {
+      background: rgba(255,51,85,0.7);
+      border-color: var(--danger);
+      color: #fff;
+    }
+
+    /* ── FILA PRINCIPAL ── */
+    #input-main-row {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+    }
+
+    /* ── BOTÓN DE IMAGEN ── */
+    #image-btn {
+      background: rgba(123,79,255,0.08);
+      border: 1px solid rgba(123,79,255,0.25);
+      border-radius: 3px;
+      color: rgba(123,79,255,0.8);
+      width: 46px;
+      min-width: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all .2s;
+      flex-shrink: 0;
+      align-self: stretch;
+    }
+
+    #image-btn:hover {
+      background: rgba(123,79,255,0.15);
+      border-color: var(--accent2);
+      color: var(--accent2);
+      box-shadow: 0 0 12px rgba(123,79,255,0.3);
+    }
+
+    #image-btn svg { width: 17px; height: 17px; }
+
+    #image-input { display: none; }
+
+    /* ── BOTÓN DE ENVIAR ── */
+    #send-btn {
+      background: linear-gradient(135deg, var(--accent) 0%, rgba(0,170,210,1) 100%);
+      border: none;
+      border-radius: 3px;
+      color: #000;
+      width: 46px;
+      min-width: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: box-shadow .2s, transform .1s, opacity .15s;
+      flex-shrink: 0;
+      align-self: stretch;
+    }
+
+    #send-btn:hover:not(:disabled) {
+      box-shadow: 0 0 18px rgba(0,212,255,0.45);
+      transform: translateY(-1px);
+    }
+
+    #send-btn:active:not(:disabled) { transform: translateY(0); }
+    #send-btn:disabled { opacity: .35; cursor: not-allowed; }
+    #send-btn svg { width: 14px; height: 14px; }
+
+    /* ── INPUT WRAPPER ── */
+    .input-wrapper {
+      flex: 1;
+      display: flex;
       align-items: center;
       background: var(--surface2);
       border: 1px solid var(--border2);
       border-radius: 4px;
-      padding: 10px 12px;
+      padding: 0 12px;
       transition: border-color .2s, box-shadow .2s;
-      min-height: 56px;
+      min-height: 46px;
     }
 
     .input-wrapper:focus-within {
@@ -709,10 +865,11 @@
       line-height: 1.55;
       resize: none;
       max-height: 120px;
-      min-height: 36px;
       overflow-y: auto;
       -webkit-appearance: none;
-      padding: 8px 0;
+      padding: 0;
+      display: block;
+      vertical-align: middle;
     }
 
     #user-input::placeholder {
@@ -723,13 +880,7 @@
     #user-input::-webkit-scrollbar { width: 2px; }
     #user-input::-webkit-scrollbar-thumb { background: var(--border); }
 
-    .input-buttons {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      flex-shrink: 0;
-    }
-
+    /* ── STOP BTN ── */
     #stop-btn {
       display: none;
       background: rgba(255,51,85,0.08);
@@ -740,11 +891,13 @@
       font-size: 9px;
       letter-spacing: 1.5px;
       text-transform: uppercase;
-      padding: 8px 12px;
+      padding: 0 12px;
       cursor: pointer;
       transition: all .15s;
       align-items: center;
       gap: 5px;
+      flex-shrink: 0;
+      align-self: stretch;
     }
 
     #stop-btn:hover {
@@ -752,52 +905,22 @@
       border-color: var(--danger);
     }
 
-    #send-btn {
-      background: linear-gradient(135deg, var(--accent) 0%, rgba(0,170,210,1) 100%);
-      border: none;
-      border-radius: 3px;
-      color: #000;
-      width: 36px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: box-shadow .2s, transform .1s, opacity .15s;
-      flex-shrink: 0;
-    }
-
-    #send-btn:hover:not(:disabled) {
-      box-shadow: 0 0 18px rgba(0,212,255,0.45);
-      transform: translateY(-1px);
-    }
-
-    #send-btn:active:not(:disabled) { transform: translateY(0); }
-    #send-btn:disabled { opacity: .35; cursor: not-allowed; }
-    #send-btn svg { width: 14px; height: 14px; }
-
     .input-footer {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
       margin-top: 8px;
       padding: 0 2px;
     }
 
-    .model-tag {
-      font-size: 8.5px;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-    }
-
-    .model-tag span { color: rgba(123,79,255,0.7); }
-
-    .hint-tag {
+    .footer-disclaimer {
       font-size: 8.5px;
       letter-spacing: 0.5px;
       color: var(--text-muted);
+      text-align: center;
     }
+
+    .footer-disclaimer span { color: rgba(123,79,255,0.6); }
 
     /* ── TOAST ──────────────────────────────────────── */
     #copy-toast {
@@ -961,6 +1084,76 @@
       opacity: 0.8;
     }
 
+    /* ── IMÁGENES EN BURBUJA DE MENSAJE ────────────── */
+    .msg-images {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      max-width: 92%;
+      margin-bottom: 6px;
+      align-self: flex-end;
+    }
+
+    .msg-img-thumb {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid rgba(0,212,255,0.15);
+      display: block;
+      cursor: pointer;
+    }
+
+    /* ── LIGHTBOX ───────────────────────────────────── */
+    #lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(4,6,10,0.95);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    #lightbox.open {
+      display: flex;
+    }
+
+    #lightbox img {
+      max-width: 100%;
+      max-height: 90vh;
+      object-fit: contain;
+      border-radius: 4px;
+      border: 1px solid var(--border2);
+      box-shadow: 0 0 60px rgba(0,212,255,0.1);
+    }
+
+    #lightbox-close {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 50%;
+      color: var(--text-dim);
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all .15s;
+    }
+
+    #lightbox-close:hover {
+      border-color: rgba(0,212,255,0.4);
+      color: var(--accent);
+    }
+
     @media (max-width: 480px) {
       .lang-grid { grid-template-columns: repeat(4, 1fr); }
       .modal-box { padding: 32px 22px 28px; }
@@ -1088,28 +1281,44 @@
   </div>
 
   <div id="input-area">
-    <div class="input-wrapper">
-      <textarea id="user-input" placeholder="Escribe tu mensaje..." rows="1"></textarea>
-      <div class="input-buttons">
-        <button id="stop-btn" onclick="stopGeneration()">
-          <svg viewBox="0 0 12 12" fill="currentColor" width="10" height="10"><rect x="1.5" y="1.5" width="9" height="9" rx="1.5"/></svg>
-          Stop
-        </button>
-        <button id="send-btn" onclick="sendMessage()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-          </svg>
-        </button>
+    <!-- Preview de imágenes encima de la fila principal -->
+    <div id="image-preview-bar"></div>
+    <input type="file" id="image-input" accept="image/*" multiple/>
+    <!-- Fila principal: botón imagen + input-wrapper + botón enviar, todos al mismo alto -->
+    <div id="input-main-row">
+      <button id="image-btn" onclick="triggerImageUpload()" title="Adjuntar imagen (máx. 3)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+      </button>
+      <div class="input-wrapper">
+        <textarea id="user-input" placeholder="Escribe tu mensaje..." rows="1"></textarea>
       </div>
+      <button id="stop-btn" onclick="stopGeneration()">
+        <svg viewBox="0 0 12 12" fill="currentColor" width="10" height="10"><rect x="1.5" y="1.5" width="9" height="9" rx="1.5"/></svg>
+        Stop
+      </button>
+      <button id="send-btn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
     </div>
     <div class="input-footer">
-      <div class="model-tag">Modelo: <span>llama-3.3-70b-versatile</span></div>
-      <div class="hint-tag">↵ enviar · ⇧↵ nueva línea</div>
+      <div class="footer-disclaimer"><span>DarkMatter IA</span> es una IA que puede cometer errores</div>
     </div>
   </div>
 </div>
 
 <div id="copy-toast">✓ Copiado</div>
+
+<!-- ── LIGHTBOX ── -->
+<div id="lightbox">
+  <button id="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="Imagen ampliada"/>
+</div>
 
 <script>
   // ── Estado ──────────────────────────────────────────────
@@ -1119,6 +1328,14 @@
   let isGenerating = false;
   let selectedLangPrompt = localStorage.getItem('dm_lang_prompt') || 'Responde siempre en español, sin excepciones.';
   let selectedLangCode = localStorage.getItem('dm_lang_code') || 'es';
+
+  // ── Modelos independientes ────────────────────────────────
+  const MODEL_TEXT = 'llama-3.3-70b-versatile';
+  const MODEL_VISION = 'meta-llama/llama-4-scout-17b-16e-instruct';
+
+  // ── Estado de imágenes ───────────────────────────────────
+  let pendingImages = [];
+  let imagesLoadingCount = 0;
 
   // Control de auto-scroll
   let userScrolledUp = false;
@@ -1136,33 +1353,13 @@
     }
   }
 
-  // ── System prompt ────────────────────────────────────────
-  const BASE_SYSTEM_PROMPT = `Eres DarkMatter IA, un asistente de inteligencia artificial avanzado.
-
-REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
-1. Usa Markdown: **negrita**, *cursiva*, # Título, ## Subtítulo, ### Sección, listas con -, bloques de código con triple backtick.
-2. Para TODAS las fórmulas matemáticas, físicas o químicas DEBES usar LaTeX sin excepción:
-   - Inline (dentro del texto): $formula$   Ejemplo: La energía es $E = mc^2$
-   - Bloque (centrada, para ecuaciones importantes): $$formula$$
-3. REGLAS ABSOLUTAS DE LaTeX — ERRORES CRÍTICOS QUE DEBES EVITAR:
-   a) \\left( y \\right) SIEMPRE al mismo nivel, NUNCA \\right) dentro de \\frac{}{}:
-      CORRECTO:   $$\\beta = 10 \\cdot \\log_{10}\\left(\\frac{I}{I_0}\\right)$$
-      INCORRECTO: $$\\beta = 10 \\cdot \\log_{10}\\left(\\frac{I}{I_0\\right)}$$
-      INCORRECTO: $$\\beta = 10 \\cdot \\log_{10}\\left(\\frac{I}{I_0}\\right)}$$
-   b) \\right) NUNCA puede ir dentro de las llaves {} de \\frac:
-      CORRECTO:   \\frac{numerador}{denominador}\\right)
-      INCORRECTO: \\frac{numerador}{denominador\\right)}
-   c) CADA paso del desarrollo matemático DEBE ir en su propio bloque $$...$$:
-      $$\\beta = 10 \\cdot \\log_{10}\\left(\\frac{2 \\times 10^{7}}{10^{-12}}\\right)$$
-      $$\\beta = 10 \\cdot \\log_{10}\\left(2 \\times 10^{19}\\right)$$
-      $$\\beta = 10 \\cdot 19{,}301$$
-      $$\\beta \\approx 193{,}01 \\text{ dB}$$
-   d) NUNCA escribas \\beta, \\alpha, \\frac, \\log_, \\cdot, \\times, \\approx sin delimitadores $ o $$.
-   e) Para valores inline con unidades: $\\beta \\approx 193{,}01 \\text{ dB}$
-   f) No pongas saltos de línea DENTRO de $$ ... $$.
-4. Estructura tus respuestas con secciones claras usando ## y ###.
-5. Para resolver problemas usa siempre: **Datos:**, **Fórmula:**, **Desarrollo:**, **Resultado:**.
-6. Usa listas numeradas para pasos secuenciales.`;
+  // ── System prompt optimizado (menos tokens) ──────────────
+  const BASE_SYSTEM_PROMPT = `Eres DarkMatter IA. Formato:
+- Markdown: **negrita**, *cursiva*, # títulos, listas con -, código con triple backtick.
+- Matemáticas: LaTeX inline $formula$, bloque $$formula$$.
+- LaTeX: \\left( y \\right) al mismo nivel. Cada paso en bloque $$...$$. Sin saltos dentro de $$.
+- Problemas: **Datos:** **Fórmula:** **Desarrollo:** **Resultado:**
+- Secciones: ## y ###. Pasos numerados.`;
 
   // ── Init ────────────────────────────────────────────────
   window.onload = () => {
@@ -1172,6 +1369,7 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
     });
     if (apiKey) showApp();
     initTextarea();
+    initImageInput();
   };
 
   // ── Altura dinámica móvil ────────────────────────────────
@@ -1243,7 +1441,7 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
       const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'user', content: 'hi' }], max_tokens: 5 })
+        body: JSON.stringify({ model: MODEL_TEXT, messages: [{ role: 'user', content: 'hi' }], max_tokens: 5 })
       });
 
       if (res.ok) {
@@ -1275,19 +1473,180 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
     }
   }
 
+  // ── IMAGEN: inicialización del input ─────────────────────
+  function initImageInput() {
+    const imgInput = document.getElementById('image-input');
+    imgInput.addEventListener('change', handleImageFiles);
+  }
+
+  function triggerImageUpload() {
+    if (pendingImages.length >= 3) return;
+    document.getElementById('image-input').click();
+  }
+
+  // ── Procesar archivos de imagen seleccionados ────────────
+  function handleImageFiles(e) {
+    const files = Array.from(e.target.files);
+    e.target.value = '';
+
+    const slots = 3 - pendingImages.length;
+    const toAdd = files.slice(0, slots);
+
+    toAdd.forEach(file => {
+      const previewUrl = URL.createObjectURL(file);
+      const entry = { file, base64: null, mediaType: file.type, ready: false, previewUrl };
+      pendingImages.push(entry);
+      addImagePreviewItem(entry);
+      readFileAsBase64(entry);
+    });
+
+    refreshImagePreviewBar();
+  }
+
+  // ── Leer archivo como base64 y marcar como listo ─────────
+  function readFileAsBase64(entry) {
+    imagesLoadingCount++;
+    updateSendButtonState();
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target.result;
+      entry.base64 = dataUrl.split(',')[1];
+      entry.ready = true;
+      imagesLoadingCount--;
+
+      const overlay = entry._overlayEl;
+      if (overlay) {
+        overlay.classList.add('done');
+        setTimeout(() => overlay.remove(), 350);
+      }
+
+      updateSendButtonState();
+    };
+    reader.readAsDataURL(entry.file);
+  }
+
+  // ── Añadir un elemento de preview en la barra ────────────
+  function addImagePreviewItem(entry) {
+    const bar = document.getElementById('image-preview-bar');
+
+    const item = document.createElement('div');
+    item.className = 'img-preview-item';
+
+    const img = document.createElement('img');
+    img.src = entry.previewUrl;
+    img.alt = 'Imagen adjunta';
+
+    const overlay = document.createElement('div');
+    overlay.className = 'img-loading-overlay';
+    const spinner = document.createElement('div');
+    spinner.className = 'img-spinner';
+    overlay.appendChild(spinner);
+
+    entry._overlayEl = overlay;
+    entry._itemEl = item;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'img-remove-btn';
+    removeBtn.innerHTML = '✕';
+    removeBtn.title = 'Quitar imagen';
+    removeBtn.addEventListener('click', () => removeImage(entry));
+
+    item.appendChild(img);
+    item.appendChild(overlay);
+    item.appendChild(removeBtn);
+
+    bar.appendChild(item);
+  }
+
+  // ── Quitar una imagen de la lista ────────────────────────
+  function removeImage(entry) {
+    if (entry._itemEl) entry._itemEl.remove();
+    if (!entry.ready) imagesLoadingCount = Math.max(0, imagesLoadingCount - 1);
+    URL.revokeObjectURL(entry.previewUrl);
+    pendingImages = pendingImages.filter(e => e !== entry);
+    refreshImagePreviewBar();
+    updateSendButtonState();
+  }
+
+  // ── Mostrar u ocultar la barra de preview ────────────────
+  function refreshImagePreviewBar() {
+    const bar = document.getElementById('image-preview-bar');
+    if (pendingImages.length > 0) {
+      bar.classList.add('has-images');
+    } else {
+      bar.classList.remove('has-images');
+    }
+  }
+
+  // ── Habilitar/deshabilitar el botón de envío ─────────────
+  function updateSendButtonState() {
+    const sendBtn = document.getElementById('send-btn');
+    if (imagesLoadingCount > 0 || isGenerating) {
+      sendBtn.disabled = true;
+    } else {
+      sendBtn.disabled = false;
+    }
+  }
+
+  // ── Limpiar imágenes pendientes tras enviar ───────────────
+  function clearPendingImages() {
+    pendingImages.forEach(e => URL.revokeObjectURL(e.previewUrl));
+    pendingImages = [];
+    imagesLoadingCount = 0;
+    const bar = document.getElementById('image-preview-bar');
+    bar.innerHTML = '';
+    bar.classList.remove('has-images');
+  }
+
+  // ── Actualizar botón Regenerar: solo visible en el último msg IA ──
+  function updateRegenButtons() {
+    const allRegenBtns = messagesEl.querySelectorAll('.regen-btn');
+    allRegenBtns.forEach(btn => btn.style.display = 'none');
+    if (allRegenBtns.length > 0) {
+      allRegenBtns[allRegenBtns.length - 1].style.display = 'flex';
+    }
+  }
+
   // ── Enviar mensaje ───────────────────────────────────────
   async function sendMessage() {
     const input = document.getElementById('user-input');
     const text = input.value.trim();
-    if (!text || isGenerating) return;
+    const hasImages = pendingImages.length > 0;
+
+    if ((!text && !hasImages) || isGenerating) return;
+    if (imagesLoadingCount > 0) return;
 
     const welcome = document.querySelector('.welcome');
     if (welcome) welcome.remove();
 
-    messages.push({ role: 'user', content: text });
-    appendUserMessage(text);
+    const imagesToSend = pendingImages.filter(e => e.ready);
+    const modelToUse = imagesToSend.length > 0 ? MODEL_VISION : MODEL_TEXT;
+
+    let userContent;
+    if (imagesToSend.length > 0) {
+      userContent = [];
+      imagesToSend.forEach(entry => {
+        userContent.push({
+          type: 'image_url',
+          image_url: { url: `data:${entry.mediaType};base64,${entry.base64}` }
+        });
+      });
+      if (text) {
+        userContent.push({ type: 'text', text: text });
+      } else {
+        userContent.push({ type: 'text', text: 'Analiza y describe detalladamente esta imagen.' });
+      }
+    } else {
+      userContent = text;
+    }
+
+    messages.push({ role: 'user', content: userContent });
+    appendUserMessage(text, imagesToSend);
+
     input.value = '';
     input.style.height = 'auto';
+    clearPendingImages();
 
     userScrolledUp = false;
     scrollToBottom(true);
@@ -1296,9 +1655,17 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
     const typingEl = appendTypingIndicator();
     abortController = new AbortController();
 
+    const messagesForApi = messages.map(m => {
+      if (modelToUse === MODEL_TEXT && Array.isArray(m.content)) {
+        const textParts = m.content.filter(c => c.type === 'text').map(c => c.text).join(' ');
+        return { role: m.role, content: textParts || '[imagen enviada]' };
+      }
+      return m;
+    });
+
     const messagesWithSystem = [
       { role: 'system', content: BASE_SYSTEM_PROMPT + '\n\n' + selectedLangPrompt },
-      ...messages
+      ...messagesForApi
     ];
 
     try {
@@ -1306,12 +1673,7 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
         method: 'POST',
         signal: abortController.signal,
         headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: messagesWithSystem,
-          stream: true,
-          max_tokens: 4096
-        })
+        body: JSON.stringify({ model: modelToUse, messages: messagesWithSystem, stream: true, max_tokens: 4096 })
       });
 
       if (!res.ok) {
@@ -1354,10 +1716,9 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
       messages.push({ role: 'assistant', content: fullText });
 
       addMessageActions(msgEl, fullText);
+      updateRegenButtons();
 
-      renderMath(contentEl, () => {
-        scrollToBottom(true);
-      });
+      renderMath(contentEl, () => { scrollToBottom(true); });
 
     } catch (err) {
       typingEl?.remove();
@@ -1376,17 +1737,41 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
 
   function setGenerating(val) {
     isGenerating = val;
-    document.getElementById('send-btn').disabled = val;
+    updateSendButtonState();
     document.getElementById('stop-btn').style.display = val ? 'flex' : 'none';
   }
 
-  function appendUserMessage(text) {
+  // ── appendUserMessage ─────────────────────────────────────
+  function appendUserMessage(text, images) {
     const msgEl = document.createElement('div');
     msgEl.className = 'msg msg-user';
-    msgEl.innerHTML = `
-      <div class="msg-label"><span class="msg-label-dot"></span>Tú</div>
-      <div class="msg-bubble">${escapeHtml(text).replace(/\n/g, '<br>')}</div>
-    `;
+
+    const labelEl = document.createElement('div');
+    labelEl.className = 'msg-label';
+    labelEl.innerHTML = '<span class="msg-label-dot"></span>Tú';
+    msgEl.appendChild(labelEl);
+
+    if (images && images.length > 0) {
+      const imagesRow = document.createElement('div');
+      imagesRow.className = 'msg-images';
+      images.forEach(entry => {
+        const imgEl = document.createElement('img');
+        imgEl.className = 'msg-img-thumb';
+        imgEl.src = entry.previewUrl;
+        imgEl.alt = 'Imagen adjunta';
+        imgEl.addEventListener('click', () => openLightbox(entry.previewUrl));
+        imagesRow.appendChild(imgEl);
+      });
+      msgEl.appendChild(imagesRow);
+    }
+
+    if (text) {
+      const bubble = document.createElement('div');
+      bubble.className = 'msg-bubble';
+      bubble.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+      msgEl.appendChild(bubble);
+    }
+
     messagesEl.appendChild(msgEl);
     scrollToBottom(true);
   }
@@ -1442,6 +1827,7 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
     msgEl.innerHTML = '<div class="msg-label"><span class="msg-label-dot"></span>DarkMatter IA</div>';
     msgEl.appendChild(bubble);
     addMessageActions(msgEl, text);
+    updateRegenButtons();
     messagesEl.appendChild(msgEl);
 
     renderMath(bubble, () => scrollToBottom(true));
@@ -1464,7 +1850,8 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
     copyBtn.addEventListener('click', () => copyText(text, copyBtn));
 
     const regenBtn = document.createElement('button');
-    regenBtn.className = 'action-btn';
+    regenBtn.className = 'action-btn regen-btn';
+    regenBtn.style.display = 'none';
     regenBtn.innerHTML = `
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M23 4v6h-6"/>
@@ -1503,9 +1890,7 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
     };
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(doSuccess).catch(() => {
-        fallbackCopy(text, doSuccess);
-      });
+      navigator.clipboard.writeText(text).then(doSuccess).catch(() => { fallbackCopy(text, doSuccess); });
     } else {
       fallbackCopy(text, doSuccess);
     }
@@ -1532,7 +1917,11 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
 
   async function regenerate(msgEl) {
     if (isGenerating) return;
+
+    // Quitar el último mensaje del array si es del asistente
     if (messages[messages.length - 1]?.role === 'assistant') messages.pop();
+
+    // Eliminar el elemento del DOM
     msgEl.remove();
 
     userScrolledUp = false;
@@ -1540,9 +1929,23 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
     const typingEl = appendTypingIndicator();
     abortController = new AbortController();
 
+    const lastUserMsg = messages[messages.length - 1];
+    const lastMsgHasImages = lastUserMsg && Array.isArray(lastUserMsg.content) &&
+      lastUserMsg.content.some(c => c.type === 'image_url');
+    const modelToUse = lastMsgHasImages ? MODEL_VISION : MODEL_TEXT;
+
+    const messagesForApi = messages.map(m => {
+      if (modelToUse === MODEL_TEXT && Array.isArray(m.content)) {
+        const textParts = m.content.filter(c => c.type === 'text').map(c => c.text).join(' ');
+        return { role: m.role, content: textParts || '[imagen enviada]' };
+      }
+      return m;
+    });
+
+    // Añadir instrucción para que la IA revise y corrija su respuesta anterior
     const messagesWithSystem = [
-      { role: 'system', content: BASE_SYSTEM_PROMPT + '\n\n' + selectedLangPrompt },
-      ...messages
+      { role: 'system', content: BASE_SYSTEM_PROMPT + '\n\n' + selectedLangPrompt + '\n\nIMPORTANTE: El usuario ha pedido regenerar tu última respuesta porque puede contener errores. Revisa cuidadosamente tu respuesta anterior, identifica posibles errores o imprecisiones, y proporciona una respuesta corregida y mejorada.' },
+      ...messagesForApi
     ];
 
     try {
@@ -1550,12 +1953,7 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
         method: 'POST',
         signal: abortController.signal,
         headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: messagesWithSystem,
-          stream: true,
-          max_tokens: 4096
-        })
+        body: JSON.stringify({ model: modelToUse, messages: messagesWithSystem, stream: true, max_tokens: 4096 })
       });
 
       typingEl.remove();
@@ -1589,6 +1987,7 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
       contentEl.innerHTML = formatMarkdown(fullText);
       messages.push({ role: 'assistant', content: fullText });
       addMessageActions(newMsgEl, fullText);
+      updateRegenButtons();
 
       renderMath(contentEl, () => scrollToBottom(true));
 
@@ -1599,44 +1998,48 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
     setGenerating(false);
   }
 
+  // ── LIGHTBOX ─────────────────────────────────────────────
+  function openLightbox(src) {
+    const lb = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lightbox-img');
+    lbImg.src = src;
+    lb.classList.add('open');
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+  }
+
+  document.getElementById('lightbox').addEventListener('click', function(e) {
+    if (e.target === this) closeLightbox();
+  });
+
   // ── sanitizeLaTeX ────────────────────────────────────────
-  // Corrección CRÍTICA: mueve \right) que quedó dentro de las llaves
-  // del denominador de \frac hacia afuera donde corresponde.
-  // Ej: \frac{A}{B\right)} → \frac{A}{B}\right)
   function sanitizeLaTeX(latex) {
     let s = latex;
 
-    // PASO 1: Mover \right) / \right] / \right. cuando está pegado a }
-    // Es decir: ...contenido\right)} → ...contenido}\right)
-    // Se itera porque puede haber casos anidados
     let prev = '';
     let iter = 0;
     while (prev !== s && iter < 10) {
       prev = s;
       s = s.replace(/\\right([.)\]])\s*\}/g, (match, delim, offset, full) => {
-        // Contar \left y \right antes de esta posición
         const before = full.slice(0, offset);
         const nLeft  = (before.match(/\\left[\s\S]/g)  || []).length;
         const nRight = (before.match(/\\right[\s\S]/g) || []).length;
-        // Si \left > \right entonces este \right cierra un \left legítimo → dejar
         if (nLeft > nRight) return match;
-        // De lo contrario es un \right mal ubicado dentro de {} → mover afuera
         return '}\\right' + delim;
       });
       iter++;
     }
 
-    // PASO 2: Balancear \left( sin \right) — añadir \right. invisibles al final
     const lp = (s.match(/\\left\(/g)  || []).length;
     const rp = (s.match(/\\right\)/g) || []).length;
     if (lp > rp) s += '\\right.'.repeat(lp - rp);
 
-    // PASO 3: Balancear \left[ sin \right]
     const lb = (s.match(/\\left\[/g)  || []).length;
     const rb = (s.match(/\\right\]/g) || []).length;
     if (lb > rb) s += '\\right.'.repeat(lb - rb);
 
-    // PASO 4: Limpiar espacios extra alrededor de delimitadores
     s = s.replace(/\\left\s+\(/g, '\\left(');
     s = s.replace(/\\left\s+\[/g, '\\left[');
     s = s.replace(/\\right\s+\)/g, '\\right)');
@@ -1646,26 +2049,18 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
   }
 
   // ── autoWrapLaTeX ────────────────────────────────────────
-  // Detecta líneas que son expresiones LaTeX sin delimitadores $ y las envuelve.
-  // Heurística SIMPLE y CONFIABLE: si la línea comienza con \letra (comando LaTeX)
-  // y no tiene ya delimitadores $, es una fórmula suelta → envolver en $$ ... $$
   function autoWrapLaTeX(text) {
     return text.split('\n').map(line => {
       const trimmed = line.trim();
 
-      // Saltar líneas vacías
       if (!trimmed) return line;
 
-      // Saltar si ya tiene delimitadores de math ($, \[, \()
       if (trimmed.includes('$') || trimmed.includes('\\[') || trimmed.includes('\\(')) return line;
 
-      // Saltar si es una etiqueta HTML
       if (/^<[a-zA-Z]/.test(trimmed)) return line;
 
-      // Saltar si empieza con # (título Markdown) o - o > o * seguido de espacio
       if (/^(#{1,6}\s|[-*+]\s|>\s|\d+\.\s)/.test(trimmed)) return line;
 
-      // Si la línea comienza con un comando LaTeX (\letra...), es una fórmula suelta
       if (/^\\[a-zA-Z]/.test(trimmed)) {
         return '$$' + trimmed + '$$';
       }
@@ -1684,7 +2079,6 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
       }
       window.MathJax.typesetPromise([el])
         .then(() => {
-          // Reemplazar elementos de error de MathJax por indicador visual
           el.querySelectorAll('mjx-merror').forEach(errEl => {
             const container = errEl.closest('mjx-container');
             const span = document.createElement('span');
@@ -1729,38 +2123,26 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
         openDel = '$'; closeDel = '$';
       }
 
-      // Sanitizar el contenido LaTeX antes de guardarlo
       content = sanitizeLaTeX(content.trim());
       mathStore.push(openDel + content + closeDel);
       return `\x00MATH${mathStore.length - 1}\x00`;
     }
 
-    // PASO 1: Auto-envolver líneas LaTeX sin delimitadores
     let text = autoWrapLaTeX(raw);
 
-    // PASO 2: Proteger bloques $$ ... $$ (display, puede ser multilínea)
     text = text.replace(/\$\$([\s\S]*?)\$\$/g, (_, inner) => saveMath(`$$${inner}$$`));
-
-    // PASO 3: Proteger \[ ... \]
     text = text.replace(/\\\[([\s\S]*?)\\\]/g, (_, inner) => saveMath(`\\[${inner}\\]`));
-
-    // PASO 4: Proteger \( ... \)
     text = text.replace(/\\\(([^)]*?)\\\)/g, (_, inner) => saveMath(`\\(${inner}\\)`));
-
-    // PASO 5: Proteger $ ... $ inline (sin saltos de línea, hasta 400 caracteres)
     text = text.replace(/\$([^$\n]{1,400}?)\$/g, (match, inner) => {
-      // Solo guardar si contiene caracteres típicos de LaTeX
       if (/[a-zA-Z0-9\\{}^_]/.test(inner)) return saveMath(`$${inner}$`);
       return match;
     });
 
-    // PASO 6: Escapar HTML (los placeholders \x00MATHn\x00 no se ven afectados)
     text = text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
 
-    // PASO 7: Bloques de código (proteger antes del resto)
     const codeStore = [];
     text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
       const html = `<pre><code class="language-${lang}">${code.trim()}</code></pre>`;
@@ -1768,44 +2150,28 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
       return `\x00CODE${codeStore.length - 1}\x00`;
     });
 
-    // Código inline
     text = text.replace(/`([^`\n]+)`/g, '<code>$1</code>');
 
-    // Encabezados
     text = text.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
     text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');
     text = text.replace(/^## (.+)$/gm, '<h2>$1</h2>');
     text = text.replace(/^# (.+)$/gm, '<h1>$1</h1>');
 
-    // Negrita + itálica
     text = text.replace(/\*\*\*([^*]+)\*\*\*/g, '<strong><em>$1</em></strong>');
     text = text.replace(/___([^_]+)___/g, '<strong><em>$1</em></strong>');
-
-    // Negrita
     text = text.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
     text = text.replace(/__([^_\n]+)__/g, '<strong>$1</strong>');
-
-    // Itálica
     text = text.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
     text = text.replace(/_([^_\n]+)_/g, '<em>$1</em>');
-
-    // Tachado
     text = text.replace(/~~([^~\n]+)~~/g, '<del>$1</del>');
-
-    // Separador
     text = text.replace(/^---+$/gm, '<hr>');
 
-    // Blockquote
     text = text.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
     text = text.replace(/<\/blockquote>\n<blockquote>/g, '\n');
 
-    // Listas ordenadas
     text = text.replace(/^(\d+)\. (.+)$/gm, '<li data-ol="true">$2</li>');
-
-    // Listas desordenadas
     text = text.replace(/^[\*\-\+] (.+)$/gm, '<li>$1</li>');
 
-    // Agrupar listas
     text = text.replace(/((?:<li(?:[^>]*)>[\s\S]*?<\/li>\n?)+)/g, (match) => {
       if (match.includes('data-ol="true"')) {
         return `<ol>${match.replace(/ data-ol="true"/g, '')}</ol>`;
@@ -1815,7 +2181,6 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
     text = text.replace(/<\/ul>\s*<ul>/g, '');
     text = text.replace(/<\/ol>\s*<ol>/g, '');
 
-    // Tablas
     text = text.replace(/(\|.+\|\n\|[-| :]+\|\n(?:\|.+\|\n?)+)/g, (tableStr) => {
       const rows = tableStr.trim().split('\n');
       const headers = rows[0].split('|').filter(c => c.trim());
@@ -1835,7 +2200,6 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
       return html;
     });
 
-    // Párrafos
     text = text.replace(/\n\n+/g, '</p><p>');
     text = text.replace(/\n/g, '<br>');
 
@@ -1843,15 +2207,11 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
       text = `<p>${text}</p>`;
     }
 
-    // Limpiar párrafos vacíos
     text = text.replace(/<p><\/p>/g, '');
     text = text.replace(/<p>(<(?:h[1-6]|ul|ol|pre|blockquote|table|hr)[^>]*>)/g, '$1');
     text = text.replace(/((?:<\/h[1-6]>|<\/ul>|<\/ol>|<\/pre>|<\/blockquote>|<\/table>|<hr>))<\/p>/g, '$1');
 
-    // Restaurar bloques de código
     text = text.replace(/\x00CODE(\d+)\x00/g, (_, i) => codeStore[parseInt(i)]);
-
-    // Restaurar LaTeX (ya sanitizado)
     text = text.replace(/\x00MATH(\d+)\x00/g, (_, i) => mathStore[parseInt(i)]);
 
     return text;
