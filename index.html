@@ -947,6 +947,20 @@
       background: rgba(255,255,255,0.02);
     }
 
+    /* ── ERROR LATEX ────────────────────────────────── */
+    .latex-error {
+      display: inline-block;
+      background: rgba(255,51,85,0.08);
+      border: 1px solid rgba(255,51,85,0.25);
+      border-radius: 3px;
+      color: var(--danger);
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      padding: 2px 8px;
+      margin: 2px 0;
+      opacity: 0.8;
+    }
+
     @media (max-width: 480px) {
       .lang-grid { grid-template-columns: repeat(4, 1fr); }
       .modal-box { padding: 32px 22px 28px; }
@@ -1106,8 +1120,7 @@
   let selectedLangPrompt = localStorage.getItem('dm_lang_prompt') || 'Responde siempre en español, sin excepciones.';
   let selectedLangCode = localStorage.getItem('dm_lang_code') || 'es';
 
-  // Control de auto-scroll: solo hace scroll automático si el usuario
-  // está cerca del final. Así se elimina el efecto de rebote.
+  // Control de auto-scroll
   let userScrolledUp = false;
 
   const messagesEl = document.getElementById('messages');
@@ -1131,12 +1144,24 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
 2. Para TODAS las fórmulas matemáticas, físicas o químicas DEBES usar LaTeX sin excepción:
    - Inline (dentro del texto): $formula$   Ejemplo: La energía es $E = mc^2$
    - Bloque (centrada, para ecuaciones importantes): $$formula$$
-   Más ejemplos correctos:
-   - $$\\beta = 10 \\cdot \\log_{10}\\left(\\frac{I}{I_0}\\right)$$
-   - El resultado es $\\beta \\approx 53{,}01 \\text{ dB}$
-3. NUNCA escribas fórmulas como texto plano como "\\beta = 10 \\cdot ..." sin los delimitadores $ o $$.
+3. REGLAS ABSOLUTAS DE LaTeX — ERRORES CRÍTICOS QUE DEBES EVITAR:
+   a) \\left( y \\right) SIEMPRE al mismo nivel, NUNCA \\right) dentro de \\frac{}{}:
+      CORRECTO:   $$\\beta = 10 \\cdot \\log_{10}\\left(\\frac{I}{I_0}\\right)$$
+      INCORRECTO: $$\\beta = 10 \\cdot \\log_{10}\\left(\\frac{I}{I_0\\right)}$$
+      INCORRECTO: $$\\beta = 10 \\cdot \\log_{10}\\left(\\frac{I}{I_0}\\right)}$$
+   b) \\right) NUNCA puede ir dentro de las llaves {} de \\frac:
+      CORRECTO:   \\frac{numerador}{denominador}\\right)
+      INCORRECTO: \\frac{numerador}{denominador\\right)}
+   c) CADA paso del desarrollo matemático DEBE ir en su propio bloque $$...$$:
+      $$\\beta = 10 \\cdot \\log_{10}\\left(\\frac{2 \\times 10^{7}}{10^{-12}}\\right)$$
+      $$\\beta = 10 \\cdot \\log_{10}\\left(2 \\times 10^{19}\\right)$$
+      $$\\beta = 10 \\cdot 19{,}301$$
+      $$\\beta \\approx 193{,}01 \\text{ dB}$$
+   d) NUNCA escribas \\beta, \\alpha, \\frac, \\log_, \\cdot, \\times, \\approx sin delimitadores $ o $$.
+   e) Para valores inline con unidades: $\\beta \\approx 193{,}01 \\text{ dB}$
+   f) No pongas saltos de línea DENTRO de $$ ... $$.
 4. Estructura tus respuestas con secciones claras usando ## y ###.
-5. Para resolver problemas usa siempre estas secciones: **Datos:**, **Fórmula:**, **Desarrollo:**, **Resultado:**.
+5. Para resolver problemas usa siempre: **Datos:**, **Fórmula:**, **Desarrollo:**, **Resultado:**.
 6. Usa listas numeradas para pasos secuenciales.`;
 
   // ── Init ────────────────────────────────────────────────
@@ -1264,7 +1289,6 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
     input.value = '';
     input.style.height = 'auto';
 
-    // Resetear flag de scroll al enviar: ir al fondo
     userScrolledUp = false;
     scrollToBottom(true);
 
@@ -1317,8 +1341,6 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
             const delta = json.choices?.[0]?.delta?.content;
             if (delta) {
               fullText += delta;
-              // Durante streaming: mostrar texto plano con cursor, sin MathJax
-              // para evitar el scroll loco y el bug de fórmulas parciales
               contentEl.textContent = fullText;
               contentEl.appendChild(cursorEl);
               scrollToBottom();
@@ -1327,15 +1349,12 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
         }
       }
 
-      // Streaming terminado: ahora sí renderizar Markdown + LaTeX
       cursorEl.remove();
       contentEl.innerHTML = formatMarkdown(fullText);
       messages.push({ role: 'assistant', content: fullText });
 
-      // Añadir botones de acción
       addMessageActions(msgEl, fullText);
 
-      // Renderizar MathJax solo al final, una sola vez
       renderMath(contentEl, () => {
         scrollToBottom(true);
       });
@@ -1394,7 +1413,6 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
 
     const bubbleEl = document.createElement('div');
     bubbleEl.className = 'msg-bubble';
-    // Estilo monospaced durante streaming para que se vea limpio
     bubbleEl.style.fontFamily = "'DM Mono', monospace";
     bubbleEl.style.whiteSpace = 'pre-wrap';
 
@@ -1429,12 +1447,11 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
     renderMath(bubble, () => scrollToBottom(true));
   }
 
-  // ── Botones de acción — siempre visibles, copiar con fallback ──
+  // ── Botones de acción ────────────────────────────────────
   function addMessageActions(msgEl, text) {
     const actionsEl = document.createElement('div');
     actionsEl.className = 'msg-actions';
 
-    // Botón copiar
     const copyBtn = document.createElement('button');
     copyBtn.className = 'action-btn';
     copyBtn.innerHTML = `
@@ -1446,7 +1463,6 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
     `;
     copyBtn.addEventListener('click', () => copyText(text, copyBtn));
 
-    // Botón regenerar
     const regenBtn = document.createElement('button');
     regenBtn.className = 'action-btn';
     regenBtn.innerHTML = `
@@ -1464,7 +1480,6 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
     msgEl.appendChild(actionsEl);
   }
 
-  // Copiar con fallback para móviles que no soportan clipboard API
   function copyText(text, btn) {
     const originalHTML = btn.innerHTML;
 
@@ -1487,14 +1502,11 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
       }, 2000);
     };
 
-    // Intentar con clipboard API moderno
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(doSuccess).catch(() => {
-        // Fallback si falla
         fallbackCopy(text, doSuccess);
       });
     } else {
-      // Fallback directo para navegadores que no soportan clipboard
       fallbackCopy(text, doSuccess);
     }
   }
@@ -1587,23 +1599,108 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
     setGenerating(false);
   }
 
-  // ── Renderizar MathJax — solo al final, con callback ────
+  // ── sanitizeLaTeX ────────────────────────────────────────
+  // Corrección CRÍTICA: mueve \right) que quedó dentro de las llaves
+  // del denominador de \frac hacia afuera donde corresponde.
+  // Ej: \frac{A}{B\right)} → \frac{A}{B}\right)
+  function sanitizeLaTeX(latex) {
+    let s = latex;
+
+    // PASO 1: Mover \right) / \right] / \right. cuando está pegado a }
+    // Es decir: ...contenido\right)} → ...contenido}\right)
+    // Se itera porque puede haber casos anidados
+    let prev = '';
+    let iter = 0;
+    while (prev !== s && iter < 10) {
+      prev = s;
+      s = s.replace(/\\right([.)\]])\s*\}/g, (match, delim, offset, full) => {
+        // Contar \left y \right antes de esta posición
+        const before = full.slice(0, offset);
+        const nLeft  = (before.match(/\\left[\s\S]/g)  || []).length;
+        const nRight = (before.match(/\\right[\s\S]/g) || []).length;
+        // Si \left > \right entonces este \right cierra un \left legítimo → dejar
+        if (nLeft > nRight) return match;
+        // De lo contrario es un \right mal ubicado dentro de {} → mover afuera
+        return '}\\right' + delim;
+      });
+      iter++;
+    }
+
+    // PASO 2: Balancear \left( sin \right) — añadir \right. invisibles al final
+    const lp = (s.match(/\\left\(/g)  || []).length;
+    const rp = (s.match(/\\right\)/g) || []).length;
+    if (lp > rp) s += '\\right.'.repeat(lp - rp);
+
+    // PASO 3: Balancear \left[ sin \right]
+    const lb = (s.match(/\\left\[/g)  || []).length;
+    const rb = (s.match(/\\right\]/g) || []).length;
+    if (lb > rb) s += '\\right.'.repeat(lb - rb);
+
+    // PASO 4: Limpiar espacios extra alrededor de delimitadores
+    s = s.replace(/\\left\s+\(/g, '\\left(');
+    s = s.replace(/\\left\s+\[/g, '\\left[');
+    s = s.replace(/\\right\s+\)/g, '\\right)');
+    s = s.replace(/\\right\s+\]/g, '\\right]');
+
+    return s;
+  }
+
+  // ── autoWrapLaTeX ────────────────────────────────────────
+  // Detecta líneas que son expresiones LaTeX sin delimitadores $ y las envuelve.
+  // Heurística SIMPLE y CONFIABLE: si la línea comienza con \letra (comando LaTeX)
+  // y no tiene ya delimitadores $, es una fórmula suelta → envolver en $$ ... $$
+  function autoWrapLaTeX(text) {
+    return text.split('\n').map(line => {
+      const trimmed = line.trim();
+
+      // Saltar líneas vacías
+      if (!trimmed) return line;
+
+      // Saltar si ya tiene delimitadores de math ($, \[, \()
+      if (trimmed.includes('$') || trimmed.includes('\\[') || trimmed.includes('\\(')) return line;
+
+      // Saltar si es una etiqueta HTML
+      if (/^<[a-zA-Z]/.test(trimmed)) return line;
+
+      // Saltar si empieza con # (título Markdown) o - o > o * seguido de espacio
+      if (/^(#{1,6}\s|[-*+]\s|>\s|\d+\.\s)/.test(trimmed)) return line;
+
+      // Si la línea comienza con un comando LaTeX (\letra...), es una fórmula suelta
+      if (/^\\[a-zA-Z]/.test(trimmed)) {
+        return '$$' + trimmed + '$$';
+      }
+
+      return line;
+    }).join('\n');
+  }
+
+  // ── Renderizar MathJax ───────────────────────────────────
   function renderMath(el, callback) {
     if (window.MathJax && window.MathJax.typesetPromise) {
-      // Quitar estilos de streaming antes de renderizar
       const bubble = el.closest ? el.closest('.msg-bubble') : el;
       if (bubble) {
         bubble.style.fontFamily = '';
         bubble.style.whiteSpace = '';
       }
       window.MathJax.typesetPromise([el])
-        .then(() => { if (callback) callback(); })
+        .then(() => {
+          // Reemplazar elementos de error de MathJax por indicador visual
+          el.querySelectorAll('mjx-merror').forEach(errEl => {
+            const container = errEl.closest('mjx-container');
+            const span = document.createElement('span');
+            span.className = 'latex-error';
+            span.title = 'Fórmula LaTeX con error de sintaxis';
+            span.textContent = '⚠ error en fórmula';
+            if (container) container.replaceWith(span);
+            else errEl.replaceWith(span);
+          });
+          if (callback) callback();
+        })
         .catch(err => {
-          console.warn('MathJax error:', err);
+          console.warn('MathJax render error:', err);
           if (callback) callback();
         });
     } else {
-      // MathJax aún no cargó, esperar y reintentar
       setTimeout(() => renderMath(el, callback), 500);
     }
   }
@@ -1613,31 +1710,57 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
     const mathStore = [];
 
     function saveMath(str) {
-      mathStore.push(str);
+      let content, openDel, closeDel;
+
+      if (str.startsWith('$$') && str.endsWith('$$') && str.length > 4) {
+        content = str.slice(2, -2);
+        openDel = '$$'; closeDel = '$$';
+      } else if (str.startsWith('$') && str.endsWith('$') && str.length > 2) {
+        content = str.slice(1, -1);
+        openDel = '$'; closeDel = '$';
+      } else if (str.startsWith('\\[') && str.endsWith('\\]')) {
+        content = str.slice(2, -2);
+        openDel = '\\['; closeDel = '\\]';
+      } else if (str.startsWith('\\(') && str.endsWith('\\)')) {
+        content = str.slice(2, -2);
+        openDel = '\\('; closeDel = '\\)';
+      } else {
+        content = str;
+        openDel = '$'; closeDel = '$';
+      }
+
+      // Sanitizar el contenido LaTeX antes de guardarlo
+      content = sanitizeLaTeX(content.trim());
+      mathStore.push(openDel + content + closeDel);
       return `\x00MATH${mathStore.length - 1}\x00`;
     }
 
-    let text = raw;
+    // PASO 1: Auto-envolver líneas LaTeX sin delimitadores
+    let text = autoWrapLaTeX(raw);
 
-    // Proteger $$ ... $$ primero (display)
+    // PASO 2: Proteger bloques $$ ... $$ (display, puede ser multilínea)
     text = text.replace(/\$\$([\s\S]*?)\$\$/g, (_, inner) => saveMath(`$$${inner}$$`));
 
-    // Proteger \[ ... \]
+    // PASO 3: Proteger \[ ... \]
     text = text.replace(/\\\[([\s\S]*?)\\\]/g, (_, inner) => saveMath(`\\[${inner}\\]`));
 
-    // Proteger \( ... \)
+    // PASO 4: Proteger \( ... \)
     text = text.replace(/\\\(([^)]*?)\\\)/g, (_, inner) => saveMath(`\\(${inner}\\)`));
 
-    // Proteger $ ... $ inline (sin saltos de línea)
-    text = text.replace(/\$([^$\n]+?)\$/g, (_, inner) => saveMath(`$${inner}$`));
+    // PASO 5: Proteger $ ... $ inline (sin saltos de línea, hasta 400 caracteres)
+    text = text.replace(/\$([^$\n]{1,400}?)\$/g, (match, inner) => {
+      // Solo guardar si contiene caracteres típicos de LaTeX
+      if (/[a-zA-Z0-9\\{}^_]/.test(inner)) return saveMath(`$${inner}$`);
+      return match;
+    });
 
-    // Escapar HTML
+    // PASO 6: Escapar HTML (los placeholders \x00MATHn\x00 no se ven afectados)
     text = text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
 
-    // Bloques de código (proteger antes de procesar)
+    // PASO 7: Bloques de código (proteger antes del resto)
     const codeStore = [];
     text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
       const html = `<pre><code class="language-${lang}">${code.trim()}</code></pre>`;
@@ -1728,7 +1851,7 @@ REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
     // Restaurar bloques de código
     text = text.replace(/\x00CODE(\d+)\x00/g, (_, i) => codeStore[parseInt(i)]);
 
-    // Restaurar LaTeX
+    // Restaurar LaTeX (ya sanitizado)
     text = text.replace(/\x00MATH(\d+)\x00/g, (_, i) => mathStore[parseInt(i)]);
 
     return text;
