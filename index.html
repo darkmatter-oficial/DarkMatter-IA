@@ -2,63 +2,77 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>DarkMatter IA</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #080a0f;
-      --surface: #0d1117;
-      --surface2: #131923;
-      --border: #1e2d42;
+      --bg: #060810;
+      --surface: #0c1018;
+      --surface2: #111828;
+      --border: #1a2840;
+      --border2: #243550;
       --accent: #00d4ff;
       --accent2: #7b4fff;
-      --accent-glow: rgba(0,212,255,0.15);
-      --text: #e8edf5;
-      --text-dim: #5a6a80;
-      --text-muted: #2e3d52;
-      --user-bubble: #0f1e30;
-      --ai-bubble: #0a1520;
-      --danger: #ff4466;
+      --accent3: #ff6b35;
+      --accent-glow: rgba(0,212,255,0.12);
+      --accent2-glow: rgba(123,79,255,0.12);
+      --text: #dde6f5;
+      --text-dim: #4a6080;
+      --text-muted: #253348;
+      --user-bubble: #0a1a2e;
+      --ai-bubble: #080f1c;
+      --danger: #ff3355;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
-    html, body {
+    html {
       height: 100%;
+      height: -webkit-fill-available;
+    }
+
+    body {
+      height: 100vh;
+      height: 100dvh;
       background: var(--bg);
       color: var(--text);
       font-family: 'DM Mono', monospace;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* Fondo animado */
+    /* Fondo con partículas estáticas SVG */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(ellipse 60% 40% at 20% 10%, rgba(0,212,255,0.04) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 50% at 80% 90%, rgba(123,79,255,0.05) 0%, transparent 60%),
-        radial-gradient(ellipse 30% 30% at 50% 50%, rgba(0,212,255,0.02) 0%, transparent 100%);
+        radial-gradient(ellipse 70% 50% at 15% 5%, rgba(0,212,255,0.05) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 60% at 85% 95%, rgba(123,79,255,0.06) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 40% at 60% 30%, rgba(0,212,255,0.025) 0%, transparent 60%),
+        radial-gradient(ellipse 30% 30% at 30% 70%, rgba(123,79,255,0.03) 0%, transparent 50%);
       pointer-events: none;
       z-index: 0;
     }
 
-    /* Grid texture */
+    /* Grid sutil */
     body::after {
       content: '';
       position: fixed;
       inset: 0;
       background-image:
-        linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
-      background-size: 40px 40px;
+        linear-gradient(rgba(0,212,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
       pointer-events: none;
       z-index: 0;
     }
 
-    /* ── MODAL API KEY ─────────────────────────────── */
+    /* ── MODAL ──────────────────────────────────────── */
     #api-modal {
       position: fixed;
       inset: 0;
@@ -66,21 +80,24 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(5,7,12,0.95);
-      backdrop-filter: blur(12px);
+      background: rgba(4,6,10,0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       animation: fadeIn .3s ease;
+      padding: 20px;
+      padding-bottom: calc(20px + var(--safe-bottom));
     }
 
     .modal-box {
       position: relative;
-      width: 420px;
-      max-width: 92vw;
+      width: 100%;
+      max-width: 440px;
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      padding: 44px 40px 40px;
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      padding: 40px 36px 36px;
       animation: slideUp .4s cubic-bezier(0.16,1,0.3,1);
-      max-height: 90vh;
+      max-height: 88vh;
       overflow-y: auto;
     }
 
@@ -89,125 +106,78 @@
       position: absolute;
       top: 0; left: 0; right: 0;
       height: 2px;
-      background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+      background: linear-gradient(90deg, transparent 0%, var(--accent) 35%, var(--accent2) 65%, transparent 100%);
+    }
+
+    .modal-box::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(0,212,255,0.04) 0%, transparent 60%);
+      pointer-events: none;
+      border-radius: 4px;
     }
 
     .modal-logo {
       font-family: 'Syne', sans-serif;
       font-weight: 800;
-      font-size: 26px;
-      letter-spacing: -0.5px;
-      margin-bottom: 6px;
+      font-size: 28px;
+      letter-spacing: -1px;
+      margin-bottom: 4px;
+      position: relative;
+      z-index: 1;
     }
 
-    .modal-logo span {
-      color: var(--accent);
-    }
+    .modal-logo span { color: var(--accent); }
 
     .modal-sub {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--text-dim);
-      letter-spacing: 3px;
+      letter-spacing: 3.5px;
       text-transform: uppercase;
-      margin-bottom: 32px;
+      margin-bottom: 28px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .modal-divider {
+      height: 1px;
+      background: linear-gradient(90deg, var(--border2), transparent);
+      margin-bottom: 24px;
     }
 
     .modal-label {
-      font-size: 10px;
-      letter-spacing: 2px;
+      font-size: 9px;
+      letter-spacing: 2.5px;
       text-transform: uppercase;
       color: var(--text-dim);
       margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
     }
 
-    .modal-input {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      color: var(--text);
-      font-family: 'DM Mono', monospace;
-      font-size: 13px;
-      padding: 13px 16px;
-      outline: none;
-      transition: border-color .2s, box-shadow .2s;
-      margin-bottom: 24px;
-    }
-
-    .modal-input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow);
-    }
-
-    .modal-input::placeholder { color: var(--text-muted); }
-
-    .modal-error {
-      font-size: 11px;
-      color: var(--danger);
-      margin-top: -18px;
-      margin-bottom: 16px;
-      display: none;
-    }
-
-    .modal-hint {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-top: -18px;
-      margin-bottom: 20px;
-      line-height: 1.5;
-    }
-
-    .modal-hint a { color: var(--accent); text-decoration: none; }
-
-    .btn-primary {
-      width: 100%;
-      background: var(--accent);
-      color: #000;
-      font-family: 'Syne', sans-serif;
-      font-weight: 700;
-      font-size: 13px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      border: none;
-      border-radius: 2px;
-      padding: 14px;
-      cursor: pointer;
-      transition: opacity .15s, box-shadow .2s;
-    }
-
-    .btn-primary:hover {
-      opacity: .9;
-      box-shadow: 0 0 20px rgba(0,212,255,0.3);
-    }
-
-    /* ── SELECTOR DE IDIOMA ────────────────────────── */
-    .lang-label {
-      font-size: 10px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--text-dim);
-      margin-bottom: 10px;
-    }
-
+    /* ── SELECTOR DE IDIOMA ─────────────────────────── */
     .lang-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
       margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
     }
 
     .lang-btn {
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 2px;
+      border-radius: 3px;
       color: var(--text-dim);
       font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      padding: 8px 6px;
+      font-size: 10px;
+      padding: 8px 4px 7px;
       cursor: pointer;
       transition: all .15s;
       text-align: center;
-      line-height: 1.3;
+      line-height: 1.2;
     }
 
     .lang-btn:hover {
@@ -220,75 +190,162 @@
       border-color: var(--accent);
       color: var(--accent);
       background: var(--accent-glow);
-      box-shadow: 0 0 8px rgba(0,212,255,0.2);
+      box-shadow: 0 0 10px rgba(0,212,255,0.15), inset 0 0 10px rgba(0,212,255,0.05);
     }
 
     .lang-btn .lang-flag {
       display: block;
-      font-size: 18px;
-      margin-bottom: 3px;
+      font-size: 17px;
+      margin-bottom: 4px;
     }
 
     .lang-btn .lang-name {
       display: block;
-      font-size: 9px;
-      letter-spacing: 1px;
+      font-size: 8px;
+      letter-spacing: 0.5px;
     }
 
-    /* ── LAYOUT PRINCIPAL ──────────────────────────── */
-    #app {
-      display: none;
-      flex-direction: column;
-      height: 100vh;
+    /* ── INPUT MODAL ─────────────────────────────────── */
+    .modal-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 12.5px;
+      padding: 13px 16px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      margin-bottom: 8px;
       position: relative;
       z-index: 1;
     }
 
-    /* Header */
+    .modal-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow), 0 0 20px rgba(0,212,255,0.08);
+    }
+
+    .modal-input::placeholder { color: var(--text-muted); }
+
+    .modal-error {
+      font-size: 10px;
+      color: var(--danger);
+      margin-bottom: 10px;
+      display: none;
+      position: relative;
+      z-index: 1;
+    }
+
+    .modal-hint {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      line-height: 1.6;
+      position: relative;
+      z-index: 1;
+    }
+
+    .modal-hint a { color: rgba(0,212,255,0.6); text-decoration: none; }
+    .modal-hint a:hover { color: var(--accent); }
+
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent) 0%, rgba(0,180,220,1) 100%);
+      color: #000;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 3px;
+      padding: 15px;
+      cursor: pointer;
+      transition: opacity .15s, box-shadow .2s, transform .1s;
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 0 30px rgba(0,212,255,0.35), 0 4px 20px rgba(0,212,255,0.2);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+
+    /* ── APP LAYOUT ────────────────────────────────────── */
+    #app {
+      display: none;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+      position: relative;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    /* ── HEADER ─────────────────────────────────────── */
     header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 18px 28px;
+      padding: 14px 22px;
       border-bottom: 1px solid var(--border);
-      background: rgba(8,10,15,0.8);
-      backdrop-filter: blur(10px);
+      background: rgba(6,8,16,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0,212,255,0.3), transparent);
     }
 
     .header-brand {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
 
     .logo-mark {
-      width: 36px;
-      height: 36px;
-      position: relative;
+      width: 34px;
+      height: 34px;
       flex-shrink: 0;
+      position: relative;
     }
 
-    .logo-mark svg {
-      width: 100%;
-      height: 100%;
-    }
+    .logo-mark svg { width: 100%; height: 100%; }
 
-    .brand-text {}
+    /* Anillo pulsante alrededor del logo */
+    .logo-ring {
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,212,255,0.2);
+      animation: ringPulse 3s infinite;
+    }
 
     .brand-name {
       font-family: 'Syne', sans-serif;
       font-weight: 800;
-      font-size: 18px;
-      letter-spacing: -0.3px;
+      font-size: 17px;
+      letter-spacing: -0.5px;
       line-height: 1;
     }
 
     .brand-name span { color: var(--accent); }
 
     .brand-tagline {
-      font-size: 9px;
-      letter-spacing: 3px;
+      font-size: 8.5px;
+      letter-spacing: 2.5px;
       text-transform: uppercase;
       color: var(--text-dim);
       margin-top: 3px;
@@ -297,23 +354,26 @@
     .header-right {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 10px;
     }
 
-    .status-dot {
+    .status-pill {
       display: flex;
       align-items: center;
-      gap: 7px;
-      font-size: 10px;
-      letter-spacing: 1.5px;
+      gap: 6px;
+      font-size: 9px;
+      letter-spacing: 2px;
       text-transform: uppercase;
       color: var(--text-dim);
+      background: rgba(0,212,255,0.05);
+      border: 1px solid rgba(0,212,255,0.1);
+      border-radius: 20px;
+      padding: 5px 10px;
     }
 
-    .status-dot::before {
-      content: '';
-      width: 6px;
-      height: 6px;
+    .status-dot-live {
+      width: 5px;
+      height: 5px;
       border-radius: 50%;
       background: var(--accent);
       box-shadow: 0 0 6px var(--accent);
@@ -321,117 +381,206 @@
     }
 
     .btn-reset {
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 2px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border2);
+      border-radius: 3px;
       color: var(--text-dim);
       font-family: 'DM Mono', monospace;
-      font-size: 10px;
+      font-size: 9px;
       letter-spacing: 1.5px;
       text-transform: uppercase;
-      padding: 7px 14px;
+      padding: 7px 12px;
       cursor: pointer;
       transition: all .2s;
     }
 
     .btn-reset:hover {
-      border-color: var(--accent);
+      border-color: rgba(0,212,255,0.4);
       color: var(--accent);
+      background: var(--accent-glow);
     }
 
-    /* Messages area */
+    /* ── MESSAGES ───────────────────────────────────── */
     #messages {
       flex: 1;
       overflow-y: auto;
-      padding: 32px 28px;
+      overflow-x: hidden;
+      padding: 28px 20px 16px;
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 20px;
       scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
     }
 
-    #messages::-webkit-scrollbar { width: 4px; }
+    #messages::-webkit-scrollbar { width: 3px; }
     #messages::-webkit-scrollbar-track { background: transparent; }
-    #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    #messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
-    /* Welcome */
+    /* ── WELCOME ──────────────────────────────────── */
     .welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       text-align: center;
-      padding: 60px 20px;
-      animation: fadeIn .6s ease;
+      padding: 40px 20px;
+      flex: 1;
+      animation: fadeIn .8s ease;
     }
 
-    .welcome-icon {
-      width: 64px;
-      height: 64px;
-      margin: 0 auto 24px;
-      opacity: .6;
+    .welcome-orb {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 28px;
+    }
+
+    .welcome-orb-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1px solid rgba(0,212,255,0.2);
+      animation: orbRing 4s linear infinite;
+    }
+
+    .welcome-orb-ring:nth-child(2) {
+      inset: 6px;
+      border-color: rgba(123,79,255,0.2);
+      animation-direction: reverse;
+      animation-duration: 6s;
+    }
+
+    .welcome-orb-core {
+      position: absolute;
+      inset: 16px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,212,255,0.15) 0%, transparent 70%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .welcome h2 {
       font-family: 'Syne', sans-serif;
       font-weight: 800;
-      font-size: 28px;
+      font-size: 24px;
+      letter-spacing: -0.5px;
       margin-bottom: 10px;
+      line-height: 1.2;
     }
 
     .welcome h2 span { color: var(--accent); }
 
     .welcome p {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-dim);
-      letter-spacing: 1px;
-      line-height: 1.7;
+      letter-spacing: 0.5px;
+      line-height: 1.8;
+      max-width: 280px;
     }
 
-    /* Message bubbles */
+    .welcome-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .welcome-chip {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      font-size: 10px;
+      color: var(--text-dim);
+      padding: 5px 12px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .welcome-chip:hover {
+      border-color: rgba(0,212,255,0.4);
+      color: var(--accent);
+      background: var(--accent-glow);
+    }
+
+    /* ── MENSAJES ───────────────────────────────────── */
     .msg {
       display: flex;
       flex-direction: column;
-      animation: msgIn .3s cubic-bezier(0.16,1,0.3,1);
+      animation: msgIn .35s cubic-bezier(0.16,1,0.3,1);
     }
 
     .msg-user { align-items: flex-end; }
     .msg-ai { align-items: flex-start; }
 
-    .msg-header {
-      font-size: 9px;
-      letter-spacing: 2px;
+    .msg-label {
+      font-size: 8.5px;
+      letter-spacing: 2.5px;
       text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 7px;
-      padding: 0 4px;
+      margin-bottom: 6px;
+      padding: 0 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    .msg-user .msg-header { color: var(--accent); opacity: .6; }
+    .msg-user .msg-label { color: rgba(0,212,255,0.5); }
+    .msg-ai .msg-label { color: var(--text-muted); }
+
+    .msg-label-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .msg-user .msg-label-dot { background: var(--accent); }
+    .msg-ai .msg-label-dot { background: var(--accent2); }
 
     .msg-bubble {
-      max-width: 72%;
-      padding: 16px 20px;
-      border-radius: 2px;
-      font-size: 13.5px;
-      line-height: 1.75;
+      max-width: 78%;
+      padding: 14px 18px;
+      border-radius: 3px;
+      font-size: 13px;
+      line-height: 1.8;
       position: relative;
+      word-break: break-word;
     }
 
     .msg-user .msg-bubble {
       background: var(--user-bubble);
-      border: 1px solid rgba(0,212,255,0.15);
+      border: 1px solid rgba(0,212,255,0.12);
       border-right: 2px solid var(--accent);
+      border-radius: 3px 0 3px 3px;
     }
 
     .msg-ai .msg-bubble {
       background: var(--ai-bubble);
       border: 1px solid var(--border);
       border-left: 2px solid var(--accent2);
+      border-radius: 0 3px 3px 3px;
     }
 
-    /* Acciones del mensaje IA */
+    /* Shimmer en burbuja IA */
+    .msg-ai .msg-bubble::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, var(--accent2), transparent);
+      opacity: 0.3;
+    }
+
+    /* ── ACCIONES MENSAJE ───────────────────────────── */
     .msg-actions {
       display: flex;
       gap: 4px;
-      margin-top: 8px;
-      padding: 0 4px;
+      margin-top: 6px;
+      padding: 0 6px;
       opacity: 0;
       transition: opacity .2s;
     }
@@ -439,89 +588,98 @@
     .msg-ai:hover .msg-actions { opacity: 1; }
 
     .action-btn {
-      background: transparent;
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 2px;
+      border-radius: 3px;
       color: var(--text-dim);
       font-family: 'DM Mono', monospace;
-      font-size: 11px;
+      font-size: 10px;
       padding: 5px 10px;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 5px;
       transition: all .15s;
+      letter-spacing: 0.5px;
     }
 
     .action-btn:hover {
-      border-color: var(--accent);
+      border-color: rgba(0,212,255,0.4);
       color: var(--accent);
       background: var(--accent-glow);
     }
 
-    .action-btn svg { width: 12px; height: 12px; }
+    .action-btn svg { width: 11px; height: 11px; }
 
-    /* Typing indicator */
+    /* ── TYPING ─────────────────────────────────────── */
     .typing-indicator {
       display: flex;
       gap: 5px;
-      padding: 16px 20px;
+      align-items: center;
+      padding: 14px 18px;
       background: var(--ai-bubble);
       border: 1px solid var(--border);
       border-left: 2px solid var(--accent2);
-      border-radius: 2px;
+      border-radius: 0 3px 3px 3px;
       width: fit-content;
     }
 
     .typing-dot {
-      width: 5px;
-      height: 5px;
+      width: 4px;
+      height: 4px;
       border-radius: 50%;
       background: var(--accent2);
-      animation: typingBounce 1.2s infinite;
+      animation: typingBounce 1.4s infinite;
     }
 
     .typing-dot:nth-child(2) { animation-delay: .2s; }
     .typing-dot:nth-child(3) { animation-delay: .4s; }
 
-    /* Streaming cursor */
     .stream-cursor {
       display: inline-block;
       width: 2px;
-      height: 14px;
+      height: 13px;
       background: var(--accent);
       margin-left: 2px;
       vertical-align: middle;
-      animation: blink .8s infinite;
+      animation: blink .9s infinite;
     }
 
-    /* Input area */
+    /* ── INPUT AREA ─────────────────────────────────── */
     #input-area {
-      padding: 20px 28px 24px;
-      border-top: 1px solid var(--border);
-      background: rgba(8,10,15,0.8);
-      backdrop-filter: blur(10px);
       flex-shrink: 0;
-      padding-bottom: max(24px, env(safe-area-inset-bottom, 24px));
-      margin-bottom: 0;
+      background: rgba(6,8,16,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
+      padding: 14px 16px;
+      padding-bottom: calc(14px + env(safe-area-inset-bottom, 12px));
       position: relative;
-      z-index: 2;
+      z-index: 10;
+    }
+
+    #input-area::before {
+      content: '';
+      position: absolute;
+      top: -1px; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0,212,255,0.2), rgba(123,79,255,0.2), transparent);
     }
 
     .input-wrapper {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       align-items: flex-end;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      padding: 12px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      padding: 10px 12px;
       transition: border-color .2s, box-shadow .2s;
     }
 
     .input-wrapper:focus-within {
-      border-color: rgba(0,212,255,0.4);
-      box-shadow: 0 0 0 3px var(--accent-glow);
+      border-color: rgba(0,212,255,0.35);
+      box-shadow: 0 0 0 3px rgba(0,212,255,0.06), 0 0 20px rgba(0,212,255,0.05);
     }
 
     #user-input {
@@ -531,17 +689,17 @@
       outline: none;
       color: var(--text);
       font-family: 'DM Mono', monospace;
-      font-size: 13.5px;
-      line-height: 1.6;
+      font-size: 13px;
+      line-height: 1.55;
       resize: none;
-      max-height: 140px;
-      min-height: 22px;
+      max-height: 120px;
+      min-height: 20px;
       overflow-y: auto;
+      -webkit-appearance: none;
     }
 
     #user-input::placeholder { color: var(--text-muted); }
-
-    #user-input::-webkit-scrollbar { width: 3px; }
+    #user-input::-webkit-scrollbar { width: 2px; }
     #user-input::-webkit-scrollbar-thumb { background: var(--border); }
 
     .input-buttons {
@@ -553,93 +711,95 @@
 
     #stop-btn {
       display: none;
-      background: transparent;
-      border: 1px solid var(--danger);
-      border-radius: 2px;
+      background: rgba(255,51,85,0.08);
+      border: 1px solid rgba(255,51,85,0.3);
+      border-radius: 3px;
       color: var(--danger);
       font-family: 'DM Mono', monospace;
-      font-size: 10px;
+      font-size: 9px;
       letter-spacing: 1.5px;
       text-transform: uppercase;
-      padding: 8px 14px;
+      padding: 8px 12px;
       cursor: pointer;
       transition: all .15s;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
     }
 
     #stop-btn:hover {
-      background: rgba(255,68,102,0.1);
+      background: rgba(255,51,85,0.15);
+      border-color: var(--danger);
     }
 
     #send-btn {
-      background: var(--accent);
+      background: linear-gradient(135deg, var(--accent) 0%, rgba(0,170,210,1) 100%);
       border: none;
-      border-radius: 2px;
+      border-radius: 3px;
       color: #000;
-      width: 38px;
-      height: 38px;
+      width: 36px;
+      height: 36px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: opacity .15s, box-shadow .2s;
+      transition: box-shadow .2s, transform .1s, opacity .15s;
       flex-shrink: 0;
     }
 
     #send-btn:hover:not(:disabled) {
-      box-shadow: 0 0 14px rgba(0,212,255,0.4);
+      box-shadow: 0 0 18px rgba(0,212,255,0.45);
+      transform: translateY(-1px);
     }
 
-    #send-btn:disabled {
-      opacity: .4;
-      cursor: not-allowed;
-    }
+    #send-btn:active:not(:disabled) { transform: translateY(0); }
 
-    #send-btn svg { width: 15px; height: 15px; }
+    #send-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+    #send-btn svg { width: 14px; height: 14px; }
 
     .input-footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 10px;
+      margin-top: 8px;
       padding: 0 2px;
     }
 
     .model-tag {
-      font-size: 9px;
-      letter-spacing: 2px;
+      font-size: 8.5px;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
       color: var(--text-muted);
     }
 
-    .model-tag span { color: var(--accent2); }
+    .model-tag span { color: rgba(123,79,255,0.7); }
 
     .hint-tag {
-      font-size: 9px;
-      letter-spacing: 1px;
+      font-size: 8.5px;
+      letter-spacing: 0.5px;
       color: var(--text-muted);
     }
 
-    /* Notificación de copiado */
+    /* ── TOAST ──────────────────────────────────────── */
     #copy-toast {
       position: fixed;
-      bottom: 90px;
+      bottom: calc(90px + env(safe-area-inset-bottom, 0px));
       left: 50%;
-      transform: translateX(-50%) translateY(10px);
+      transform: translateX(-50%) translateY(14px);
       background: var(--surface2);
-      border: 1px solid var(--border);
-      border-left: 2px solid var(--accent);
+      border: 1px solid var(--border2);
+      border-top: 1px solid rgba(0,212,255,0.3);
       color: var(--accent);
-      font-size: 10px;
-      letter-spacing: 2px;
+      font-size: 9px;
+      letter-spacing: 2.5px;
       text-transform: uppercase;
-      padding: 10px 20px;
-      border-radius: 2px;
+      padding: 9px 18px;
+      border-radius: 20px;
       opacity: 0;
       pointer-events: none;
-      transition: all .25s;
+      transition: all .25s cubic-bezier(0.16,1,0.3,1);
       z-index: 999;
+      backdrop-filter: blur(10px);
     }
 
     #copy-toast.show {
@@ -647,37 +807,39 @@
       transform: translateX(-50%) translateY(0);
     }
 
-    /* Animaciones */
+    /* ── ANIMACIONES ────────────────────────────────── */
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
-    @keyframes typingBounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes msgIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%,100% { opacity: 1; box-shadow: 0 0 6px var(--accent); } 50% { opacity: .4; box-shadow: 0 0 2px var(--accent); } }
+    @keyframes typingBounce { 0%,60%,100% { transform: translateY(0); opacity: .5; } 30% { transform: translateY(-5px); opacity: 1; } }
     @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+    @keyframes ringPulse { 0%,100% { opacity: .3; transform: scale(1); } 50% { opacity: .8; transform: scale(1.05); } }
+    @keyframes orbRing { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-    /* Scrollbar global */
-    * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+    /* ── SCROLLBAR GLOBAL ───────────────────────────── */
+    * { scrollbar-width: thin; scrollbar-color: var(--border2) transparent; }
 
-    /* Markdown básico en respuestas */
+    /* ── MARKDOWN ───────────────────────────────────── */
     .msg-bubble code {
       font-family: 'DM Mono', monospace;
-      background: rgba(0,212,255,0.08);
-      border: 1px solid rgba(0,212,255,0.15);
+      background: rgba(0,212,255,0.07);
+      border: 1px solid rgba(0,212,255,0.12);
       padding: 1px 6px;
       border-radius: 2px;
-      font-size: 12px;
+      font-size: 11.5px;
       color: var(--accent);
     }
 
     .msg-bubble pre {
-      background: rgba(0,0,0,0.4);
-      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.5);
+      border: 1px solid var(--border2);
       border-left: 2px solid var(--accent2);
       padding: 14px 16px;
-      border-radius: 2px;
+      border-radius: 3px;
       overflow-x: auto;
       margin: 10px 0;
-      font-size: 12px;
+      font-size: 11.5px;
     }
 
     .msg-bubble pre code {
@@ -685,14 +847,32 @@
       border: none;
       padding: 0;
       color: var(--text);
+      font-size: inherit;
     }
 
-    .msg-bubble p { margin-bottom: 8px; }
+    .msg-bubble p { margin-bottom: 7px; }
     .msg-bubble p:last-child { margin-bottom: 0; }
-    .msg-bubble ul, .msg-bubble ol { padding-left: 18px; margin: 6px 0; }
+    .msg-bubble ul, .msg-bubble ol { padding-left: 16px; margin: 6px 0; }
     .msg-bubble li { margin-bottom: 4px; }
     .msg-bubble strong { color: var(--accent); font-weight: 600; }
-    .msg-bubble em { color: var(--text-dim); font-style: italic; }
+    .msg-bubble em { color: rgba(123,79,255,0.9); font-style: italic; }
+    .msg-bubble h1, .msg-bubble h2, .msg-bubble h3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 10px 0 6px;
+    }
+    .msg-bubble h1 { font-size: 16px; }
+    .msg-bubble h2 { font-size: 14px; }
+    .msg-bubble h3 { font-size: 13px; }
+
+    /* ── RESPONSIVE MÓVIL ───────────────────────────── */
+    @media (max-width: 480px) {
+      .lang-grid { grid-template-columns: repeat(4, 1fr); }
+      .modal-box { padding: 32px 22px 28px; }
+      header { padding: 12px 16px; }
+      #messages { padding: 20px 14px 10px; }
+    }
   </style>
 </head>
 <body>
@@ -702,8 +882,9 @@
   <div class="modal-box">
     <div class="modal-logo">Dark<span>Matter</span> IA</div>
     <div class="modal-sub">Acceso seguro requerido</div>
+    <div class="modal-divider"></div>
 
-    <div class="lang-label">Elige tu idioma / Choose your language</div>
+    <div class="modal-label">Selecciona tu idioma</div>
     <div class="lang-grid">
       <button class="lang-btn selected" data-lang="es" data-prompt="Responde siempre en español, sin excepciones." onclick="selectLang(this)">
         <span class="lang-flag">🇪🇸</span>
@@ -758,7 +939,7 @@
     <div class="modal-label">Tu API Key de Groq</div>
     <input type="password" id="api-key-input" class="modal-input" placeholder="gsk_xxxxxxxxxxxxxxxxxxxx" autocomplete="off"/>
     <div class="modal-error" id="api-error">API key inválida o error de conexión.</div>
-    <div class="modal-hint">Obtén tu key en <a href="https://console.groq.com" target="_blank">console.groq.com</a> — se guardará localmente en tu navegador.</div>
+    <div class="modal-hint">Obtén tu key en <a href="https://console.groq.com" target="_blank">console.groq.com</a> — se guardará localmente.</div>
     <button class="btn-primary" id="save-key-btn" onclick="saveApiKey()">Iniciar sesión →</button>
   </div>
 </div>
@@ -768,16 +949,13 @@
   <header>
     <div class="header-brand">
       <div class="logo-mark">
+        <div class="logo-ring"></div>
         <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="18,2 34,10 34,26 18,34 2,26 2,10" fill="none" stroke="#00d4ff" stroke-width="1.2" opacity=".4"/>
-          <polygon points="18,7 29,13 29,23 18,29 7,23 7,13" fill="none" stroke="#7b4fff" stroke-width="1"/>
-          <circle cx="18" cy="18" r="4" fill="#00d4ff" opacity=".9"/>
-          <line x1="18" y1="2" x2="18" y2="7" stroke="#00d4ff" stroke-width="1" opacity=".6"/>
-          <line x1="18" y1="29" x2="18" y2="34" stroke="#00d4ff" stroke-width="1" opacity=".6"/>
-          <line x1="2" y1="10" x2="7" y2="13" stroke="#00d4ff" stroke-width="1" opacity=".6"/>
-          <line x1="34" y1="10" x2="29" y2="13" stroke="#00d4ff" stroke-width="1" opacity=".6"/>
-          <line x1="2" y1="26" x2="7" y2="23" stroke="#00d4ff" stroke-width="1" opacity=".6"/>
-          <line x1="34" y1="26" x2="29" y2="23" stroke="#00d4ff" stroke-width="1" opacity=".6"/>
+          <polygon points="18,2 34,10 34,26 18,34 2,26 2,10" fill="none" stroke="#00d4ff" stroke-width="1" opacity=".35"/>
+          <polygon points="18,7 29,13 29,23 18,29 7,23 7,13" fill="none" stroke="#7b4fff" stroke-width="1" opacity=".5"/>
+          <polygon points="18,11 25,15 25,21 18,25 11,21 11,15" fill="none" stroke="#00d4ff" stroke-width="1" opacity=".3"/>
+          <circle cx="18" cy="18" r="3.5" fill="#00d4ff" opacity=".95"/>
+          <circle cx="18" cy="18" r="6" fill="none" stroke="#00d4ff" stroke-width=".5" opacity=".3"/>
         </svg>
       </div>
       <div class="brand-text">
@@ -786,23 +964,34 @@
       </div>
     </div>
     <div class="header-right">
-      <div class="status-dot">En línea</div>
-      <button class="btn-reset" onclick="resetApiKey()">Cambiar key</button>
+      <div class="status-pill">
+        <div class="status-dot-live"></div>
+        Online
+      </div>
+      <button class="btn-reset" onclick="resetApiKey()">Key</button>
     </div>
   </header>
 
   <div id="messages">
     <div class="welcome">
-      <div class="welcome-icon">
-        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="32,4 60,18 60,46 32,60 4,46 4,18" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity=".5"/>
-          <polygon points="32,12 52,22 52,42 32,52 12,42 12,22" fill="none" stroke="#7b4fff" stroke-width="1" opacity=".4"/>
-          <circle cx="32" cy="32" r="8" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity=".8"/>
-          <circle cx="32" cy="32" r="3" fill="#00d4ff"/>
-        </svg>
+      <div class="welcome-orb">
+        <div class="welcome-orb-ring"></div>
+        <div class="welcome-orb-ring"></div>
+        <div class="welcome-orb-core">
+          <svg width="28" height="28" viewBox="0 0 36 36" fill="none">
+            <circle cx="18" cy="18" r="5" fill="#00d4ff" opacity=".8"/>
+            <polygon points="18,4 32,12 32,24 18,32 4,24 4,12" fill="none" stroke="#00d4ff" stroke-width="1" opacity=".4"/>
+          </svg>
+        </div>
       </div>
       <h2>Bienvenido a <span>DarkMatter</span></h2>
-      <p>Inteligencia artificial de alto rendimiento.<br/>Escribe tu mensaje para comenzar.</p>
+      <p>Inteligencia artificial de alto rendimiento.<br/>¿En qué puedo ayudarte hoy?</p>
+      <div class="welcome-chips">
+        <div class="welcome-chip" onclick="useChip(this)">¿Qué puedes hacer?</div>
+        <div class="welcome-chip" onclick="useChip(this)">Escribe un poema</div>
+        <div class="welcome-chip" onclick="useChip(this)">Explícame algo</div>
+        <div class="welcome-chip" onclick="useChip(this)">Ayúdame con código</div>
+      </div>
     </div>
   </div>
 
@@ -811,8 +1000,8 @@
       <textarea id="user-input" placeholder="Escribe tu mensaje..." rows="1"></textarea>
       <div class="input-buttons">
         <button id="stop-btn" onclick="stopGeneration()">
-          <svg viewBox="0 0 12 12" fill="currentColor"><rect x="2" y="2" width="8" height="8" rx="1"/></svg>
-          Detener
+          <svg viewBox="0 0 12 12" fill="currentColor" width="10" height="10"><rect x="1.5" y="1.5" width="9" height="9" rx="1.5"/></svg>
+          Stop
         </button>
         <button id="send-btn" onclick="sendMessage()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -823,12 +1012,12 @@
     </div>
     <div class="input-footer">
       <div class="model-tag">Modelo: <span>llama-3.3-70b-versatile</span></div>
-      <div class="hint-tag">Enter para enviar · Shift+Enter nueva línea</div>
+      <div class="hint-tag">↵ enviar · ⇧↵ nueva línea</div>
     </div>
   </div>
 </div>
 
-<div id="copy-toast">Copiado al portapapeles</div>
+<div id="copy-toast">✓ Copiado</div>
 
 <script>
   // ── Estado ──────────────────────────────────────────────
@@ -841,45 +1030,43 @@
 
   // ── Init ────────────────────────────────────────────────
   window.onload = () => {
-    // Restaurar idioma seleccionado visualmente
     document.querySelectorAll('.lang-btn').forEach(btn => {
       btn.classList.remove('selected');
-      if (btn.dataset.lang === selectedLangCode) {
-        btn.classList.add('selected');
-      }
+      if (btn.dataset.lang === selectedLangCode) btn.classList.add('selected');
     });
-
     if (apiKey) showApp();
-    autoResizeTextarea();
-    fixInputPosition();
+    initTextarea();
   };
 
-  // ── Fijar input sobre el teclado virtual en móvil ────────
-  function fixInputPosition() {
-    const inputArea = document.getElementById('input-area');
-    const app = document.getElementById('app');
-
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', () => {
-        const offsetFromBottom = window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop;
-        inputArea.style.marginBottom = offsetFromBottom > 0 ? offsetFromBottom + 'px' : '0px';
-        const msgs = document.getElementById('messages');
-        msgs.scrollTop = msgs.scrollHeight;
-      });
-    }
+  // ── Fix altura dinámica en móvil ─────────────────────────
+  function setDynamicHeight() {
+    const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    document.getElementById('app').style.height = vh + 'px';
   }
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      setDynamicHeight();
+      scrollToBottom();
+    });
+    window.visualViewport.addEventListener('scroll', setDynamicHeight);
+  }
+
+  window.addEventListener('resize', setDynamicHeight);
 
   function showApp() {
     document.getElementById('api-modal').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
-    document.getElementById('user-input').focus();
+    const app = document.getElementById('app');
+    app.style.display = 'flex';
+    setDynamicHeight();
+    setTimeout(() => document.getElementById('user-input').focus(), 100);
   }
 
-  function autoResizeTextarea() {
+  function initTextarea() {
     const ta = document.getElementById('user-input');
     ta.addEventListener('input', () => {
       ta.style.height = 'auto';
-      ta.style.height = Math.min(ta.scrollHeight, 140) + 'px';
+      ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
     });
     ta.addEventListener('keydown', e => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -889,7 +1076,14 @@
     });
   }
 
-  // ── Selección de idioma ──────────────────────────────────
+  // ── Chips de bienvenida ──────────────────────────────────
+  function useChip(el) {
+    const text = el.textContent;
+    document.getElementById('user-input').value = text;
+    sendMessage();
+  }
+
+  // ── Idioma ───────────────────────────────────────────────
   function selectLang(btn) {
     document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
@@ -899,7 +1093,7 @@
     localStorage.setItem('dm_lang_code', selectedLangCode);
   }
 
-  // ── API Key ─────────────────────────────────────────────
+  // ── API Key ──────────────────────────────────────────────
   async function saveApiKey() {
     const input = document.getElementById('api-key-input');
     const key = input.value.trim();
@@ -916,19 +1110,11 @@
     btn.disabled = true;
     errorEl.style.display = 'none';
 
-    // Verificar key con llamada de prueba
     try {
       const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${key}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: [{ role: 'user', content: 'hi' }],
-          max_tokens: 5
-        })
+        headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'user', content: 'hi' }], max_tokens: 5 })
       });
 
       if (res.ok) {
@@ -966,26 +1152,18 @@
     const text = input.value.trim();
     if (!text || isGenerating) return;
 
-    // Limpiar welcome
     const welcome = document.querySelector('.welcome');
     if (welcome) welcome.remove();
 
-    // Agregar mensaje usuario
     messages.push({ role: 'user', content: text });
     appendUserMessage(text);
     input.value = '';
     input.style.height = 'auto';
 
-    // UI estado generando
     setGenerating(true);
-
-    // Typing indicator
     const typingEl = appendTypingIndicator();
-
-    // Llamar a Groq con streaming
     abortController = new AbortController();
 
-    // Construir array de mensajes con system prompt de idioma
     const messagesWithSystem = [
       { role: 'system', content: selectedLangPrompt },
       ...messages
@@ -995,16 +1173,8 @@
       const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         signal: abortController.signal,
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: messagesWithSystem,
-          stream: true,
-          max_tokens: 2048
-        })
+        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: messagesWithSystem, stream: true, max_tokens: 2048 })
       });
 
       if (!res.ok) {
@@ -1014,191 +1184,6 @@
         setGenerating(false);
         return;
       }
-
-      typingEl.remove();
-      const { bubbleEl, contentEl, cursorEl } = appendAiMessageStreaming();
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let fullText = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
-
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const data = line.slice(6).trim();
-          if (data === '[DONE]') continue;
-
-          try {
-            const json = JSON.parse(data);
-            const delta = json.choices?.[0]?.delta?.content;
-            if (delta) {
-              fullText += delta;
-              contentEl.innerHTML = formatMarkdown(fullText);
-              contentEl.appendChild(cursorEl);
-              scrollToBottom();
-            }
-          } catch {}
-        }
-      }
-
-      cursorEl.remove();
-      messages.push({ role: 'assistant', content: fullText });
-      addMessageActions(bubbleEl.parentElement, fullText);
-
-    } catch (err) {
-      typingEl?.remove();
-      if (err.name !== 'AbortError') {
-        appendAiMessage('⚠ Error de conexión: ' + err.message);
-      }
-    }
-
-    setGenerating(false);
-  }
-
-  function stopGeneration() {
-    if (abortController) {
-      abortController.abort();
-      abortController = null;
-    }
-    setGenerating(false);
-  }
-
-  // ── UI helpers ───────────────────────────────────────────
-  function setGenerating(val) {
-    isGenerating = val;
-    document.getElementById('send-btn').disabled = val;
-    document.getElementById('stop-btn').style.display = val ? 'flex' : 'none';
-  }
-
-  function appendUserMessage(text) {
-    const msgEl = document.createElement('div');
-    msgEl.className = 'msg msg-user';
-    msgEl.innerHTML = `
-      <div class="msg-header">Tú</div>
-      <div class="msg-bubble">${escapeHtml(text).replace(/\n/g,'<br>')}</div>
-    `;
-    document.getElementById('messages').appendChild(msgEl);
-    scrollToBottom();
-  }
-
-  function appendTypingIndicator() {
-    const msgEl = document.createElement('div');
-    msgEl.className = 'msg msg-ai';
-    msgEl.innerHTML = `
-      <div class="msg-header">DarkMatter IA</div>
-      <div class="typing-indicator">
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-      </div>
-    `;
-    document.getElementById('messages').appendChild(msgEl);
-    scrollToBottom();
-    return msgEl;
-  }
-
-  function appendAiMessageStreaming() {
-    const msgEl = document.createElement('div');
-    msgEl.className = 'msg msg-ai';
-
-    const bubbleEl = document.createElement('div');
-    bubbleEl.className = 'msg-bubble';
-
-    const contentEl = document.createElement('span');
-    const cursorEl = document.createElement('span');
-    cursorEl.className = 'stream-cursor';
-
-    bubbleEl.appendChild(contentEl);
-    bubbleEl.appendChild(cursorEl);
-
-    msgEl.innerHTML = '<div class="msg-header">DarkMatter IA</div>';
-    msgEl.appendChild(bubbleEl);
-
-    document.getElementById('messages').appendChild(msgEl);
-    scrollToBottom();
-    return { bubbleEl, contentEl, cursorEl };
-  }
-
-  function appendAiMessage(text) {
-    const msgEl = document.createElement('div');
-    msgEl.className = 'msg msg-ai';
-    msgEl.innerHTML = `
-      <div class="msg-header">DarkMatter IA</div>
-      <div class="msg-bubble">${formatMarkdown(text)}</div>
-    `;
-    addMessageActions(msgEl, text);
-    document.getElementById('messages').appendChild(msgEl);
-    scrollToBottom();
-  }
-
-  function addMessageActions(msgEl, text) {
-    const actionsEl = document.createElement('div');
-    actionsEl.className = 'msg-actions';
-    actionsEl.innerHTML = `
-      <button class="action-btn" title="Copiar" onclick="copyMsg(this, ${JSON.stringify(text)})">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-        </svg>
-        Copiar
-      </button>
-      <button class="action-btn" title="Regenerar" onclick="regenerate(this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-        </svg>
-        Regenerar
-      </button>
-    `;
-    msgEl.appendChild(actionsEl);
-  }
-
-  function copyMsg(btn, text) {
-    navigator.clipboard.writeText(text).then(() => {
-      const toast = document.getElementById('copy-toast');
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 2000);
-    });
-  }
-
-  async function regenerate(btn) {
-    if (isGenerating) return;
-    // Eliminar último mensaje del asistente
-    const msgEl = btn.closest('.msg');
-    if (messages[messages.length - 1]?.role === 'assistant') {
-      messages.pop();
-    }
-    msgEl.remove();
-
-    setGenerating(true);
-    const typingEl = appendTypingIndicator();
-    abortController = new AbortController();
-
-    // Construir array de mensajes con system prompt de idioma
-    const messagesWithSystem = [
-      { role: 'system', content: selectedLangPrompt },
-      ...messages
-    ];
-
-    try {
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        signal: abortController.signal,
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: messagesWithSystem,
-          stream: true,
-          max_tokens: 2048
-        })
-      });
 
       typingEl.remove();
       const { bubbleEl, contentEl, cursorEl } = appendAiMessageStreaming();
@@ -1233,7 +1218,170 @@
 
     } catch (err) {
       typingEl?.remove();
+      if (err.name !== 'AbortError') {
+        appendAiMessage('⚠ Error de conexión: ' + err.message);
+      }
     }
+
+    setGenerating(false);
+  }
+
+  function stopGeneration() {
+    if (abortController) { abortController.abort(); abortController = null; }
+    setGenerating(false);
+  }
+
+  // ── UI helpers ───────────────────────────────────────────
+  function setGenerating(val) {
+    isGenerating = val;
+    document.getElementById('send-btn').disabled = val;
+    document.getElementById('stop-btn').style.display = val ? 'flex' : 'none';
+  }
+
+  function appendUserMessage(text) {
+    const msgEl = document.createElement('div');
+    msgEl.className = 'msg msg-user';
+    msgEl.innerHTML = `
+      <div class="msg-label"><span class="msg-label-dot"></span>Tú</div>
+      <div class="msg-bubble">${escapeHtml(text).replace(/\n/g,'<br>')}</div>
+    `;
+    document.getElementById('messages').appendChild(msgEl);
+    scrollToBottom();
+  }
+
+  function appendTypingIndicator() {
+    const msgEl = document.createElement('div');
+    msgEl.className = 'msg msg-ai';
+    msgEl.innerHTML = `
+      <div class="msg-label"><span class="msg-label-dot"></span>DarkMatter IA</div>
+      <div class="typing-indicator">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>
+    `;
+    document.getElementById('messages').appendChild(msgEl);
+    scrollToBottom();
+    return msgEl;
+  }
+
+  function appendAiMessageStreaming() {
+    const msgEl = document.createElement('div');
+    msgEl.className = 'msg msg-ai';
+
+    const bubbleEl = document.createElement('div');
+    bubbleEl.className = 'msg-bubble';
+
+    const contentEl = document.createElement('span');
+    const cursorEl = document.createElement('span');
+    cursorEl.className = 'stream-cursor';
+
+    bubbleEl.appendChild(contentEl);
+    bubbleEl.appendChild(cursorEl);
+
+    msgEl.innerHTML = '<div class="msg-label"><span class="msg-label-dot"></span>DarkMatter IA</div>';
+    msgEl.appendChild(bubbleEl);
+
+    document.getElementById('messages').appendChild(msgEl);
+    scrollToBottom();
+    return { bubbleEl, contentEl, cursorEl };
+  }
+
+  function appendAiMessage(text) {
+    const msgEl = document.createElement('div');
+    msgEl.className = 'msg msg-ai';
+    msgEl.innerHTML = `
+      <div class="msg-label"><span class="msg-label-dot"></span>DarkMatter IA</div>
+      <div class="msg-bubble">${formatMarkdown(text)}</div>
+    `;
+    addMessageActions(msgEl, text);
+    document.getElementById('messages').appendChild(msgEl);
+    scrollToBottom();
+  }
+
+  function addMessageActions(msgEl, text) {
+    const actionsEl = document.createElement('div');
+    actionsEl.className = 'msg-actions';
+    actionsEl.innerHTML = `
+      <button class="action-btn" onclick="copyMsg(this, ${JSON.stringify(text)})">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+        Copiar
+      </button>
+      <button class="action-btn" onclick="regenerate(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+        Regenerar
+      </button>
+    `;
+    msgEl.appendChild(actionsEl);
+  }
+
+  function copyMsg(btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
+      const toast = document.getElementById('copy-toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    });
+  }
+
+  async function regenerate(btn) {
+    if (isGenerating) return;
+    const msgEl = btn.closest('.msg');
+    if (messages[messages.length - 1]?.role === 'assistant') messages.pop();
+    msgEl.remove();
+
+    setGenerating(true);
+    const typingEl = appendTypingIndicator();
+    abortController = new AbortController();
+
+    const messagesWithSystem = [
+      { role: 'system', content: selectedLangPrompt },
+      ...messages
+    ];
+
+    try {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        signal: abortController.signal,
+        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: messagesWithSystem, stream: true, max_tokens: 2048 })
+      });
+
+      typingEl.remove();
+      const { bubbleEl, contentEl, cursorEl } = appendAiMessageStreaming();
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        for (const line of chunk.split('\n')) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim();
+          if (data === '[DONE]') continue;
+          try {
+            const json = JSON.parse(data);
+            const delta = json.choices?.[0]?.delta?.content;
+            if (delta) {
+              fullText += delta;
+              contentEl.innerHTML = formatMarkdown(fullText);
+              contentEl.appendChild(cursorEl);
+              scrollToBottom();
+            }
+          } catch {}
+        }
+      }
+
+      cursorEl.remove();
+      messages.push({ role: 'assistant', content: fullText });
+      addMessageActions(bubbleEl.parentElement, fullText);
+
+    } catch (err) { typingEl?.remove(); }
 
     setGenerating(false);
   }
@@ -1243,19 +1391,17 @@
     msgs.scrollTop = msgs.scrollHeight;
   }
 
-  // ── Markdown básico ──────────────────────────────────────
+  // ── Markdown ─────────────────────────────────────────────
   function formatMarkdown(text) {
     return text
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      // bloques de código
       .replace(/```(\w*)\n?([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
-      // código inline
       .replace(/`([^`]+)`/g, '<code>$1</code>')
-      // negrita
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-      // cursiva
       .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-      // párrafos / saltos de línea
       .replace(/\n\n/g, '</p><p>')
       .replace(/\n/g, '<br>')
       .replace(/^(.+)$/, '<p>$1</p>');
@@ -1265,7 +1411,6 @@
     return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  // Enter en modal
   document.getElementById('api-key-input').addEventListener('keydown', e => {
     if (e.key === 'Enter') saveApiKey();
   });
