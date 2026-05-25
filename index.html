@@ -5,6 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>DarkMatter IA</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet"/>
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true,
+        processEnvironments: true
+      },
+      svg: {
+        fontCache: 'global'
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+      },
+      startup: {
+        ready() {
+          MathJax.startup.defaultReady();
+        }
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -44,7 +68,6 @@
       flex-direction: column;
     }
 
-    /* Fondo con partículas estáticas SVG */
     body::before {
       content: '';
       position: fixed;
@@ -58,7 +81,6 @@
       z-index: 0;
     }
 
-    /* Grid sutil */
     body::after {
       content: '';
       position: fixed;
@@ -156,7 +178,6 @@
       z-index: 1;
     }
 
-    /* ── SELECTOR DE IDIOMA ─────────────────────────── */
     .lang-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -205,7 +226,6 @@
       letter-spacing: 0.5px;
     }
 
-    /* ── INPUT MODAL ─────────────────────────────────── */
     .modal-input {
       width: 100%;
       background: var(--bg);
@@ -286,7 +306,6 @@
       overflow: hidden;
     }
 
-    /* ── HEADER ─────────────────────────────────────── */
     header {
       display: flex;
       align-items: center;
@@ -324,7 +343,6 @@
 
     .logo-mark svg { width: 100%; height: 100%; }
 
-    /* Anillo pulsante alrededor del logo */
     .logo-ring {
       position: absolute;
       inset: -3px;
@@ -409,7 +427,6 @@
       display: flex;
       flex-direction: column;
       gap: 20px;
-      scroll-behavior: smooth;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
     }
@@ -418,7 +435,6 @@
     #messages::-webkit-scrollbar-track { background: transparent; }
     #messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
-    /* ── WELCOME ──────────────────────────────────── */
     .welcome {
       display: flex;
       flex-direction: column;
@@ -542,13 +558,14 @@
     .msg-ai .msg-label-dot { background: var(--accent2); }
 
     .msg-bubble {
-      max-width: 78%;
-      padding: 14px 18px;
+      max-width: 92%;
+      padding: 16px 20px;
       border-radius: 3px;
       font-size: 13px;
-      line-height: 1.8;
+      line-height: 1.9;
       position: relative;
       word-break: break-word;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
     .msg-user .msg-bubble {
@@ -556,6 +573,7 @@
       border: 1px solid rgba(0,212,255,0.12);
       border-right: 2px solid var(--accent);
       border-radius: 3px 0 3px 3px;
+      font-family: 'DM Mono', monospace;
     }
 
     .msg-ai .msg-bubble {
@@ -565,7 +583,6 @@
       border-radius: 0 3px 3px 3px;
     }
 
-    /* Shimmer en burbuja IA */
     .msg-ai .msg-bubble::before {
       content: '';
       position: absolute;
@@ -575,41 +592,39 @@
       opacity: 0.3;
     }
 
-    /* ── ACCIONES MENSAJE ───────────────────────────── */
+    /* ── BOTONES DE ACCIÓN — siempre visibles al terminar ── */
     .msg-actions {
       display: flex;
-      gap: 4px;
-      margin-top: 6px;
-      padding: 0 6px;
-      opacity: 0;
-      transition: opacity .2s;
+      gap: 6px;
+      margin-top: 8px;
+      padding: 0 4px;
     }
 
-    .msg-ai:hover .msg-actions { opacity: 1; }
-
     .action-btn {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 3px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 4px;
       color: var(--text-dim);
       font-family: 'DM Mono', monospace;
       font-size: 10px;
-      padding: 5px 10px;
+      padding: 6px 12px;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 5px;
       transition: all .15s;
       letter-spacing: 0.5px;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
-    .action-btn:hover {
+    .action-btn:hover, .action-btn:active {
       border-color: rgba(0,212,255,0.4);
       color: var(--accent);
       background: var(--accent-glow);
     }
 
-    .action-btn svg { width: 11px; height: 11px; }
+    .action-btn svg { width: 11px; height: 11px; flex-shrink: 0; }
 
     /* ── TYPING ─────────────────────────────────────── */
     .typing-indicator {
@@ -669,12 +684,13 @@
     .input-wrapper {
       display: flex;
       gap: 8px;
-      align-items: flex-end;
+      align-items: center;
       background: var(--surface2);
       border: 1px solid var(--border2);
       border-radius: 4px;
       padding: 10px 12px;
       transition: border-color .2s, box-shadow .2s;
+      min-height: 56px;
     }
 
     .input-wrapper:focus-within {
@@ -693,12 +709,17 @@
       line-height: 1.55;
       resize: none;
       max-height: 120px;
-      min-height: 20px;
+      min-height: 36px;
       overflow-y: auto;
       -webkit-appearance: none;
+      padding: 8px 0;
     }
 
-    #user-input::placeholder { color: var(--text-muted); }
+    #user-input::placeholder {
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
     #user-input::-webkit-scrollbar { width: 2px; }
     #user-input::-webkit-scrollbar-thumb { background: var(--border); }
 
@@ -752,9 +773,7 @@
     }
 
     #send-btn:active:not(:disabled) { transform: translateY(0); }
-
     #send-btn:disabled { opacity: .35; cursor: not-allowed; }
-
     #send-btn svg { width: 14px; height: 14px; }
 
     .input-footer {
@@ -817,10 +836,9 @@
     @keyframes ringPulse { 0%,100% { opacity: .3; transform: scale(1); } 50% { opacity: .8; transform: scale(1.05); } }
     @keyframes orbRing { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-    /* ── SCROLLBAR GLOBAL ───────────────────────────── */
     * { scrollbar-width: thin; scrollbar-color: var(--border2) transparent; }
 
-    /* ── MARKDOWN ───────────────────────────────────── */
+    /* ── MARKDOWN Y MATH ────────────────────────────── */
     .msg-bubble code {
       font-family: 'DM Mono', monospace;
       background: rgba(0,212,255,0.07);
@@ -850,23 +868,85 @@
       font-size: inherit;
     }
 
-    .msg-bubble p { margin-bottom: 7px; }
+    .msg-bubble p { margin-bottom: 10px; }
     .msg-bubble p:last-child { margin-bottom: 0; }
-    .msg-bubble ul, .msg-bubble ol { padding-left: 16px; margin: 6px 0; }
-    .msg-bubble li { margin-bottom: 4px; }
-    .msg-bubble strong { color: var(--accent); font-weight: 600; }
-    .msg-bubble em { color: rgba(123,79,255,0.9); font-style: italic; }
-    .msg-bubble h1, .msg-bubble h2, .msg-bubble h3 {
+    .msg-bubble ul, .msg-bubble ol { padding-left: 20px; margin: 8px 0; }
+    .msg-bubble li { margin-bottom: 6px; line-height: 1.7; }
+    .msg-bubble strong { color: var(--accent); font-weight: 700; }
+    .msg-bubble em { color: rgba(200,180,255,0.95); font-style: italic; }
+
+    .msg-bubble h1, .msg-bubble h2, .msg-bubble h3, .msg-bubble h4 {
       font-family: 'Syne', sans-serif;
       font-weight: 700;
       color: var(--accent);
-      margin: 10px 0 6px;
+      margin: 16px 0 8px;
+      line-height: 1.3;
     }
-    .msg-bubble h1 { font-size: 16px; }
-    .msg-bubble h2 { font-size: 14px; }
-    .msg-bubble h3 { font-size: 13px; }
+    .msg-bubble h1 { font-size: 18px; border-bottom: 1px solid rgba(0,212,255,0.2); padding-bottom: 6px; }
+    .msg-bubble h2 { font-size: 16px; }
+    .msg-bubble h3 { font-size: 14px; color: rgba(0,212,255,0.85); }
+    .msg-bubble h4 { font-size: 13px; color: rgba(123,79,255,0.9); }
 
-    /* ── RESPONSIVE MÓVIL ───────────────────────────── */
+    .msg-bubble mjx-container {
+      color: var(--text);
+      max-width: 100%;
+      overflow-x: auto;
+    }
+
+    .msg-bubble mjx-container[display="true"] {
+      display: block;
+      text-align: center;
+      margin: 16px auto !important;
+      padding: 12px;
+      background: rgba(0,212,255,0.03);
+      border: 1px solid rgba(0,212,255,0.08);
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+
+    .msg-bubble hr {
+      border: none;
+      border-top: 1px solid var(--border2);
+      margin: 14px 0;
+    }
+
+    .msg-bubble blockquote {
+      border-left: 3px solid var(--accent2);
+      padding: 6px 12px;
+      margin: 10px 0;
+      color: var(--text-dim);
+      font-style: italic;
+      background: rgba(123,79,255,0.05);
+      border-radius: 0 4px 4px 0;
+    }
+
+    .msg-bubble table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 12px;
+    }
+
+    .msg-bubble th {
+      background: rgba(0,212,255,0.08);
+      color: var(--accent);
+      padding: 8px 12px;
+      text-align: left;
+      border: 1px solid var(--border2);
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+    }
+
+    .msg-bubble td {
+      padding: 7px 12px;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .msg-bubble tr:nth-child(even) td {
+      background: rgba(255,255,255,0.02);
+    }
+
     @media (max-width: 480px) {
       .lang-grid { grid-template-columns: repeat(4, 1fr); }
       .modal-box { padding: 32px 22px 28px; }
@@ -877,7 +957,6 @@
 </head>
 <body>
 
-<!-- Modal API Key -->
 <div id="api-modal">
   <div class="modal-box">
     <div class="modal-logo">Dark<span>Matter</span> IA</div>
@@ -944,7 +1023,6 @@
   </div>
 </div>
 
-<!-- App principal -->
 <div id="app">
   <header>
     <div class="header-brand">
@@ -1028,6 +1106,39 @@
   let selectedLangPrompt = localStorage.getItem('dm_lang_prompt') || 'Responde siempre en español, sin excepciones.';
   let selectedLangCode = localStorage.getItem('dm_lang_code') || 'es';
 
+  // Control de auto-scroll: solo hace scroll automático si el usuario
+  // está cerca del final. Así se elimina el efecto de rebote.
+  let userScrolledUp = false;
+
+  const messagesEl = document.getElementById('messages');
+
+  messagesEl.addEventListener('scroll', () => {
+    const distanceFromBottom = messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight;
+    userScrolledUp = distanceFromBottom > 80;
+  });
+
+  function scrollToBottom(force = false) {
+    if (force || !userScrolledUp) {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+  }
+
+  // ── System prompt ────────────────────────────────────────
+  const BASE_SYSTEM_PROMPT = `Eres DarkMatter IA, un asistente de inteligencia artificial avanzado.
+
+REGLAS DE FORMATO OBLIGATORIAS — DEBES CUMPLIRLAS SIEMPRE:
+1. Usa Markdown: **negrita**, *cursiva*, # Título, ## Subtítulo, ### Sección, listas con -, bloques de código con triple backtick.
+2. Para TODAS las fórmulas matemáticas, físicas o químicas DEBES usar LaTeX sin excepción:
+   - Inline (dentro del texto): $formula$   Ejemplo: La energía es $E = mc^2$
+   - Bloque (centrada, para ecuaciones importantes): $$formula$$
+   Más ejemplos correctos:
+   - $$\\beta = 10 \\cdot \\log_{10}\\left(\\frac{I}{I_0}\\right)$$
+   - El resultado es $\\beta \\approx 53{,}01 \\text{ dB}$
+3. NUNCA escribas fórmulas como texto plano como "\\beta = 10 \\cdot ..." sin los delimitadores $ o $$.
+4. Estructura tus respuestas con secciones claras usando ## y ###.
+5. Para resolver problemas usa siempre estas secciones: **Datos:**, **Fórmula:**, **Desarrollo:**, **Resultado:**.
+6. Usa listas numeradas para pasos secuenciales.`;
+
   // ── Init ────────────────────────────────────────────────
   window.onload = () => {
     document.querySelectorAll('.lang-btn').forEach(btn => {
@@ -1038,20 +1149,16 @@
     initTextarea();
   };
 
-  // ── Fix altura dinámica en móvil ─────────────────────────
+  // ── Altura dinámica móvil ────────────────────────────────
   function setDynamicHeight() {
     const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
     document.getElementById('app').style.height = vh + 'px';
   }
 
   if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', () => {
-      setDynamicHeight();
-      scrollToBottom();
-    });
+    window.visualViewport.addEventListener('resize', () => { setDynamicHeight(); });
     window.visualViewport.addEventListener('scroll', setDynamicHeight);
   }
-
   window.addEventListener('resize', setDynamicHeight);
 
   function showApp() {
@@ -1076,14 +1183,11 @@
     });
   }
 
-  // ── Chips de bienvenida ──────────────────────────────────
   function useChip(el) {
-    const text = el.textContent;
-    document.getElementById('user-input').value = text;
+    document.getElementById('user-input').value = el.textContent;
     sendMessage();
   }
 
-  // ── Idioma ───────────────────────────────────────────────
   function selectLang(btn) {
     document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
@@ -1160,12 +1264,16 @@
     input.value = '';
     input.style.height = 'auto';
 
+    // Resetear flag de scroll al enviar: ir al fondo
+    userScrolledUp = false;
+    scrollToBottom(true);
+
     setGenerating(true);
     const typingEl = appendTypingIndicator();
     abortController = new AbortController();
 
     const messagesWithSystem = [
-      { role: 'system', content: selectedLangPrompt },
+      { role: 'system', content: BASE_SYSTEM_PROMPT + '\n\n' + selectedLangPrompt },
       ...messages
     ];
 
@@ -1174,7 +1282,12 @@
         method: 'POST',
         signal: abortController.signal,
         headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: messagesWithSystem, stream: true, max_tokens: 2048 })
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: messagesWithSystem,
+          stream: true,
+          max_tokens: 4096
+        })
       });
 
       if (!res.ok) {
@@ -1186,7 +1299,7 @@
       }
 
       typingEl.remove();
-      const { bubbleEl, contentEl, cursorEl } = appendAiMessageStreaming();
+      const { msgEl, bubbleEl, contentEl, cursorEl } = appendAiMessageStreaming();
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let fullText = '';
@@ -1204,7 +1317,9 @@
             const delta = json.choices?.[0]?.delta?.content;
             if (delta) {
               fullText += delta;
-              contentEl.innerHTML = formatMarkdown(fullText);
+              // Durante streaming: mostrar texto plano con cursor, sin MathJax
+              // para evitar el scroll loco y el bug de fórmulas parciales
+              contentEl.textContent = fullText;
               contentEl.appendChild(cursorEl);
               scrollToBottom();
             }
@@ -1212,9 +1327,18 @@
         }
       }
 
+      // Streaming terminado: ahora sí renderizar Markdown + LaTeX
       cursorEl.remove();
+      contentEl.innerHTML = formatMarkdown(fullText);
       messages.push({ role: 'assistant', content: fullText });
-      addMessageActions(bubbleEl.parentElement, fullText);
+
+      // Añadir botones de acción
+      addMessageActions(msgEl, fullText);
+
+      // Renderizar MathJax solo al final, una sola vez
+      renderMath(contentEl, () => {
+        scrollToBottom(true);
+      });
 
     } catch (err) {
       typingEl?.remove();
@@ -1231,7 +1355,6 @@
     setGenerating(false);
   }
 
-  // ── UI helpers ───────────────────────────────────────────
   function setGenerating(val) {
     isGenerating = val;
     document.getElementById('send-btn').disabled = val;
@@ -1243,10 +1366,10 @@
     msgEl.className = 'msg msg-user';
     msgEl.innerHTML = `
       <div class="msg-label"><span class="msg-label-dot"></span>Tú</div>
-      <div class="msg-bubble">${escapeHtml(text).replace(/\n/g,'<br>')}</div>
+      <div class="msg-bubble">${escapeHtml(text).replace(/\n/g, '<br>')}</div>
     `;
-    document.getElementById('messages').appendChild(msgEl);
-    scrollToBottom();
+    messagesEl.appendChild(msgEl);
+    scrollToBottom(true);
   }
 
   function appendTypingIndicator() {
@@ -1260,8 +1383,8 @@
         <div class="typing-dot"></div>
       </div>
     `;
-    document.getElementById('messages').appendChild(msgEl);
-    scrollToBottom();
+    messagesEl.appendChild(msgEl);
+    scrollToBottom(true);
     return msgEl;
   }
 
@@ -1271,8 +1394,11 @@
 
     const bubbleEl = document.createElement('div');
     bubbleEl.className = 'msg-bubble';
+    // Estilo monospaced durante streaming para que se vea limpio
+    bubbleEl.style.fontFamily = "'DM Mono', monospace";
+    bubbleEl.style.whiteSpace = 'pre-wrap';
 
-    const contentEl = document.createElement('span');
+    const contentEl = document.createElement('div');
     const cursorEl = document.createElement('span');
     cursorEl.className = 'stream-cursor';
 
@@ -1282,63 +1408,128 @@
     msgEl.innerHTML = '<div class="msg-label"><span class="msg-label-dot"></span>DarkMatter IA</div>';
     msgEl.appendChild(bubbleEl);
 
-    document.getElementById('messages').appendChild(msgEl);
-    scrollToBottom();
-    return { bubbleEl, contentEl, cursorEl };
+    messagesEl.appendChild(msgEl);
+    scrollToBottom(true);
+    return { msgEl, bubbleEl, contentEl, cursorEl };
   }
 
   function appendAiMessage(text) {
     const msgEl = document.createElement('div');
     msgEl.className = 'msg msg-ai';
-    msgEl.innerHTML = `
-      <div class="msg-label"><span class="msg-label-dot"></span>DarkMatter IA</div>
-      <div class="msg-bubble">${formatMarkdown(text)}</div>
-    `;
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.innerHTML = formatMarkdown(text);
+
+    msgEl.innerHTML = '<div class="msg-label"><span class="msg-label-dot"></span>DarkMatter IA</div>';
+    msgEl.appendChild(bubble);
     addMessageActions(msgEl, text);
-    document.getElementById('messages').appendChild(msgEl);
-    scrollToBottom();
+    messagesEl.appendChild(msgEl);
+
+    renderMath(bubble, () => scrollToBottom(true));
   }
 
+  // ── Botones de acción — siempre visibles, copiar con fallback ──
   function addMessageActions(msgEl, text) {
     const actionsEl = document.createElement('div');
     actionsEl.className = 'msg-actions';
-    actionsEl.innerHTML = `
-      <button class="action-btn" onclick="copyMsg(this, ${JSON.stringify(text)})">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-        </svg>
-        Copiar
-      </button>
-      <button class="action-btn" onclick="regenerate(this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-        </svg>
-        Regenerar
-      </button>
+
+    // Botón copiar
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'action-btn';
+    copyBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2"/>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+      </svg>
+      Copiar
     `;
+    copyBtn.addEventListener('click', () => copyText(text, copyBtn));
+
+    // Botón regenerar
+    const regenBtn = document.createElement('button');
+    regenBtn.className = 'action-btn';
+    regenBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 4v6h-6"/>
+        <path d="M1 20v-6h6"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+      Regenerar
+    `;
+    regenBtn.addEventListener('click', () => regenerate(msgEl));
+
+    actionsEl.appendChild(copyBtn);
+    actionsEl.appendChild(regenBtn);
     msgEl.appendChild(actionsEl);
   }
 
-  function copyMsg(btn, text) {
-    navigator.clipboard.writeText(text).then(() => {
+  // Copiar con fallback para móviles que no soportan clipboard API
+  function copyText(text, btn) {
+    const originalHTML = btn.innerHTML;
+
+    const doSuccess = () => {
+      btn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        ¡Copiado!
+      `;
+      btn.style.color = 'var(--accent)';
+      btn.style.borderColor = 'rgba(0,212,255,0.4)';
       const toast = document.getElementById('copy-toast');
       toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 2000);
-    });
+      setTimeout(() => {
+        toast.classList.remove('show');
+        btn.innerHTML = originalHTML;
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      }, 2000);
+    };
+
+    // Intentar con clipboard API moderno
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(doSuccess).catch(() => {
+        // Fallback si falla
+        fallbackCopy(text, doSuccess);
+      });
+    } else {
+      // Fallback directo para navegadores que no soportan clipboard
+      fallbackCopy(text, doSuccess);
+    }
   }
 
-  async function regenerate(btn) {
+  function fallbackCopy(text, onSuccess) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.top = '-9999px';
+    ta.style.left = '-9999px';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try {
+      document.execCommand('copy');
+      onSuccess();
+    } catch (e) {
+      console.warn('No se pudo copiar:', e);
+    }
+    document.body.removeChild(ta);
+  }
+
+  async function regenerate(msgEl) {
     if (isGenerating) return;
-    const msgEl = btn.closest('.msg');
     if (messages[messages.length - 1]?.role === 'assistant') messages.pop();
     msgEl.remove();
 
+    userScrolledUp = false;
     setGenerating(true);
     const typingEl = appendTypingIndicator();
     abortController = new AbortController();
 
     const messagesWithSystem = [
-      { role: 'system', content: selectedLangPrompt },
+      { role: 'system', content: BASE_SYSTEM_PROMPT + '\n\n' + selectedLangPrompt },
       ...messages
     ];
 
@@ -1347,11 +1538,16 @@
         method: 'POST',
         signal: abortController.signal,
         headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: messagesWithSystem, stream: true, max_tokens: 2048 })
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: messagesWithSystem,
+          stream: true,
+          max_tokens: 4096
+        })
       });
 
       typingEl.remove();
-      const { bubbleEl, contentEl, cursorEl } = appendAiMessageStreaming();
+      const { msgEl: newMsgEl, bubbleEl, contentEl, cursorEl } = appendAiMessageStreaming();
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let fullText = '';
@@ -1369,7 +1565,7 @@
             const delta = json.choices?.[0]?.delta?.content;
             if (delta) {
               fullText += delta;
-              contentEl.innerHTML = formatMarkdown(fullText);
+              contentEl.textContent = fullText;
               contentEl.appendChild(cursorEl);
               scrollToBottom();
             }
@@ -1378,37 +1574,171 @@
       }
 
       cursorEl.remove();
+      contentEl.innerHTML = formatMarkdown(fullText);
       messages.push({ role: 'assistant', content: fullText });
-      addMessageActions(bubbleEl.parentElement, fullText);
+      addMessageActions(newMsgEl, fullText);
 
-    } catch (err) { typingEl?.remove(); }
+      renderMath(contentEl, () => scrollToBottom(true));
+
+    } catch (err) {
+      typingEl?.remove();
+    }
 
     setGenerating(false);
   }
 
-  function scrollToBottom() {
-    const msgs = document.getElementById('messages');
-    msgs.scrollTop = msgs.scrollHeight;
+  // ── Renderizar MathJax — solo al final, con callback ────
+  function renderMath(el, callback) {
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      // Quitar estilos de streaming antes de renderizar
+      const bubble = el.closest ? el.closest('.msg-bubble') : el;
+      if (bubble) {
+        bubble.style.fontFamily = '';
+        bubble.style.whiteSpace = '';
+      }
+      window.MathJax.typesetPromise([el])
+        .then(() => { if (callback) callback(); })
+        .catch(err => {
+          console.warn('MathJax error:', err);
+          if (callback) callback();
+        });
+    } else {
+      // MathJax aún no cargó, esperar y reintentar
+      setTimeout(() => renderMath(el, callback), 500);
+    }
   }
 
-  // ── Markdown ─────────────────────────────────────────────
-  function formatMarkdown(text) {
-    return text
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/```(\w*)\n?([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
-      .replace(/`([^`]+)`/g, '<code>$1</code>')
-      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/\n/g, '<br>')
-      .replace(/^(.+)$/, '<p>$1</p>');
+  // ── Formatear Markdown protegiendo LaTeX ─────────────────
+  function formatMarkdown(raw) {
+    const mathStore = [];
+
+    function saveMath(str) {
+      mathStore.push(str);
+      return `\x00MATH${mathStore.length - 1}\x00`;
+    }
+
+    let text = raw;
+
+    // Proteger $$ ... $$ primero (display)
+    text = text.replace(/\$\$([\s\S]*?)\$\$/g, (_, inner) => saveMath(`$$${inner}$$`));
+
+    // Proteger \[ ... \]
+    text = text.replace(/\\\[([\s\S]*?)\\\]/g, (_, inner) => saveMath(`\\[${inner}\\]`));
+
+    // Proteger \( ... \)
+    text = text.replace(/\\\(([^)]*?)\\\)/g, (_, inner) => saveMath(`\\(${inner}\\)`));
+
+    // Proteger $ ... $ inline (sin saltos de línea)
+    text = text.replace(/\$([^$\n]+?)\$/g, (_, inner) => saveMath(`$${inner}$`));
+
+    // Escapar HTML
+    text = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    // Bloques de código (proteger antes de procesar)
+    const codeStore = [];
+    text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+      const html = `<pre><code class="language-${lang}">${code.trim()}</code></pre>`;
+      codeStore.push(html);
+      return `\x00CODE${codeStore.length - 1}\x00`;
+    });
+
+    // Código inline
+    text = text.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+
+    // Encabezados
+    text = text.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+    text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    text = text.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    text = text.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+    // Negrita + itálica
+    text = text.replace(/\*\*\*([^*]+)\*\*\*/g, '<strong><em>$1</em></strong>');
+    text = text.replace(/___([^_]+)___/g, '<strong><em>$1</em></strong>');
+
+    // Negrita
+    text = text.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+    text = text.replace(/__([^_\n]+)__/g, '<strong>$1</strong>');
+
+    // Itálica
+    text = text.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+    text = text.replace(/_([^_\n]+)_/g, '<em>$1</em>');
+
+    // Tachado
+    text = text.replace(/~~([^~\n]+)~~/g, '<del>$1</del>');
+
+    // Separador
+    text = text.replace(/^---+$/gm, '<hr>');
+
+    // Blockquote
+    text = text.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+    text = text.replace(/<\/blockquote>\n<blockquote>/g, '\n');
+
+    // Listas ordenadas
+    text = text.replace(/^(\d+)\. (.+)$/gm, '<li data-ol="true">$2</li>');
+
+    // Listas desordenadas
+    text = text.replace(/^[\*\-\+] (.+)$/gm, '<li>$1</li>');
+
+    // Agrupar listas
+    text = text.replace(/((?:<li(?:[^>]*)>[\s\S]*?<\/li>\n?)+)/g, (match) => {
+      if (match.includes('data-ol="true"')) {
+        return `<ol>${match.replace(/ data-ol="true"/g, '')}</ol>`;
+      }
+      return `<ul>${match}</ul>`;
+    });
+    text = text.replace(/<\/ul>\s*<ul>/g, '');
+    text = text.replace(/<\/ol>\s*<ol>/g, '');
+
+    // Tablas
+    text = text.replace(/(\|.+\|\n\|[-| :]+\|\n(?:\|.+\|\n?)+)/g, (tableStr) => {
+      const rows = tableStr.trim().split('\n');
+      const headers = rows[0].split('|').filter(c => c.trim());
+      const body = rows.slice(2);
+      let html = '<table><thead><tr>';
+      headers.forEach(h => html += `<th>${h.trim()}</th>`);
+      html += '</tr></thead><tbody>';
+      body.forEach(row => {
+        const cols = row.split('|').filter(c => c.trim());
+        if (cols.length) {
+          html += '<tr>';
+          cols.forEach(c => html += `<td>${c.trim()}</td>`);
+          html += '</tr>';
+        }
+      });
+      html += '</tbody></table>';
+      return html;
+    });
+
+    // Párrafos
+    text = text.replace(/\n\n+/g, '</p><p>');
+    text = text.replace(/\n/g, '<br>');
+
+    if (!/^<(h[1-6]|ul|ol|pre|blockquote|table|hr|p)/.test(text.trim())) {
+      text = `<p>${text}</p>`;
+    }
+
+    // Limpiar párrafos vacíos
+    text = text.replace(/<p><\/p>/g, '');
+    text = text.replace(/<p>(<(?:h[1-6]|ul|ol|pre|blockquote|table|hr)[^>]*>)/g, '$1');
+    text = text.replace(/((?:<\/h[1-6]>|<\/ul>|<\/ol>|<\/pre>|<\/blockquote>|<\/table>|<hr>))<\/p>/g, '$1');
+
+    // Restaurar bloques de código
+    text = text.replace(/\x00CODE(\d+)\x00/g, (_, i) => codeStore[parseInt(i)]);
+
+    // Restaurar LaTeX
+    text = text.replace(/\x00MATH(\d+)\x00/g, (_, i) => mathStore[parseInt(i)]);
+
+    return text;
   }
 
   function escapeHtml(text) {
-    return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
   }
 
   document.getElementById('api-key-input').addEventListener('keydown', e => {
